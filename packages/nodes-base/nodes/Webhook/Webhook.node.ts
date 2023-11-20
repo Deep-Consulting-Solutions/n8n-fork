@@ -576,6 +576,9 @@ export class Webhook implements INodeType {
 
 				requestAuthData.tokenData = authData;
 			} catch (error) {
+				console.log('error authenticating with oauth2');
+				console.error('token', token);
+				console.error('error', error);
 				return authorizationError(
 					resp,
 					realm,
