@@ -66,7 +66,9 @@ export const findOptedOutChat = async (phone: string) => {
 		throw new Error('No base URL configured!');
 	}
 	const route = '/api/v1/db/data/v1/CustomBackend/Chat';
-	const where = `where=(Phone,eq,${phone})~and(~not(OptingState,in,hard opt out,soft opt out))`;
+	const where = `where=(Phone,eq,${encodeURIComponent(
+		phone,
+	)})~and(~not(OptingState,in,hard opt out,soft opt out))`;
 	const fields = 'fields=Id';
 	const limit = 'limit=1';
 	const url = `${baseURL}/${route}?${where}&${fields}&${limit}`;
