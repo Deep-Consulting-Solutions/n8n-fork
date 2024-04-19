@@ -122,12 +122,19 @@ export class Twilio implements INodeType {
 				description: 'The message to send',
 			},
 			{
-				displayName: `- Messages sent via Twilio can include up to 10 media files.
-			- supported mime types: <a href="https://www.twilio.com/docs/sms/accepted-mime-types">https://www.twilio.com/docs/sms/accepted-mime-types</a>
-			- images only restrictions: total size is up to 5MB. Twilio will resize images as necessary for successful delivery based on carrier specifications. Messages with over 5MB of media will not be accepted.
-			- other mime types Or other mime types + images restrictions:
-			according to this: <a href="https://support.twilio.com/hc/en-us/articles/360018832773-Twilio-Programmable-SMS-Supported-File-Types-and-Size-Limits-for-MMS-Media-Messages">https://support.twilio.com/hc/en-us/articles/360018832773-Twilio-Programmable-SMS-Supported-File-Types-and-Size-Limits-for-MMS-Media-Messages</a>
-			for long code numbers (the one we use) the maximum total size of attachments shouldn't exceed 1.0 MB if there are non image attachments.`,
+				displayName: `<ul>
+				<li>Messages sent via Twilio can include up to 10 media files.</li>
+				<li>supported mime types: <a
+						href="https://www.twilio.com/docs/sms/accepted-mime-types">https://www.twilio.com/docs/sms/accepted-mime-types</a>
+				</li>
+				<li>images only restrictions: total size is up to 5MB. Twilio will resize images as necessary for successful
+					delivery based on carrier specifications. Messages with over 5MB of media will not be accepted.</li>
+				<li>other mime types Or other mime types + images restrictions:
+					according to this: <a
+						href="https://support.twilio.com/hc/en-us/articles/360018832773-Twilio-Programmable-SMS-Supported-File-Types-and-Size-Limits-for-MMS-Media-Messages">https://support.twilio.com/hc/en-us/articles/360018832773-Twilio-Programmable-SMS-Supported-File-Types-and-Size-Limits-for-MMS-Media-Messages</a>
+					for long code numbers (the one we use) the maximum total size of attachments shouldn't exceed 1.0 MB if there
+					are non image attachments.</li>
+			</ul>`,
 				name: 'twilioMediaFilesNotice',
 				type: 'notice',
 				default: '',
@@ -142,7 +149,7 @@ export class Twilio implements INodeType {
 				displayName: 'Media Urls',
 				name: 'mediaUrls',
 				type: 'json',
-				default: '[]',
+				default: '',
 				displayOptions: {
 					show: {
 						operation: ['send'],
@@ -244,8 +251,14 @@ export class Twilio implements INodeType {
 						const from = this.getNodeParameter('from', i) as string;
 						const to = this.getNodeParameter('to', i) as string;
 						const message = this.getNodeParameter('message', i) as string;
-						const number = this.getNodeParameter('number', i) as string;
-						const messagingService = this.getNodeParameter('messagingService', i) as string;
+						let number = '';
+						let messagingService = '';
+						if (from === 'number') {
+							number = this.getNodeParameter('number', i) as string;
+						}
+						if (from === 'messagingService') {
+							messagingService = this.getNodeParameter('messagingService', i) as string;
+						}
 						const mediaUrlsRaw = this.getNodeParameter('mediaUrls', i) as string;
 						let mediaUrls: string[] = [];
 						const fallbackPhone = this.getNodeParameter('fallbackPhone', i) as string;
@@ -261,7 +274,7 @@ export class Twilio implements INodeType {
 						}
 
 						try {
-							mediaUrls = JSON.parse(mediaUrlsRaw);
+							mediaUrls = JSON.parse(mediaUrlsRaw || '[]');
 							if (!Array.isArray(mediaUrls)) {
 								throw new NodeOperationError(this.getNode(), 'mediaUrls should be an array', {
 									itemIndex: i,
