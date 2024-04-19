@@ -61,7 +61,6 @@ const messagingServiceNotice: INodeProperties[] = [
 			show: {
 				operation: ['send'],
 				resource: ['sms'],
-				[fromValue]: [messagingServiceValue],
 			},
 		},
 	},
