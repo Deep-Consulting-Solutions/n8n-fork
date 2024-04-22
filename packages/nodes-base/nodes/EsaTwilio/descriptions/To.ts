@@ -16,20 +16,6 @@ const toFieldProperties: INodeProperties = {
 	description: 'The number to which to send the message',
 };
 
-const smsReusableToOptions: INodeProperties[] = [
-	{
-		...toFieldProperties,
-		displayName: 'To - Main Phone',
-	},
-	{
-		...toFieldProperties,
-		displayName: 'To - Fallback Phone',
-		name: 'fallbackPhone',
-		required: false,
-		hint: "The SMS will be sent to this phone if the Main Phone is opted out. If it's also opted out then SMS sending will be skipped.",
-	},
-];
-
 export const toOptions: INodeProperties[] = [
 	{
 		displayName: 'To',
@@ -46,7 +32,17 @@ export const toOptions: INodeProperties[] = [
 		},
 		description: 'The number to which to send the message',
 	},
-	...(Boolean(process.env.SMS_CHAT_REUSABLE_USED) ? smsReusableToOptions : [toFieldProperties]),
+	{
+		...toFieldProperties,
+		displayName: 'To - Main Phone',
+	},
+	{
+		...toFieldProperties,
+		displayName: 'To - Fallback Phone',
+		name: 'fallbackPhone',
+		required: false,
+		hint: "The SMS will be sent to this phone if the Main Phone is opted out. If it's also opted out then SMS sending will be skipped.",
+	},
 	{
 		displayName: 'To Whatsapp',
 		name: 'toWhatsapp',
