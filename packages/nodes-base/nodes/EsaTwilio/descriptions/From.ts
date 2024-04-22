@@ -2,12 +2,11 @@ import type { INodeProperties } from 'n8n-workflow';
 
 export const messagingServiceValue = 'messagingService';
 const messagingServiceName = 'Messaging Service';
-const messagingServiceDefaultValue = process.env.SMS_MESSAGING_SERVICE_SID || '';
 export const numberValue = 'number';
 const numberName = 'Number';
 const fromValue = 'from';
-const isSmsChatReusableUsed = Boolean(process.env.SMS_CHAT_REUSABLE_USED);
-const defaultFrom = isSmsChatReusableUsed ? messagingServiceValue : numberValue;
+
+export const DEFAULT_MESSAGING_SERVICE_CUSTOM_SID = 'DEFAULT_MESSAGING_SERVICE_CUSTOM_SID';
 
 export const fromOptions: INodeProperties[] = [
 	{
@@ -30,7 +29,7 @@ export const fromOptions: INodeProperties[] = [
 				value: messagingServiceValue,
 			},
 		],
-		default: defaultFrom,
+		default: messagingServiceValue,
 		required: true,
 	},
 	{
@@ -50,21 +49,6 @@ export const fromOptions: INodeProperties[] = [
 	},
 ];
 
-const messagingServiceNotice: INodeProperties[] = [
-	{
-		displayName:
-			'The project messaging service should be used to receive message state updates from twilio to use it in the SMS chat reusable',
-		name: 'messagingServiceNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: {
-			show: {
-				operation: ['send'],
-				resource: ['sms'],
-			},
-		},
-	},
-];
 export const fromFields: INodeProperties[] = [
 	// ----------------------------------------
 	//           from: number
@@ -90,7 +74,19 @@ export const fromFields: INodeProperties[] = [
 	//            from: messaging service
 	// ----------------------------------------
 
-	...(isSmsChatReusableUsed ? messagingServiceNotice : []),
+	{
+		displayName:
+			'The project messaging service should be used to receive message state updates from twilio to use it in the SMS chat reusable',
+		name: 'messagingServiceNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: {
+			show: {
+				operation: ['send'],
+				resource: ['sms'],
+			},
+		},
+	},
 	{
 		displayName: messagingServiceName,
 		name: messagingServiceValue,
@@ -99,7 +95,7 @@ export const fromFields: INodeProperties[] = [
 			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
 		type: 'options',
 		required: true,
-		default: messagingServiceDefaultValue,
+		default: DEFAULT_MESSAGING_SERVICE_CUSTOM_SID,
 		displayOptions: {
 			show: {
 				operation: ['send'],
