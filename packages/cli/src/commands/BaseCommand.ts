@@ -79,6 +79,7 @@ export abstract class BaseCommand extends Command {
 	protected async exitWithCrash(message: string, error: unknown) {
 		ErrorReporter.error(new Error(message, { cause: error }), { level: 'fatal' });
 		await sleep(2000);
+		console.log(message, ' => ', error);
 		process.exit(1);
 	}
 
