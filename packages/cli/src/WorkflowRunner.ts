@@ -267,11 +267,17 @@ export class WorkflowRunner {
 						}
 						isTest = true;
 						const worfklowNodes = data.workflowData.nodes;
+						const dcsZohoNodes = [
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoCrm',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoDesk',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoSign',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoBooks',
+						]
 						for await (const node of worfklowNodes) {
 							const nodeOutput = await Db.collections.NodeOutput.findOneBy({
 								nodeId: node.id,
 							});
-							if (!nodeOutput && node.type === 'n8n-nodes-base.respondToWebhook') {
+							if (!nodeOutput && dcsZohoNodes.includes(node.type)) {
 								const error = new NodeOperationError(
 									webhookExecutionStack?.node,
 									'Some zoho nodes do not have output set',
