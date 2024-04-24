@@ -58,6 +58,8 @@ import type {
 	WorkflowRepository,
 	WorkflowStatisticsRepository,
 	WorkflowTagMappingRepository,
+	WorkflowTestRepository,
+	NodeOutputRepository,
 } from '@db/repositories';
 
 export interface IActivationError {
@@ -104,6 +106,8 @@ export interface IDatabaseCollections {
 	WorkflowStatistics: WorkflowStatisticsRepository;
 	WorkflowTagMapping: WorkflowTagMappingRepository;
 	SaveRequestLog: SaveRequestLogRepository;
+	WorkflowTest: WorkflowTestRepository;
+	NodeOutput: NodeOutputRepository;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 

@@ -1,8 +1,10 @@
 import { Entity, ManyToOne, PrimaryGeneratedColumn, Column, PrimaryColumn } from 'typeorm';
-import { WorkflowTest } from './WorkflowTest';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import type { WorkflowTest } from './WorkflowTest';
+import { AbstractEntity } from './AbstractEntity';
 
 @Entity({ name: 'node_output' })
-export class NodeOutput {
+export class NodeOutput extends AbstractEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
@@ -19,7 +21,7 @@ export class NodeOutput {
 		type: 'jsonb',
 		default: {},
 	})
-	data: unknown;
+	data: any;
 
 	@Column({ type: 'varchar' })
 	errorMessage: string;
