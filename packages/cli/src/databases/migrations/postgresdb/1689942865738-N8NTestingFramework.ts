@@ -10,6 +10,8 @@ export class N8NTestingFramework1689942863738 implements MigrationInterface {
                 "workflowId" character varying NOT NULL,
                 "name" text NOT NULL,
                 "description" text,
+                "createdAt" TIMESTAMP NOT NULL, 
+                "updatedAt" TIMESTAMP NOT NULL,
                 CONSTRAINT "PK_ae525a832798b58de2d89d46c10" PRIMARY KEY ("id")
             )
         `);
@@ -19,7 +21,9 @@ export class N8NTestingFramework1689942863738 implements MigrationInterface {
                 "workflowTestId" uuid NOT NULL,
                 "nodeId" character varying NOT NULL,
                 "data" jsonb DEFAULT '{}'::jsonb,
-                "errorMessage" character varying NOT NULL,
+                "errorMessage" character varying,
+                "createdAt" TIMESTAMP NOT NULL, 
+                "updatedAt" TIMESTAMP NOT NULL,
                 CONSTRAINT "PK_node_output" PRIMARY KEY ("workflowTestId", "nodeId"),
                 CONSTRAINT "FK_workflow_test_id" FOREIGN KEY ("workflowTestId") REFERENCES "workflow_test"("id") ON DELETE CASCADE
             )

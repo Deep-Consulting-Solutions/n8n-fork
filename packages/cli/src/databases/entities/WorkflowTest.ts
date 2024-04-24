@@ -9,9 +9,10 @@ import {
 	getConnection,
 } from 'typeorm';
 import type { NodeOutput } from './NodeOutput';
+import { AbstractEntity } from './AbstractEntity';
 
 @Entity({ name: 'workflow_test' })
-export class WorkflowTest {
+export class WorkflowTest extends AbstractEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
@@ -24,7 +25,7 @@ export class WorkflowTest {
 	@Column({ type: 'text', nullable: true })
 	description: string;
 
-	@OneToMany('WorkflowTest', 'workflow')
+	@OneToMany('NodeOutput', 'workflowTest')
 	nodeOutputs: NodeOutput[];
 
 	@BeforeInsert()

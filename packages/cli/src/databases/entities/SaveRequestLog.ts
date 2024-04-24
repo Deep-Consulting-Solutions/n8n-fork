@@ -23,13 +23,13 @@ export class SaveRequestLog extends AbstractEntity {
 		type: 'jsonb',
 		default: {},
 	})
-	request: unknown;
+	request: any;
 
 	@Column({
 		type: 'jsonb',
 		default: {},
 	})
-	response: unknown;
+	response: any;
 
 	@ManyToOne('WorkflowEntity', 'saveRequestLogs')
 	workflow: WorkflowEntity;

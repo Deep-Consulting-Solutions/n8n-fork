@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
@@ -26,6 +27,7 @@ import type {
 import {
 	ErrorReporterProxy as ErrorReporter,
 	LoggerProxy as Logger,
+	NodeOperationError,
 	Workflow,
 	WorkflowOperationError,
 } from 'n8n-workflow';
@@ -244,6 +246,47 @@ export class WorkflowRunner {
 			data.workflowData.staticData = await WorkflowHelpers.getStaticDataById(workflowId);
 		}
 
+		const nodeOutputs = [];
+		let isTest = false;
+		if (data.executionMode === 'webhook') {
+			const webhookExecutionStack = data.executionData?.executionData?.nodeExecutionStack[0];
+			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
+				const webhookExecutionData = webhookExecutionStack.data.main as any;
+				const testId = webhookExecutionData[0][0].json.query.testId;
+				if (testId) {
+					const workflowTest = await Db.collections.WorkflowTest.findOneBy({ name: testId });
+					if (workflowTest) {
+						if (workflowTest.workflowId !== workflowId) {
+							const error = new NodeOperationError(
+								webhookExecutionStack?.node,
+								`Test ID does not belong to the workflow with ${workflowId}`,
+							);
+							ErrorReporter.error(error);
+							await this.processError(error, new Date(), data.executionMode, '');
+							return workflowId!;
+						}
+						isTest = true;
+						const worfklowNodes = data.workflowData.nodes;
+						for await (const node of worfklowNodes) {
+							const nodeOutput = await Db.collections.NodeOutput.findOneBy({
+								nodeId: node.id,
+							});
+							if (!nodeOutput && node.type === 'n8n-nodes-base.respondToWebhook') {
+								const error = new NodeOperationError(
+									webhookExecutionStack?.node,
+									'Some zoho nodes do not have output set',
+								);
+								ErrorReporter.error(error);
+								await this.processError(error, new Date(), data.executionMode, '');
+								return workflowId;
+							}
+							if (nodeOutput) nodeOutputs.push(nodeOutput);
+						}
+					}
+				}
+			}
+		}
+
 		const nodeTypes = Container.get(NodeTypes);
 
 		// Soft timeout to stop workflow execution after current running node
@@ -340,7 +383,10 @@ export class WorkflowRunner {
 					data.executionMode,
 					data.executionData,
 				);
-				workflowExecution = workflowExecute.processRunExecutionData(workflow);
+				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
+					isTest,
+					nodeOutputs,
+				});
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);
 					return data;
