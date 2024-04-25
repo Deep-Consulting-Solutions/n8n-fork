@@ -29,6 +29,18 @@
 			</template>
 		</ModalRoot>
 
+		<ModalRoot :name="ADD_TEST_SUITE_MODAL_KEY">
+			<template #default="{ data }">
+				<AddTestSuiteModal :workFlowId="data?.workflow || ''" />
+			</template>
+		</ModalRoot>
+
+		<ModalRoot :name="EDIT_TEST_SUITE_MODAL_KEY">
+			<template #default="{ data }">
+				<EditTestSuiteModal :data="data" />
+			</template>
+		</ModalRoot>
+
 		<ModalRoot :name="PERSONALIZATION_MODAL_KEY">
 			<PersonalizationModal />
 		</ModalRoot>
@@ -125,6 +137,8 @@ import {
 	CHANGE_PASSWORD_MODAL_KEY,
 	COMMUNITY_PACKAGE_CONFIRM_MODAL_KEY,
 	COMMUNITY_PACKAGE_INSTALL_MODAL_KEY,
+	ADD_TEST_SUITE_MODAL_KEY,
+	EDIT_TEST_SUITE_MODAL_KEY,
 	CONTACT_PROMPT_MODAL_KEY,
 	CREDENTIAL_EDIT_MODAL_KEY,
 	CREDENTIAL_SELECT_MODAL_KEY,
@@ -170,6 +184,8 @@ import ImportCurlModal from './ImportCurlModal.vue';
 import WorkflowShareModal from './WorkflowShareModal.ee.vue';
 import WorkflowSuccessModal from './UserActivationSurveyModal.vue';
 import EventDestinationSettingsModal from '@/components/SettingsLogStreaming/EventDestinationSettingsModal.ee.vue';
+import AddTestSuiteModal from './AddTestSuiteModal.vue';
+import EditTestSuiteModal from './EditTestSuiteModal.vue';
 
 export default defineComponent({
 	name: 'Modals',
@@ -198,6 +214,8 @@ export default defineComponent({
 		ImportCurlModal,
 		EventDestinationSettingsModal,
 		WorkflowSuccessModal,
+		AddTestSuiteModal,
+		EditTestSuiteModal,
 	},
 	data: () => ({
 		COMMUNITY_PACKAGE_CONFIRM_MODAL_KEY,
@@ -223,6 +241,8 @@ export default defineComponent({
 		IMPORT_CURL_MODAL_KEY,
 		LOG_STREAM_MODAL_KEY,
 		USER_ACTIVATION_SURVEY_MODAL,
+		ADD_TEST_SUITE_MODAL_KEY,
+		EDIT_TEST_SUITE_MODAL_KEY,
 	}),
 });
 </script>

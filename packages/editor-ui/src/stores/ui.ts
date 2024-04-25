@@ -31,6 +31,8 @@ import {
 	WORKFLOW_SETTINGS_MODAL_KEY,
 	WORKFLOW_SHARE_MODAL_KEY,
 	USER_ACTIVATION_SURVEY_MODAL,
+	ADD_TEST_SUITE_MODAL_KEY,
+	EDIT_TEST_SUITE_MODAL_KEY,
 } from '@/constants';
 import type {
 	CurlToJSONResponse,
@@ -110,6 +112,12 @@ export const useUIStore = defineStore(STORES.UI, {
 				open: false,
 			},
 			[COMMUNITY_PACKAGE_INSTALL_MODAL_KEY]: {
+				open: false,
+			},
+			[ADD_TEST_SUITE_MODAL_KEY]: {
+				open: false,
+			},
+			[EDIT_TEST_SUITE_MODAL_KEY]: {
 				open: false,
 			},
 			[COMMUNITY_PACKAGE_CONFIRM_MODAL_KEY]: {

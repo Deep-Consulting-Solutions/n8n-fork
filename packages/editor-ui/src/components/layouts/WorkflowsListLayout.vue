@@ -9,22 +9,36 @@
 			<template #header>
 				<div class="mb-xs">
 					<div :class="$style['filters-row']">
-						<n8n-input :class="[$style['search'], 'mr-2xs']"
+						<n8n-input
+							:class="[$style['search'], 'mr-2xs']"
 							:placeholder="$locale.baseText(`${resourceKey}.search.placeholder`)"
-							v-model="filters.search" size="medium" clearable ref="search"
-							data-test-id="resources-list-search">
+							v-model="filters.search"
+							size="medium"
+							clearable
+							ref="search"
+							data-test-id="resources-list-search"
+						>
 							<template #prefix>
 								<n8n-icon icon="search" />
 							</template>
 						</n8n-input>
 						<div :class="$style['sort-and-filter']">
 							<n8n-select v-model="sortBy" size="medium" data-test-id="resources-list-sort">
-								<n8n-option v-for="sortOption in sortOptions" :key="sortOption" :value="sortOption"
-									:label="$locale.baseText(`${resourceKey}.sort.${sortOption}`)" />
+								<n8n-option
+									v-for="sortOption in sortOptions"
+									:key="sortOption"
+									:value="sortOption"
+									:label="$locale.baseText(`${resourceKey}.sort.${sortOption}`)"
+								/>
 							</n8n-select>
-							<resource-filters-dropdown v-if="showFiltersDropdown" :keys="filterKeys"
-								:reset="resetFilters" :value="filters" @input="$emit('update:filters', $event)"
-								@update:filtersLength="onUpdateFiltersLength">
+							<resource-filters-dropdown
+								v-if="showFiltersDropdown"
+								:keys="filterKeys"
+								:reset="resetFilters"
+								:value="filters"
+								@input="$emit('update:filters', $event)"
+								@update:filtersLength="onUpdateFiltersLength"
+							>
 								<template #default="resourceFiltersSlotProps">
 									<slot name="filters" v-bind="resourceFiltersSlotProps" />
 								</template>
@@ -49,18 +63,34 @@
 
 			<slot name="preamble" />
 
-			<div v-if="filteredAndSortedSubviewResources.length > 0" :class="$style.listWrapper" ref="listWrapperRef">
-				<n8n-recycle-scroller v-if="type === 'list'" data-test-id="resources-list"
-					:class="[$style.list, 'list-style-none']" :items="filteredAndSortedSubviewResources"
-					:item-size="typeProps.itemSize" item-key="id">
+			<div
+				v-if="filteredAndSortedSubviewResources.length > 0"
+				:class="$style.listWrapper"
+				ref="listWrapperRef"
+			>
+				<n8n-recycle-scroller
+					v-if="type === 'list'"
+					data-test-id="resources-list"
+					:class="[$style.list, 'list-style-none']"
+					:items="filteredAndSortedSubviewResources"
+					:item-size="typeProps.itemSize"
+					item-key="id"
+				>
 					<template #default="{ item, updateItemSize }">
 						<slot :data="item" :updateItemSize="updateItemSize" />
 					</template>
 				</n8n-recycle-scroller>
-				<n8n-datatable v-if="typeProps.columns" data-test-id="resources-table" :class="$style.datatable"
-					:columns="typeProps.columns" :rows="filteredAndSortedSubviewResources" :currentPage="currentPage"
-					:rowsPerPage="rowsPerPage" @update:currentPage="setCurrentPage"
-					@update:rowsPerPage="setRowsPerPage">
+				<n8n-datatable
+					v-if="typeProps.columns"
+					data-test-id="resources-table"
+					:class="$style.datatable"
+					:columns="typeProps.columns"
+					:rows="filteredAndSortedSubviewResources"
+					:currentPage="currentPage"
+					:rowsPerPage="rowsPerPage"
+					@update:currentPage="setCurrentPage"
+					@update:rowsPerPage="setRowsPerPage"
+				>
 					<template #row="{ columns, row }">
 						<slot :data="row" :columns="columns" />
 					</template>
@@ -73,24 +103,23 @@
 					<span v-if="!filters.search">
 						({{ $locale.baseText(`${resourceKey}.noResults.switchToShared.preamble`) }}
 						<n8n-link @click="setOwnerSubview(false)">
-							{{ $locale.baseText(`${resourceKey}.noResults.switchToShared.link`) }} </n8n-link>)
+							{{ $locale.baseText(`${resourceKey}.noResults.switchToShared.link`) }} </n8n-link
+						>)
 					</span>
 
 					<span v-else>
-						({{
-							$locale.baseText(`${resourceKey}.noResults.withSearch.switchToShared.preamble`)
-						}}
+						({{ $locale.baseText(`${resourceKey}.noResults.withSearch.switchToShared.preamble`) }}
 						<n8n-link @click="setOwnerSubview(false)">
 							{{
 								$locale.baseText(`${resourceKey}.noResults.withSearch.switchToShared.link`)
-							}} </n8n-link>)
+							}} </n8n-link
+						>)
 					</span>
 				</template>
 			</n8n-text>
 
 			<slot name="postamble" />
 		</page-view-layout-list>
-
 	</page-view-layout>
 </template>
 
@@ -164,7 +193,7 @@ export default mixins(showMessage, debounceHelper).extend({
 		},
 		initialize: {
 			type: Function as PropType<() => Promise<void>>,
-			default: () => async () => { },
+			default: () => async () => {},
 		},
 		filters: {
 			type: Object,
@@ -211,7 +240,6 @@ export default mixins(showMessage, debounceHelper).extend({
 	computed: {
 		...mapStores(useSettingsStore, useUsersStore),
 		subviewResources(): IResource[] {
-
 			return this.resources as IResource[];
 		},
 		filterKeys(): string[] {

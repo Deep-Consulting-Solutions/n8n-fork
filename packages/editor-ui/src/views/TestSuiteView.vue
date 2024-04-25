@@ -1,12 +1,10 @@
 <template>
-	<workflows-list-layout
+	<tests-list-layout
 		ref="layout"
-		resource-key="workflows"
-		:resources="allWorkflows"
-		:filters="filters"
-		:additional-filters-handler="onFilter"
+		:testSuites="testSuites"
 		:initialize="initialize"
-		@update:filters="filters = $event"
+		:currentWorkFlowName="currentWorkFlow?.name || ''"
+		@click:add="addTestSuite"
 	>
 		<template #default="{ data, updateItemSize }">
 			<test-suite-card
@@ -14,36 +12,17 @@
 				class="mb-2xs"
 				:data="data"
 				@expand:tags="updateItemSize(data)"
+				:isTestCard="true"
 			/>
 		</template>
 		<template #empty>
 			<div class="text-center mt-s">
 				<n8n-text size="large" color="text-base">
-					{{ $locale.baseText('testSuites.workflows.empty.description') }}
+					{{ $locale.baseText('testSuites.workflows.tests.empty.description') }}
 				</n8n-text>
 			</div>
 		</template>
-		<template #filters="{ setKeyValue }">
-			<div class="mb-s">
-				<n8n-input-label
-					:label="$locale.baseText('workflows.filters.status')"
-					:bold="false"
-					size="small"
-					color="text-base"
-					class="mb-3xs"
-				/>
-				<n8n-select :value="filters.status" @input="setKeyValue('status', $event)" size="medium">
-					<n8n-option
-						v-for="option in statusFilterOptions"
-						:key="option.label"
-						:label="option.label"
-						:value="option.value"
-					>
-					</n8n-option>
-				</n8n-select>
-			</div>
-		</template>
-	</workflows-list-layout>
+	</tests-list-layout>
 </template>
 
 <script lang="ts">
@@ -51,19 +30,18 @@ import { showMessage } from '@/mixins/showMessage';
 import mixins from 'vue-typed-mixins';
 
 import SettingsView from './SettingsView.vue';
-import WorkflowsListLayout from '@/components/layouts/WorkflowsListLayout.vue';
+import TestsListLayout from '@/components/layouts/TestsListLayout.vue';
 import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
 import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
 import TestSuiteCard from '@/components/TestSuiteCard.vue';
 import TemplateCard from '@/components/TemplateCard.vue';
 import { debounceHelper } from '@/mixins/debounce';
 import type Vue from 'vue';
-import type { IWorkflowDb } from '@/Interface';
+import type { IWorkflowDb, TestSuiteDb } from '@/Interface';
 import { mapStores } from 'pinia';
 import { useUIStore } from '@/stores/ui';
 import { useWorkflowsStore } from '@/stores/workflows';
-
-type IResourcesListLayoutInstance = Vue & { sendFiltersTelemetry: (source: string) => void };
+import { ADD_TEST_SUITE_MODAL_KEY } from '@/constants';
 
 const StatusFilter = {
 	ACTIVE: true,
@@ -74,7 +52,7 @@ const StatusFilter = {
 const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 	name: 'TestSuitesView',
 	components: {
-		WorkflowsListLayout,
+		TestsListLayout,
 		TemplateCard,
 		PageViewLayout,
 		PageViewLayoutList,
@@ -82,20 +60,15 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 		TestSuiteCard,
 	},
 	data() {
-		return {
-			filters: {
-				search: '',
-				ownedBy: '',
-				sharedWith: '',
-				status: StatusFilter.ALL,
-				tags: [] as string[],
-			},
-		};
+		return {};
 	},
 	computed: {
 		...mapStores(useUIStore, useWorkflowsStore),
-		allWorkflows(): IWorkflowDb[] {
-			return this.workflowsStore.allWorkflows;
+		currentWorkFlow(): IWorkflowDb | null {
+			return this.workflowsStore.workflowsById[this.$route.params.workflow] || null;
+		},
+		testSuites(): TestSuiteDb[] {
+			return this.workflowsStore.allTestSuites;
 		},
 		hasActiveWorkflows(): boolean {
 			return !!this.workflowsStore.activeWorkflows.length;
@@ -119,32 +92,23 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 	},
 	methods: {
 		async initialize() {
-			await Promise.all([
-				this.workflowsStore.fetchAllWorkflows(),
-				this.workflowsStore.fetchActiveWorkflows(),
-			]);
+			await this.workflowsStore.fetchWorkflow(this.$route.params.workflow);
+			await this.workflowsStore.fetchWorkflowTestSuites(this.$route.params.workflow);
 		},
-		onFilter(
-			resource: IWorkflowDb,
-			filters: { tags: string[]; search: string; status: string | boolean },
-			matches: boolean,
-		): boolean {
-			if (filters.status !== '') {
-				matches = matches && resource.active === filters.status;
-			}
-
-			return matches;
+		addTestSuite() {
+			this.openAddTestModal();
 		},
-		sendFiltersTelemetry(source: string) {
-			(this.$refs.layout as IResourcesListLayoutInstance).sendFiltersTelemetry(source);
+		openAddTestModal(): void {
+			this.uiStore.openModalWithData({
+				name: ADD_TEST_SUITE_MODAL_KEY,
+				data: { workflow: this.$route.params.workflow },
+			});
 		},
 	},
-	watch: {
-		'filters.tags'() {
-			this.sendFiltersTelemetry('tags');
-		},
+	watch: {},
+	mounted() {
+		this.workflowsStore.resetWorkflowTestSuites();
 	},
-	mounted() {},
 });
 
 export default TestSuitesView;
