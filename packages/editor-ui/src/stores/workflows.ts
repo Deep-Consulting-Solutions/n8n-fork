@@ -29,6 +29,8 @@ import type {
 	IWorkflowDataUpdate,
 	IWorkflowDb,
 	IWorkflowsMap,
+	TestSuiteDb,
+	TestSuiteDbMap,
 	WorkflowsState,
 } from '@/Interface';
 import { defineStore } from 'pinia';
@@ -64,8 +66,11 @@ import {
 	getExecutionData,
 	getExecutions,
 	getNewWorkflow,
+	getTestSuite,
 	getWorkflow,
 	getWorkflows,
+	patchTestSuite,
+	postTestSuite,
 } from '@/api/workflows';
 import { useUIStore } from './ui';
 import { dataPinningEventBus } from '@/event-bus';
@@ -114,6 +119,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 		workflowExecutionData: null,
 		workflowExecutionPairedItemMappings: {},
 		workflowsById: {},
+		testSuitesById: {},
 		subWorkflowExecutionError: null,
 		activeExecutionId: null,
 		executingNode: null,
@@ -142,6 +148,9 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 		},
 		allWorkflows(): IWorkflowDb[] {
 			return Object.values(this.workflowsById).sort((a, b) => a.name.localeCompare(b.name));
+		},
+		allTestSuites(): TestSuiteDb[] {
+			return Object.values(this.testSuitesById).sort((a, b) => a.name.localeCompare(b.name));
 		},
 		isNewWorkflow(): boolean {
 			return this.workflow.id === PLACEHOLDER_EMPTY_WORKFLOW_ID;
@@ -373,6 +382,29 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 			return workflows;
 		},
 
+		async fetchWorkflowTestSuites(workflowId: string): Promise<TestSuiteDb[]> {
+			const testSuites = await getTestSuite(workflowId);
+			this.setTestSuites(testSuites);
+			return testSuites;
+		},
+
+		async addWorkflowTestSuite(workflowId: string, description: string): Promise<TestSuiteDb[]> {
+			const testSuites = await postTestSuite(workflowId, description);
+			this.setTestSuites(testSuites);
+			return testSuites;
+		},
+
+		async updateWorkflowTestSuite(payload: {
+			workflowId: string;
+			testId: string;
+			id: string;
+			outputType: string;
+			error: string;
+			output: string;
+		}) {
+			await patchTestSuite(payload);
+		},
+
 		async fetchWorkflow(id: string): Promise<IWorkflowDb> {
 			const rootStore = useRootStore();
 			const workflow = await getWorkflow(rootStore.getRestApiContext, id);
@@ -490,6 +522,18 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 
 				return acc;
 			}, {});
+		},
+
+		setTestSuites(testSuites: TestSuiteDb[]): void {
+			this.testSuitesById = testSuites.reduce<TestSuiteDbMap>((acc, testSuite: TestSuiteDb) => {
+				if (testSuite.id) {
+					acc[testSuite.id] = testSuite;
+				}
+				return acc;
+			}, {});
+		},
+		resetWorkflowTestSuites(): void {
+			this.testSuitesById = {};
 		},
 
 		async deleteWorkflow(id: string): Promise<void> {
