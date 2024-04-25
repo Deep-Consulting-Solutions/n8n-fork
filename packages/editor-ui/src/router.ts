@@ -30,6 +30,7 @@ import CredentialsView from '@/views/CredentialsView.vue';
 import ExecutionsView from '@/views/ExecutionsView.vue';
 import WorkflowsView from '@/views/WorkflowsView.vue';
 import VariablesView from '@/views/VariablesView.vue';
+import TestSuitesView from '@/views/TestSuitesView.vue';
 import type { IPermissions } from './Interface';
 import { LOGIN_STATUS, ROLE } from '@/utils';
 import type { RouteConfigSingleView } from 'vue-router/types/router';
@@ -672,6 +673,24 @@ export const routes = [
 								return settingsStore.isCommunityNodesFeatureEnabled === false;
 							},
 						},
+					},
+				},
+			},
+			{
+				path: 'test-suites',
+				name: VIEWS.TEST_SUITES,
+				components: {
+					settingsView: TestSuitesView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+					},
+					permissions: {
+						allow: {
+							loginStatus: [LOGIN_STATUS.LoggedIn],
+						},
+						deny: {},
 					},
 				},
 			},
