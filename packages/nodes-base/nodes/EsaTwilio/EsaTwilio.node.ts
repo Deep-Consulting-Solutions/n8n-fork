@@ -325,7 +325,6 @@ export class EsaTwilio implements INodeType {
 								{ itemIndex: i },
 							);
 						}
-
 						if (isSmsChatReusableUsed) {
 							const mainPhoneOptedOutChat = await findOptedOutChat(to);
 							if (mainPhoneOptedOutChat) {
