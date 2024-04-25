@@ -12,9 +12,9 @@
 					<div>
 						<n8n-heading tag="h2" size="xlarge">
 							{{
-								$locale.baseText('testSuites.workflows.tests.node.heading', {
-									interpolate: { id: currentTestSuiteName },
-								})
+							$locale.baseText('testSuites.workflows.tests.node.heading', {
+							interpolate: { id: currentTestSuiteName },
+							})
 							}}
 						</n8n-heading>
 					</div>
@@ -27,12 +27,8 @@
 			</template>
 
 			<div v-if="workFlowNodes.length > 0" :class="$style.listWrapper" ref="listWrapperRef">
-				<n8n-recycle-scroller
-					:class="[$style.list, 'list-style-none']"
-					:items="workFlowNodes"
-					item-key="id"
-					:item-size="0"
-				>
+				<n8n-recycle-scroller :class="[$style.list, 'list-style-none']" :items="workFlowNodes" item-key="id"
+					:item-size="0">
 					<template #default="{ item, updateItemSize }">
 						<slot :data="item" :updateItemSize="updateItemSize" />
 					</template>

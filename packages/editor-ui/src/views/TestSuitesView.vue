@@ -1,20 +1,9 @@
 <template>
-	<workflows-list-layout
-		ref="layout"
-		resource-key="workflows"
-		:resources="allWorkflows"
-		:filters="filters"
-		:additional-filters-handler="onFilter"
-		:initialize="initialize"
-		@update:filters="filters = $event"
-	>
+	<workflows-list-layout ref="layout" resource-key="workflows" :resources="allWorkflows" :filters="filters"
+		:additional-filters-handler="onFilter" :initialize="initialize" @update:filters="filters = $event">
 		<template #default="{ data, updateItemSize }">
-			<test-suite-card
-				data-test-id="resources-list-item"
-				class="mb-2xs"
-				:data="data"
-				@expand:tags="updateItemSize(data)"
-			/>
+			<test-suite-card data-test-id="resources-list-item" class="mb-2xs" :data="data"
+				@expand:tags="updateItemSize(data)" />
 		</template>
 		<template #empty>
 			<div class="text-center mt-s">
@@ -25,20 +14,11 @@
 		</template>
 		<template #filters="{ setKeyValue }">
 			<div class="mb-s">
-				<n8n-input-label
-					:label="$locale.baseText('workflows.filters.status')"
-					:bold="false"
-					size="small"
-					color="text-base"
-					class="mb-3xs"
-				/>
+				<n8n-input-label :label="$locale.baseText('workflows.filters.status')" :bold="false" size="small"
+					color="text-base" class="mb-3xs" />
 				<n8n-select :value="filters.status" @input="setKeyValue('status', $event)" size="medium">
-					<n8n-option
-						v-for="option in statusFilterOptions"
-						:key="option.label"
-						:label="option.label"
-						:value="option.value"
-					>
+					<n8n-option v-for="option in statusFilterOptions" :key="option.label" :label="option.label"
+						:value="option.value">
 					</n8n-option>
 				</n8n-select>
 			</div>
@@ -162,7 +142,7 @@ export default TestSuitesView;
 	display: inline-flex;
 	height: 230px;
 
-	& + & {
+	&+& {
 		margin-left: var(--spacing-s);
 	}
 

@@ -109,22 +109,14 @@
 
 		<ModalRoot :name="COMMUNITY_PACKAGE_CONFIRM_MODAL_KEY">
 			<template #default="{ modalName, activeId, mode }">
-				<CommunityPackageManageConfirmModal
-					:modalName="modalName"
-					:activePackageName="activeId"
-					:mode="mode"
-				/>
+				<CommunityPackageManageConfirmModal :modalName="modalName" :activePackageName="activeId" :mode="mode" />
 			</template>
 		</ModalRoot>
 
 		<ModalRoot :name="LOG_STREAM_MODAL_KEY">
 			<template #default="{ modalName, data }">
-				<EventDestinationSettingsModal
-					:modalName="modalName"
-					:destination="data.destination"
-					:isNew="data.isNew"
-					:eventBus="data.eventBus"
-				/>
+				<EventDestinationSettingsModal :modalName="modalName" :destination="data.destination" :isNew="data.isNew"
+					:eventBus="data.eventBus" />
 			</template>
 		</ModalRoot>
 	</div>

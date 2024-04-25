@@ -2,13 +2,7 @@
 	<n8n-card :class="$style.cardLink">
 		<div :class="$style.cardDescription">
 			<div :class="$style.flex1">
-				<n8n-heading
-					tag="h2"
-					bold
-					class="ph-no-capture"
-					:class="$style.cardHeading"
-					data-test-id="workflow-card-name"
-				>
+				<n8n-heading tag="h2" bold class="ph-no-capture" :class="$style.cardHeading" data-test-id="workflow-card-name">
 					Name: {{ data.name }}
 					<br />
 					ID: {{ data.id }}
@@ -107,6 +101,7 @@ export default mixins(showMessage).extend({
 	align-items: center;
 	flex: 1;
 }
+
 .flexNorm {
 	display: flex;
 	flex-direction: row;

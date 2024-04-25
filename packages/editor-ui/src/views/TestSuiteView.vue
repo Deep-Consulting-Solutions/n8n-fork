@@ -1,19 +1,9 @@
 <template>
-	<tests-list-layout
-		ref="layout"
-		:testSuites="testSuites"
-		:initialize="initialize"
-		:currentWorkFlowName="currentWorkFlow?.name || ''"
-		@click:add="addTestSuite"
-	>
+	<tests-list-layout ref="layout" :testSuites="testSuites" :initialize="initialize"
+		:currentWorkFlowName="currentWorkFlow?.name || ''" @click:add="addTestSuite">
 		<template #default="{ data, updateItemSize }">
-			<test-suite-card
-				data-test-id="resources-list-item"
-				class="mb-2xs"
-				:data="data"
-				@expand:tags="updateItemSize(data)"
-				:isTestCard="true"
-			/>
+			<test-suite-card data-test-id="resources-list-item" class="mb-2xs" :data="data"
+				@expand:tags="updateItemSize(data)" :isTestCard="true" />
 		</template>
 		<template #empty>
 			<div class="text-center mt-s">
@@ -126,7 +116,7 @@ export default TestSuitesView;
 	display: inline-flex;
 	height: 230px;
 
-	& + & {
+	&+& {
 		margin-left: var(--spacing-s);
 	}
 

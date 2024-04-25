@@ -1,25 +1,18 @@
 <template>
 	<n8n-card :class="$style.cardLink" @click="onClick">
 		<template #header>
-			<n8n-heading
-				tag="h2"
-				bold
-				class="ph-no-capture"
-				:class="$style.cardHeading"
-				data-test-id="workflow-card-name"
-			>
+			<n8n-heading tag="h2" bold class="ph-no-capture" :class="$style.cardHeading" data-test-id="workflow-card-name">
 				{{ data.name }}
 			</n8n-heading>
 		</template>
 		<div :class="$style.cardDescription">
 			<div :class="$style.flex1">
 				<n8n-text color="text-light" size="small">
-					<span v-show="data"
-						>{{ $locale.baseText('workflows.item.updated') }} <time-ago :date="data.updatedAt" />
+					<span v-show="data">{{ $locale.baseText('workflows.item.updated') }} <time-ago :date="data.updatedAt" />
 						|
 					</span>
-					<span v-show="data" class="mr-2xs"
-						>{{ $locale.baseText('workflows.item.created') }} {{ formattedCreatedAtDate }}
+					<span v-show="data" class="mr-2xs">{{ $locale.baseText('workflows.item.created') }} {{ formattedCreatedAtDate
+						}}
 					</span>
 				</n8n-text>
 				<div v-if="isTestCard" :class="$style.flex1">

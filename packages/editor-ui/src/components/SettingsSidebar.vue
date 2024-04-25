@@ -261,7 +261,6 @@ export default mixins(userHelpers).extend({
 }
 
 @media screen and (max-height: 420px) {
-
 	.updatesSubmenu,
 	.versionContainer {
 		display: none;

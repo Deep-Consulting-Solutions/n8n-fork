@@ -1,11 +1,7 @@
 <template>
-	<tests-list-node-layout
-		ref="layout"
-		:workFlowNodes="currentWorkFlow?.nodes"
-		:initialize="initialize"
+	<tests-list-node-layout ref="layout" :workFlowNodes="currentWorkFlow?.nodes" :initialize="initialize"
 		:currentTestSuiteName="currentTestSuite?.name || ''"
-		:currentTestSuiteDescription="currentTestSuite?.description || ''"
-	>
+		:currentTestSuiteDescription="currentTestSuite?.description || ''">
 		<template #default="{ data }">
 			<test-suite-node-card class="mb-2xs" :data="data" />
 		</template>
@@ -80,7 +76,7 @@ export default TestSuiteNodeView;
 	display: inline-flex;
 	height: 230px;
 
-	& + & {
+	&+& {
 		margin-left: var(--spacing-s);
 	}
 

@@ -7,17 +7,12 @@
 		</div>
 		<template v-else>
 			<div v-if="testSuites.length === 0">
-				<n8n-action-box
-					:heading="
+				<n8n-action-box :heading="
 						$locale.baseText('testSuites.workflows.tests.heading', {
 							interpolate: { name: currentWorkFlowName },
 						})
-					"
-					:description="$locale.baseText('testSuites.workflows.tests.empty.description')"
-					:buttonText="$locale.baseText('testSuites.add')"
-					buttonType="secondary"
-					@click="$emit('click:add', $event)"
-				/>
+					" :description="$locale.baseText('testSuites.workflows.tests.empty.description')"
+					:buttonText="$locale.baseText('testSuites.add')" buttonType="secondary" @click="$emit('click:add', $event)" />
 			</div>
 			<page-view-layout-list v-else>
 				<template #header>
@@ -25,19 +20,14 @@
 						<div>
 							<n8n-heading tag="h2" size="xlarge">
 								{{
-									$locale.baseText('testSuites.workflows.tests.heading', {
-										interpolate: { name: currentWorkFlowName },
-									})
+								$locale.baseText('testSuites.workflows.tests.heading', {
+								interpolate: { name: currentWorkFlowName },
+								})
 								}}
 							</n8n-heading>
 						</div>
 						<div>
-							<n8n-button
-								size="large"
-								block
-								:disabled="disabled"
-								@click="$emit('click:add', $event)"
-							>
+							<n8n-button size="large" block :disabled="disabled" @click="$emit('click:add', $event)">
 								{{ $locale.baseText('testSuites.add') }}
 							</n8n-button>
 						</div>
@@ -45,12 +35,8 @@
 				</template>
 
 				<div v-if="testSuites.length > 0" :class="$style.listWrapper" ref="listWrapperRef">
-					<n8n-recycle-scroller
-						:class="[$style.list, 'list-style-none']"
-						:items="testSuites"
-						item-key="id"
-						:item-size="0"
-					>
+					<n8n-recycle-scroller :class="[$style.list, 'list-style-none']" :items="testSuites" item-key="id"
+						:item-size="0">
 						<template #default="{ item, updateItemSize }">
 							<slot :data="item" :updateItemSize="updateItemSize" />
 						</template>

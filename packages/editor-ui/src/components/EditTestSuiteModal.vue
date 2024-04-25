@@ -1,82 +1,41 @@
 <template>
-	<Modal
-		width="540px"
-		:name="EDIT_TEST_SUITE_MODAL_KEY"
-		:title="
+	<Modal width="540px" :name="EDIT_TEST_SUITE_MODAL_KEY" :title="
 			$locale.baseText('testSuites.editTestSuite.title', {
 				interpolate: { name: data.name },
 			})
-		"
-		:eventBus="modalBus"
-		:center="true"
-		:beforeClose="onModalClose"
-		:showClose="!loading"
-	>
+		" :eventBus="modalBus" :center="true" :beforeClose="onModalClose" :showClose="!loading">
 		<template #content>
 			<div :class="[$style.formContainer, 'mt-m']">
-				<n8n-radio-buttons
-					size="small"
-					:value="selectedType"
-					@input="onTypeSelected"
-					:options="[
+				<n8n-radio-buttons size="small" :value="selectedType" @input="onTypeSelected" :options="[
 						{ label: $locale.baseText('parameterInput.test.error'), value: 'error' },
 						{ label: $locale.baseText('parameterInput.test.output'), value: 'output' },
-					]"
-				/>
+					]" />
 
 				<div :class="['mt-2xl']">
-					<n8n-input-label
-						v-if="selectedType === 'error'"
-						:class="$style.labelTooltip"
-						:label="$locale.baseText('testSuites.editTest.error.label')"
-					>
-						<n8n-input
-							name="error"
-							v-model="error"
-							type="text"
-							:placeholder="''"
-							:required="true"
-							:disabled="loading"
-						/>
+					<n8n-input-label v-if="selectedType === 'error'" :class="$style.labelTooltip"
+						:label="$locale.baseText('testSuites.editTest.error.label')">
+						<n8n-input name="error" v-model="error" type="text" :placeholder="''" :required="true"
+							:disabled="loading" />
 					</n8n-input-label>
 
-					<n8n-input-label
-						v-if="selectedType === 'output'"
-						:class="$style.labelTooltip"
-						:label="$locale.baseText('testSuites.editTest.output.label')"
-					>
-						<n8n-input
-							name="output"
-							v-model="output"
-							type="text"
-							:placeholder="''"
-							:required="true"
-							:disabled="loading"
-						/>
+					<n8n-input-label v-if="selectedType === 'output'" :class="$style.labelTooltip"
+						:label="$locale.baseText('testSuites.editTest.output.label')">
+						<n8n-input name="output" v-model="output" type="text" :placeholder="''" :required="true"
+							:disabled="loading" />
 					</n8n-input-label>
 				</div>
 				<div :class="[$style.infoText, 'mt-4xs']">
-					<span
-						size="small"
-						:class="[$style.infoText, infoTextErrorMessage ? $style.error : '']"
-						v-text="infoTextErrorMessage"
-					></span>
+					<span size="small" :class="[$style.infoText, infoTextErrorMessage ? $style.error : '']"
+						v-text="infoTextErrorMessage"></span>
 				</div>
 			</div>
 		</template>
 		<template #footer>
-			<n8n-button
-				:loading="loading"
-				:disabled="disabled || loading"
-				:label="
+			<n8n-button :loading="loading" :disabled="disabled || loading" :label="
 					loading
 						? $locale.baseText('testSuites.editTest.saveButton.label.loading')
 						: $locale.baseText('testSuites.editTest.saveButton.label')
-				"
-				size="large"
-				float="right"
-				@click="onSave"
-			/>
+				" size="large" float="right" @click="onSave" />
 		</template>
 	</Modal>
 </template>
@@ -183,9 +142,10 @@ export default mixins(showMessage).extend({
 	background-color: var(--color-background-light);
 
 	button {
-		& > span {
+		&>span {
 			flex-direction: row-reverse;
-			& > span {
+
+			&>span {
 				margin-left: var(--spacing-3xs);
 			}
 		}
@@ -216,13 +176,16 @@ export default mixins(showMessage).extend({
 <style lang="scss">
 .el-tooltip__popper {
 	max-width: 240px;
+
 	img {
 		width: 100%;
 	}
+
 	p {
 		line-height: 1.2;
 	}
-	p + p {
+
+	p+p {
 		margin-top: var(--spacing-2xs);
 	}
 }

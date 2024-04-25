@@ -1,52 +1,25 @@
 <template>
-	<Modal
-		width="540px"
-		:name="ADD_TEST_SUITE_MODAL_KEY"
-		:title="$locale.baseText('testSuites.addTestSuite.title')"
-		:eventBus="modalBus"
-		:center="true"
-		:beforeClose="onModalClose"
-		:showClose="!loading"
-	>
+	<Modal width="540px" :name="ADD_TEST_SUITE_MODAL_KEY" :title="$locale.baseText('testSuites.addTestSuite.title')"
+		:eventBus="modalBus" :center="true" :beforeClose="onModalClose" :showClose="!loading">
 		<template #content>
 			<div :class="[$style.formContainer, 'mt-m']">
-				<n8n-input-label
-					:class="$style.labelTooltip"
-					:label="$locale.baseText('testSuites.addTest.description.label')"
-					:tooltipText="$locale.baseText('testSuites.addTest.description.tooltip')"
-				>
-					<n8n-input
-						name="description"
-						v-model="description"
-						type="text"
-						:maxlength="300"
-						:placeholder="''"
-						:required="true"
-						:disabled="loading"
-					/>
+				<n8n-input-label :class="$style.labelTooltip" :label="$locale.baseText('testSuites.addTest.description.label')"
+					:tooltipText="$locale.baseText('testSuites.addTest.description.tooltip')">
+					<n8n-input name="description" v-model="description" type="text" :maxlength="300" :placeholder="''"
+						:required="true" :disabled="loading" />
 				</n8n-input-label>
 				<div :class="[$style.infoText, 'mt-4xs']">
-					<span
-						size="small"
-						:class="[$style.infoText, infoTextErrorMessage ? $style.error : '']"
-						v-text="infoTextErrorMessage"
-					></span>
+					<span size="small" :class="[$style.infoText, infoTextErrorMessage ? $style.error : '']"
+						v-text="infoTextErrorMessage"></span>
 				</div>
 			</div>
 		</template>
 		<template #footer>
-			<n8n-button
-				:loading="loading"
-				:disabled="!description || loading"
-				:label="
+			<n8n-button :loading="loading" :disabled="!description || loading" :label="
 					loading
 						? $locale.baseText('testSuites.addTest.saveButton.label.loading')
 						: $locale.baseText('testSuites.addTest.saveButton.label')
-				"
-				size="large"
-				float="right"
-				@click="onAddClick"
-			/>
+				" size="large" float="right" @click="onAddClick" />
 		</template>
 	</Modal>
 </template>
@@ -125,9 +98,10 @@ export default mixins(showMessage).extend({
 	background-color: var(--color-background-light);
 
 	button {
-		& > span {
+		&>span {
 			flex-direction: row-reverse;
-			& > span {
+
+			&>span {
 				margin-left: var(--spacing-3xs);
 			}
 		}
@@ -158,13 +132,16 @@ export default mixins(showMessage).extend({
 <style lang="scss">
 .el-tooltip__popper {
 	max-width: 240px;
+
 	img {
 		width: 100%;
 	}
+
 	p {
 		line-height: 1.2;
 	}
-	p + p {
+
+	p+p {
 		margin-top: var(--spacing-2xs);
 	}
 }
