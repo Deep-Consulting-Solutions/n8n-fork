@@ -31,6 +31,7 @@ import ExecutionsView from '@/views/ExecutionsView.vue';
 import WorkflowsView from '@/views/WorkflowsView.vue';
 import VariablesView from '@/views/VariablesView.vue';
 import TestSuitesView from '@/views/TestSuitesView.vue';
+import TestSuiteView from '@/views/TestSuiteView.vue';
 import type { IPermissions } from './Interface';
 import { LOGIN_STATUS, ROLE } from '@/utils';
 import type { RouteConfigSingleView } from 'vue-router/types/router';
@@ -44,6 +45,7 @@ import SignoutView from '@/views/SignoutView.vue';
 import SamlOnboarding from '@/views/SamlOnboarding.vue';
 import SettingsVersionControl from './views/SettingsVersionControl.vue';
 import { usePostHog } from './stores/posthog';
+import TestSuiteNodeView from './views/TestSuiteNodeView.vue';
 
 Vue.use(Router);
 
@@ -685,6 +687,53 @@ export const routes = [
 				meta: {
 					telemetry: {
 						pageCategory: 'settings',
+					},
+					permissions: {
+						allow: {
+							loginStatus: [LOGIN_STATUS.LoggedIn],
+						},
+						deny: {},
+					},
+				},
+			},
+			{
+				path: 'test-suites/:workflow',
+				name: VIEWS.TEST_SUITE,
+				components: {
+					settingsView: TestSuiteView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+						getProperties(route: Route) {
+							return {
+								workflow: route.params['workflow'],
+							};
+						},
+					},
+					permissions: {
+						allow: {
+							loginStatus: [LOGIN_STATUS.LoggedIn],
+						},
+						deny: {},
+					},
+				},
+			},
+			{
+				path: 'test-suites/:workflow/:test',
+				name: VIEWS.TEST_SUITE_NODES,
+				components: {
+					settingsView: TestSuiteNodeView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+						getProperties(route: Route) {
+							return {
+								workflow: route.params['workflow'],
+								test: route.params['test'],
+							};
+						},
 					},
 					permissions: {
 						allow: {
