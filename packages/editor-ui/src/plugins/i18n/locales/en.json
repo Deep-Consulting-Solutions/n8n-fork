@@ -1570,6 +1570,7 @@
 	"workflows.empty.heading": "👋 Welcome {name}!",
 	"workflows.empty.heading.userNotSetup": "👋 Welcome!",
 	"workflows.empty.description": "Create your first workflow",
+	"testSuites.workflows.empty.description": "You have no workflow",
 	"workflows.empty.startFromScratch": "Start from scratch",
 	"workflows.shareModal.title": "Share '{name}'",
 	"workflows.shareModal.select.placeholder": "Add users...",
@@ -1649,7 +1650,6 @@
 	"contextual.credentials.sharing.unavailable.button": "View plans",
 	"contextual.credentials.sharing.unavailable.button.cloud": "Upgrade now",
 	"contextual.credentials.sharing.unavailable.button.desktop": "View plans",
-
 	"contextual.workflows.sharing.title": "Sharing",
 	"contextual.workflows.sharing.unavailable.title": "Sharing",
 	"contextual.workflows.sharing.unavailable.title.cloud": "Upgrade to collaborate",
@@ -1663,7 +1663,6 @@
 	"contextual.workflows.sharing.unavailable.button": "View plans",
 	"contextual.workflows.sharing.unavailable.button.cloud": "Upgrade now",
 	"contextual.workflows.sharing.unavailable.button.desktop": "View plans",
-
 	"contextual.variables.unavailable.title": "Available on Enterprise plan",
 	"contextual.variables.unavailable.title.cloud": "Available on Power plan",
 	"contextual.variables.unavailable.title.desktop": "Upgrade to n8n Cloud to collaborate",
@@ -1671,7 +1670,6 @@
 	"contextual.variables.unavailable.button": "View plans",
 	"contextual.variables.unavailable.button.cloud": "Upgrade now",
 	"contextual.variables.unavailable.button.desktop": "View plans",
-
 	"contextual.users.settings.unavailable.title": "Upgrade to add users",
 	"contextual.users.settings.unavailable.title.cloud": "Upgrade to add users",
 	"contextual.users.settings.unavailable.title.desktop": "Upgrade to add users",
@@ -1681,15 +1679,13 @@
 	"contextual.users.settings.unavailable.button": "View plans",
 	"contextual.users.settings.unavailable.button.cloud": "Upgrade now",
 	"contextual.users.settings.unavailable.button.desktop": "View plans",
-
 	"contextual.communityNodes.unavailable.description.desktop": "Community nodes feature is unavailable on desktop. Please choose one of our available self-hosting plans.",
 	"contextual.communityNodes.unavailable.button.desktop": "View plans",
-
 	"contextual.upgradeLinkUrl": "https://subscription.n8n.io/",
 	"contextual.upgradeLinkUrl.cloud": "https://app.n8n.cloud/account/change-plan",
 	"contextual.upgradeLinkUrl.desktop": "https://n8n.io/pricing/?utm_source=n8n-internal&utm_medium=desktop",
-
 	"settings.ldap": "LDAP",
+	"settings.testSuites": "Test Suites",
 	"settings.ldap.note": "LDAP allows users to authenticate with their centralized account. It's compatible with services that provide an LDAP interface like Active Directory, Okta and Jumpcloud.",
 	"settings.ldap.infoTip": "Learn more about <a href='https://docs.n8n.io/user-management/ldap/' target='_blank'>LDAP in the Docs</a>",
 	"settings.ldap.save": "Save connection",
