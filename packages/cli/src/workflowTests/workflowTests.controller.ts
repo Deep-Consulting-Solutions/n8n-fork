@@ -100,7 +100,7 @@ workflowTestsController.get(
  * GET workflowTest nodes output /workflow-tests/nodes-output/:workflowTestId
  */
 workflowTestsController.get(
-	'nodes-output/:workflowTestId',
+	'/nodes-output/:workflowTestId',
 	ResponseHelper.send(async (req: WorkflowTestRequest.GetNodesOutput) => {
 		const workflowTest = await Db.collections.WorkflowTest.findOne({
 			where: { id: req.params.workflowTestId },
@@ -117,7 +117,7 @@ workflowTestsController.get(
  * POST creates nodes output /nodes-output/workflow-tests/:workflowTestId
  */
 workflowTestsController.post(
-	'nodes-output/:workflowTestId',
+	'/nodes-output/:workflowTestId',
 	ResponseHelper.send(async (req: WorkflowTestRequest.CreatNodesOutput) => {
 		const workflowTest = await Db.collections.WorkflowTest.findOne({
 			where: { id: req.params.workflowTestId },
@@ -151,7 +151,7 @@ workflowTestsController.post(
  * PUT updates nodes output /nodes-output/workflow-tests/:workflowTestId
  */
 workflowTestsController.put(
-	'nodes-output/:workflowTestId',
+	'/nodes-output/:workflowTestId',
 	ResponseHelper.send(async (req: WorkflowTestRequest.UpdateNodesOutput) => {
 		const workflowTest = await Db.collections.WorkflowTest.findOne({
 			where: { id: req.params.workflowTestId },
