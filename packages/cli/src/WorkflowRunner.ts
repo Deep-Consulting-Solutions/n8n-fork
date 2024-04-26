@@ -272,7 +272,7 @@ export class WorkflowRunner {
 							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoDesk',
 							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoSign',
 							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoBooks',
-						]
+						];
 						for await (const node of worfklowNodes) {
 							const nodeOutput = await Db.collections.NodeOutput.findOneBy({
 								nodeId: node.id,

@@ -60,6 +60,7 @@ import type {
 	WorkflowTagMappingRepository,
 	WorkflowTestRepository,
 	NodeOutputRepository,
+	ResumeWorkflowTimerRepository,
 } from '@db/repositories';
 
 export interface IActivationError {
@@ -108,6 +109,7 @@ export interface IDatabaseCollections {
 	SaveRequestLog: SaveRequestLogRepository;
 	WorkflowTest: WorkflowTestRepository;
 	NodeOutput: NodeOutputRepository;
+	ResumeWorkflowTimer: ResumeWorkflowTimerRepository;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 

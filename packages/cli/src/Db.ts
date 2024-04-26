@@ -42,6 +42,7 @@ import {
 	WorkflowTagMappingRepository,
 	WorkflowTestRepository,
 	NodeOutputRepository,
+	ResumeWorkflowTimerRepository,
 } from '@db/repositories';
 
 export let isInitialized = false;
@@ -190,6 +191,7 @@ export async function init(
 	collections.SaveRequestLog = Container.get(SaveRequestLogRepository);
 	collections.WorkflowTest = Container.get(WorkflowTestRepository);
 	collections.NodeOutput = Container.get(NodeOutputRepository);
+	collections.ResumeWorkflowTimer = Container.get(ResumeWorkflowTimerRepository);
 
 	isInitialized = true;
 
