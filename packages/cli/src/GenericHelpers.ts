@@ -19,6 +19,8 @@ import * as Db from '@/Db';
 import type { ICredentialsDb, IExecutionDb, IExecutionFlattedDb, IWorkflowDb } from '@/Interfaces';
 import * as ResponseHelper from '@/ResponseHelper';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
+import type { WorkflowTest } from '@db/entities/WorkflowTest';
+import type { NodeOutput } from '@db/entities/NodeOutput';
 import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import type { TagEntity } from '@db/entities/TagEntity';
 import type { User } from '@db/entities/User';
@@ -100,7 +102,14 @@ export async function generateUniqueName(
 }
 
 export async function validateEntity(
-	entity: WorkflowEntity | CredentialsEntity | TagEntity | User | UserUpdatePayload,
+	entity:
+		| WorkflowEntity
+		| CredentialsEntity
+		| TagEntity
+		| User
+		| UserUpdatePayload
+		| WorkflowTest
+		| NodeOutput,
 ): Promise<void> {
 	const errors = await validate(entity);
 

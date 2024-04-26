@@ -23,6 +23,7 @@ import { DataRecoveryActivity } from './DataRecoveryActivity';
 import { ServerIncident } from './ServerIncident';
 import { NodeOutput } from './NodeOutput';
 import { WorkflowTest } from './WorkflowTest';
+import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
 
 export const entities = {
 	AuthIdentity,
@@ -49,4 +50,5 @@ export const entities = {
 	ServerIncident,
 	NodeOutput,
 	WorkflowTest,
+	ResumeWorkflowTimer,
 };

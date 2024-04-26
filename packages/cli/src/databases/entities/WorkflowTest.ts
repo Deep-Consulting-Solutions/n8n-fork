@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	OneToMany,
-	BeforeInsert,
-	getConnection,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from 'typeorm';
+import * as Db from '../../Db';
 import type { NodeOutput } from './NodeOutput';
 import { AbstractEntity } from './AbstractEntity';
 
@@ -30,7 +24,7 @@ export class WorkflowTest extends AbstractEntity {
 
 	@BeforeInsert()
 	async generateSequentialName() {
-		const count: number = await getConnection().getRepository(WorkflowTest).count();
+		const count: number = await Db.collections.WorkflowTest.count();
 		this.name = `WorkflowTest_${count + 1}`;
 	}
 }
