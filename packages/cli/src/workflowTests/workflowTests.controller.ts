@@ -188,6 +188,8 @@ workflowTestsController.put(
 		console.log(nodeData);
 
 		const updatedNodeOutput = await Db.collections.NodeOutput.update(nodeKey, nodeData);
+		console.log(updatedNodeOutput);
+		// await Db.collections.NodeOutput.save(updatedNodeOutput);
 
 		if (!updatedNodeOutput) {
 			LoggerProxy.error('Failed to update node output', { userId: req.user.id });

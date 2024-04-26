@@ -40,6 +40,7 @@ import { AddSaveRequestLog1681134145998 } from './1681134145998-AddSaveRequestLo
 import { addIncidentHandlingTables1689942863738 } from './1689942863738-addIncidentHandlingTables';
 import { N8NTestingFramework1689942863738 } from './1689942865738-N8NTestingFramework';
 import { ResumeWorkflowTimerTable1689949863759 } from './1689949863759-ResumeWorfklowTimer';
+import { UpdateResumeWorfklowTimer1779949863759 } from './1779949863759-UpdateResumeWorfklowTimer';
 
 export const postgresMigrations = [
 	InitialMigration1587669153312,
@@ -84,4 +85,5 @@ export const postgresMigrations = [
 	addIncidentHandlingTables1689942863738,
 	N8NTestingFramework1689942863738,
 	ResumeWorkflowTimerTable1689949863759,
+	UpdateResumeWorfklowTimer1779949863759,
 ];
