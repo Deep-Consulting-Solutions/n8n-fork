@@ -163,8 +163,8 @@ workflowTestsController.put(
 		const nodeOutput = await Db.collections.NodeOutput.findOne({
 			where: { id: req.body.id },
 		});
-		console.log(nodeOutput);
-		if (!nodeOutput) {
+
+		if (!nodeOutput || !req.body.id || req.body.id !== nodeOutput.id) {
 			throw new ResponseHelper.BadRequestError('Node output not found');
 		}
 
@@ -188,8 +188,6 @@ workflowTestsController.put(
 		console.log(nodeData);
 
 		const updatedNodeOutput = await Db.collections.NodeOutput.update(nodeKey, nodeData);
-		console.log(updatedNodeOutput);
-		// await Db.collections.NodeOutput.save(updatedNodeOutput);
 
 		if (!updatedNodeOutput) {
 			LoggerProxy.error('Failed to update node output', { userId: req.user.id });
