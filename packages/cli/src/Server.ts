@@ -62,6 +62,7 @@ import { Queue } from '@/Queue';
 import { getSharedWorkflowIds } from '@/WorkflowHelpers';
 
 import { workflowsController } from '@/workflows/workflows.controller';
+import { workflowTestsController } from './workflowTests/workflowTests.controller';
 import {
 	EDITOR_UI_DIST_DIR,
 	GENERATED_STATIC_DIR,
@@ -543,6 +544,11 @@ class Server extends AbstractServer {
 		// Workflow
 		// ----------------------------------------
 		this.app.use(`/${this.restEndpoint}/workflows`, workflowsController);
+
+		// ----------------------------------------
+		// WorkflowTest
+		// ----------------------------------------
+		this.app.use(`/${this.restEndpoint}/workflow-tests`, workflowTestsController);
 
 		// ----------------------------------------
 		// License
