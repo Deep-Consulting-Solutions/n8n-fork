@@ -173,6 +173,7 @@ workflowTestsController.put(
 
 		const nodeOutputId = nodeOuput.id;
 		const nodeData = {
+			id: nodeOutputId,
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
 			data: req.body.outputType === 'data' ? req.body.data! : {},
