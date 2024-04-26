@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Entity, ManyToOne, PrimaryGeneratedColumn, Column, PrimaryColumn } from 'typeorm';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import type { WorkflowTest } from './WorkflowTest';
 import { AbstractEntity } from './AbstractEntity';
 

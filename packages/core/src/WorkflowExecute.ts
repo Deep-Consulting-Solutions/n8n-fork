@@ -787,8 +787,6 @@ export class WorkflowExecute {
 					throw error;
 				}
 
-				console.log(extraData);
-
 				executionLoop: while (
 					this.runExecutionData.executionData!.nodeExecutionStack.length !== 0
 				) {
@@ -808,8 +806,6 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
-
-					Logger.verbose(JSON.stringify(executionData));
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -975,7 +971,6 @@ export class WorkflowExecute {
 											const originalProjectId = process.env.DCS_CUSMTOM_BACKEND_PROJECT_ID || '';
 											const testProjectId = process.env.DCS_CUSMTOM_BACKEND_TEST_PROJECT_ID || '';
 											const originalProjectTables = await getProjectTables(originalProjectId);
-											console.log(originalProjectTables);
 											const originalTable = originalProjectTables?.find(
 												(t) => t.id === node.parameters.table,
 											);
@@ -990,7 +985,7 @@ export class WorkflowExecute {
 												(t) => t.table_name === originalTable.table_name,
 											);
 											if (!testTable) {
-												throw new NodeOperationError(node, 'Test table with not found');
+												throw new NodeOperationError(node, 'Test table not found');
 											}
 											executionData.node.parameters.projectId = testProjectId;
 											executionData.node.parameters.table = testTable?.id;
