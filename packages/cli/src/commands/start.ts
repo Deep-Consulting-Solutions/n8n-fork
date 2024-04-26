@@ -29,6 +29,7 @@ import { eventBus } from '@/eventbus';
 import { BaseCommand } from './BaseCommand';
 import { InternalHooks } from '@/InternalHooks';
 import { License } from '@/License';
+import { retryWorkflows } from '@/crons';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const open = require('open');
@@ -352,6 +353,8 @@ export class Start extends BaseCommand {
 		}
 
 		await Server.start();
+
+		const retryInterval = setInterval(retryWorkflows, 1000 * 60);
 
 		// Start to get active workflows and run their triggers
 		await this.activeWorkflowRunner.init();
