@@ -130,7 +130,7 @@ workflowTestsController.post(
 		const nodeData = {
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
-			data: req.body.outputType === 'data' ? req.body.data! : {},
+			data: req.body.outputType === 'data' ? req.body.data : {},
 			errorMessage: req.body.outputType === 'error' ? req.body.errorMessage : '',
 		};
 
@@ -160,27 +160,34 @@ workflowTestsController.put(
 			throw new ResponseHelper.BadRequestError('Workflow Test not found');
 		}
 
-		const nodeOuput = await Db.collections.NodeOutput.findOne({
+		const nodeOutput = await Db.collections.NodeOutput.findOne({
 			where: { id: req.body.id },
 		});
-		if (!nodeOuput) {
+		console.log(nodeOutput);
+		if (!nodeOutput) {
 			throw new ResponseHelper.BadRequestError('Node output not found');
 		}
 
-		if (nodeOuput.workflowTestId !== req.params.workflowTestId) {
+		if (nodeOutput.workflowTestId !== req.params.workflowTestId) {
 			throw new ResponseHelper.BadRequestError('Node output does not belong to the workflow test');
 		}
 
-		const nodeOutputId = nodeOuput.id;
+		const nodeOutputId = nodeOutput.id;
 		const nodeData = {
 			id: nodeOutputId,
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
-			data: req.body.outputType === 'data' ? req.body.data! : {},
+			data: req.body.outputType === 'data' ? req.body.data : {},
 			errorMessage: req.body.outputType === 'error' ? req.body.errorMessage : '',
 		};
+		const nodeKey = {
+			id: nodeOutputId,
+			workflowTestId: req.body.workflowTestId,
+			nodeId: req.body.nodeId,
+		};
+		console.log(nodeData);
 
-		const updatedNodeOutput = await Db.collections.NodeOutput.update(nodeOutputId, nodeData);
+		const updatedNodeOutput = await Db.collections.NodeOutput.update(nodeKey, nodeData);
 
 		if (!updatedNodeOutput) {
 			LoggerProxy.error('Failed to update node output', { userId: req.user.id });

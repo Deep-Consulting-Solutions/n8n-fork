@@ -123,19 +123,19 @@ export declare namespace WorkflowTestRequest {
 	type CreateNodePayload = Partial<{
 		workflowTestId: string;
 		outputType: string;
-		errorMessage: string;
+		errorMessage?: string;
 		nodeId: string;
-		data: object;
+		data?: object;
 	}>;
 
-	type UpdateNodePayload = Partial<{
+	type UpdateNodePayload = {
 		id: string;
 		workflowTestId: string;
 		outputType: string;
-		errorMessage: string;
+		errorMessage?: string;
 		nodeId: string;
-		data: object;
-	}>;
+		data?: object;
+	};
 
 	type Create = AuthenticatedRequest<{}, {}, CreateUpdatePayload>;
 
