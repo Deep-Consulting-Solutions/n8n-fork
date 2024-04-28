@@ -468,7 +468,10 @@ export class ExecutionsService {
 		return execution;
 	}
 
-	static async retryExecution(req: ExecutionRequest.Retry): Promise<boolean> {
+	static async retryExecution(
+		req: ExecutionRequest.Retry,
+		resumeWorkflowTimerId?: string,
+	): Promise<boolean> {
 		const sharedWorkflowIds = await this.getWorkflowIdsForUser(req.user);
 		if (!sharedWorkflowIds.length) return false;
 
@@ -585,6 +588,10 @@ export class ExecutionsService {
 
 		if (!executionData) {
 			throw new Error('The retry did not start for an unknown reason.');
+		}
+
+		if (resumeWorkflowTimerId) {
+			await Db.collections.ResumeWorkflowTimer.delete({ id: resumeWorkflowTimerId });
 		}
 
 		return !!executionData.finished;
