@@ -692,11 +692,18 @@ export class WorkflowExecute {
 	// eslint-disable-next-line @typescript-eslint/promise-function-async
 	processRunExecutionData(workflow: Workflow, extraData?: any): PCancelable<IRun> {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
+		// console.dir(workflow.nodeTypes, { depth: null });
+		console.dir(workflow.connectionsBySourceNode, { depth: null });
+		console.dir(workflow.connectionsByDestinationNode, { depth: null });
+		console.dir(workflow.staticData, { depth: null });
+		console.dir(workflow.settings, { depth: null });
+		// console.log(Object.keys(workflow));
 
 		const startedAt = new Date();
 
 		this.status = 'running';
 
+		console.dir(this.runExecutionData, { showHidden: true, depth: 3 });
 		const startNode = this.runExecutionData.executionData!.nodeExecutionStack[0].node.name;
 
 		let destinationNode: string | undefined;
@@ -806,6 +813,7 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
+					console.dir(executionData.data, { showHidden: true, depth: 3 });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -829,6 +837,7 @@ export class WorkflowExecute {
 						);
 					}
 					executionData.data = newTaskDataConnections;
+					console.dir(executionData.data, { showHidden: true, depth: 3 });
 
 					Logger.debug(`Start processing node "${executionNode.name}"`, {
 						node: executionNode.name,
@@ -954,6 +963,7 @@ export class WorkflowExecute {
 									node: executionNode.name,
 									workflowId: workflow.id,
 								});
+								// console.log(executionData);
 								if (extraData?.isTest) {
 									const node = executionData.node;
 									const nodeOutputData = extraData?.nodeOutputs?.find(

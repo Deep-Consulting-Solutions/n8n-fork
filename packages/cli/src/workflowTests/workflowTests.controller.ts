@@ -185,7 +185,6 @@ workflowTestsController.put(
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
 		};
-		console.log(nodeData);
 
 		const updatedNodeOutput = await Db.collections.NodeOutput.update(nodeKey, nodeData);
 
