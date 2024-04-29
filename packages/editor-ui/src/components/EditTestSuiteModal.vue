@@ -13,18 +13,18 @@
 		:showClose="!loading"
 	>
 		<template #content>
-			<div :class="[$style.formContainer, 'mt-m']">
+			<div :class="[$style.formContainer]">
 				<n8n-radio-buttons
-					size="small"
+					size="medium"
 					:value="selectedType"
 					@input="onTypeSelected"
 					:options="[
 						{ label: $locale.baseText('parameterInput.test.error'), value: 'error' },
-						{ label: $locale.baseText('parameterInput.test.output'), value: 'output' },
+						{ label: $locale.baseText('parameterInput.test.output'), value: 'data' },
 					]"
 				/>
 
-				<div :class="['mt-2xl']">
+				<div :class="['mt-l']">
 					<n8n-input-label
 						v-if="selectedType === 'error'"
 						:class="$style.labelTooltip"
@@ -41,7 +41,7 @@
 					</n8n-input-label>
 
 					<n8n-input-label
-						v-if="selectedType === 'output'"
+						v-if="selectedType === 'data'"
 						:class="$style.labelTooltip"
 						:label="$locale.baseText('testSuites.editTest.output.label')"
 					>
@@ -89,6 +89,7 @@ import { showMessage } from '@/mixins/showMessage';
 import { mapStores } from 'pinia';
 import { createEventBus } from '@/event-bus';
 import { useWorkflowsStore } from '@/stores';
+import type { NodeOutputDb } from '@/Interface';
 
 export default mixins(showMessage).extend({
 	name: 'EditTestSuiteModal',
@@ -112,6 +113,7 @@ export default mixins(showMessage).extend({
 			selectedType: '',
 			output: '',
 			error: '',
+			nodeOutputId: '',
 		};
 	},
 	computed: {
@@ -120,7 +122,7 @@ export default mixins(showMessage).extend({
 			if (!this.selectedType) {
 				return true;
 			}
-			if (this.selectedType === 'output' && !this.output) {
+			if (this.selectedType === 'data' && !this.output) {
 				return true;
 			}
 			if (this.selectedType === 'error' && !this.error) {
@@ -137,14 +139,21 @@ export default mixins(showMessage).extend({
 			try {
 				this.infoTextErrorMessage = '';
 				this.loading = true;
-				await this.workflowsStore.updateWorkflowTestSuite({
-					workflowId: this.$route.params.workflow,
-					testId: this.$route.params.test,
-					id: this.data.id,
-					outputType: this.selectedType,
-					error: this.error,
-					output: this.output,
-				});
+				const basePayload = {
+					workflowTestId: this.$route.params.test,
+					nodeId: this.data.id,
+					outputType: this.selectedType as NodeOutputDb['outputType'],
+					errorMessage: this.error,
+					data: this.output,
+				};
+				if (this.nodeOutputId) {
+					await this.workflowsStore.updateWorkflowTestSuite({
+						id: this.nodeOutputId,
+						...basePayload,
+					});
+				} else {
+					await this.workflowsStore.createWorkflowTestSuite(basePayload);
+				}
 				this.loading = false;
 				this.modalBus.emit('close');
 				this.$showMessage({
@@ -166,9 +175,10 @@ export default mixins(showMessage).extend({
 		},
 	},
 	mounted() {
-		this.output = this.data.output || '';
-		this.error = this.data.error || '';
-		this.selectedType = this.data.outputType || '';
+		this.nodeOutputId = this.data.nodeOutput.id;
+		this.output = this.data.nodeOutput.data || '';
+		this.error = this.data.nodeOutput.errorMessage || '';
+		this.selectedType = this.data.nodeOutput.outputType || 'data';
 	},
 });
 </script>
@@ -185,6 +195,7 @@ export default mixins(showMessage).extend({
 	button {
 		& > span {
 			flex-direction: row-reverse;
+
 			& > span {
 				margin-left: var(--spacing-3xs);
 			}
@@ -216,12 +227,15 @@ export default mixins(showMessage).extend({
 <style lang="scss">
 .el-tooltip__popper {
 	max-width: 240px;
+
 	img {
 		width: 100%;
 	}
+
 	p {
 		line-height: 1.2;
 	}
+
 	p + p {
 		margin-top: var(--spacing-2xs);
 	}

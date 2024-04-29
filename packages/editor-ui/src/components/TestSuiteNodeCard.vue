@@ -1,7 +1,7 @@
 <template>
 	<n8n-card :class="$style.cardLink">
 		<div :class="$style.cardDescription">
-			<div :class="$style.flex1">
+			<div :class="$style.headerWrapper">
 				<n8n-heading
 					tag="h2"
 					bold
@@ -9,18 +9,21 @@
 					:class="$style.cardHeading"
 					data-test-id="workflow-card-name"
 				>
-					Name: {{ data.name }}
+					Name: <n8n-text color="text-base"> {{ data.name }}</n8n-text>
 					<br />
-					ID: {{ data.id }}
+					ID: <n8n-text color="text-base"> {{ data.id }}</n8n-text>
 					<br />
-					Type: {{ data.type || '' }}
+					Type: <n8n-text color="text-base"> {{ data.type || '' }}</n8n-text>
 				</n8n-heading>
 			</div>
 
 			<div :class="$style.flex1">
-				<n8n-text size="large" color="text-base">
-					{{ getOutput(data.id) }}
-				</n8n-text>
+				<div v-show="nodeOutput.outputType">
+					<n8n-text bold> {{ displayedOutputType }}: </n8n-text>
+					<n8n-text color="text-base">
+						{{ displayedContent }}
+					</n8n-text>
+				</div>
 			</div>
 			<div :class="$style.flexNorm">
 				<n8n-button size="large" @click="editTestOutput">
@@ -34,16 +37,27 @@
 <script lang="ts">
 import mixins from 'vue-typed-mixins';
 import { showMessage } from '@/mixins/showMessage';
-import type Vue from 'vue';
 import { mapStores } from 'pinia';
 import { useUIStore } from '@/stores/ui';
 import { useWorkflowsStore } from '@/stores/workflows';
 import { EDIT_TEST_SUITE_MODAL_KEY } from '@/constants';
+import type { NodeOutputDb } from '@/Interface';
 
 export default mixins(showMessage).extend({
 	name: 'test-suite-node-card',
 	data() {
-		return {};
+		return {
+			displayedContent: '',
+			displayedOutputType: '',
+			nodeOutput: {
+				id: '',
+				workflowTestId: '',
+				outputType: null,
+				nodeId: '',
+				errorMessage: '',
+				data: null,
+			} as NodeOutputDb,
+		};
 	},
 	components: {},
 	props: {
@@ -60,18 +74,58 @@ export default mixins(showMessage).extend({
 	computed: {
 		...mapStores(useUIStore, useWorkflowsStore),
 	},
+	created() {
+		this.getNodeOutput();
+	},
 	methods: {
-		getOutput(id: string) {
-			return id;
+		async handleNodeOutputsChange() {
+			await this.getNodeOutput();
+		},
+		async getNodeOutput() {
+			const nodeId = this.data.id;
+			let nodeOutput = this.workflowsStore.nodeOutputsById[nodeId] || {};
+			let outputType = null;
+			let displayedContent = '';
+			let displayedOutputType = '';
+
+			if (nodeOutput.data) {
+				displayedContent = nodeOutput.data;
+				outputType = 'data' as const;
+				displayedOutputType = 'Output';
+			} else if (nodeOutput.errorMessage) {
+				displayedContent = nodeOutput.errorMessage;
+				outputType = 'error' as const;
+				displayedOutputType = 'Error';
+			}
+
+			this.displayedContent = displayedContent;
+			this.displayedOutputType = displayedOutputType;
+
+			nodeOutput = {
+				...nodeOutput,
+				outputType,
+			};
+
+			this.nodeOutput = nodeOutput;
 		},
 		editTestOutput() {
 			this.openEditTestModal();
 		},
-		openEditTestModal(): void {
+		openEditTestModal() {
 			this.uiStore.openModalWithData({
 				name: EDIT_TEST_SUITE_MODAL_KEY,
-				data: this.data,
+				data: {
+					...this.data,
+					nodeOutput: this.nodeOutput,
+				},
 			});
+		},
+	},
+	watch: {
+		'workflowsStore.nodeOutputsById': {
+			handler: 'handleNodeOutputsChange',
+			deep: true,
+			immediate: true,
 		},
 	},
 });
@@ -94,19 +148,22 @@ export default mixins(showMessage).extend({
 .cardDescription {
 	min-height: 19px;
 	display: flex;
-	align-items: center;
-	justify-content: flex-start;
+	justify-content: space-between;
 	flex-flow: nowrap;
 	gap: 16px;
+}
+
+.headerWrapper {
+	min-width: 295px;
 }
 
 .flex1 {
 	display: flex;
 	flex-direction: row;
-	justify-content: center;
-	align-items: center;
+	justify-content: flex-start;
 	flex: 1;
 }
+
 .flexNorm {
 	display: flex;
 	flex-direction: row;

@@ -246,6 +246,20 @@ export interface TestSuiteDb {
 	description: string;
 }
 
+export interface NodeOutputDb {
+	[key: string]: any;
+	id: string;
+	workflowTestId: string;
+	nodeId: string;
+	outputType: 'error' | 'data' | null;
+	errorMessage?: string;
+	data?: any;
+}
+
+export interface NodeOutputDbMap {
+	[name: string]: NodeOutputDb;
+}
+
 // Identical to cli.Interfaces.ts
 export interface IWorkflowShortResponse {
 	id: string;
@@ -880,6 +894,7 @@ export interface WorkflowsState {
 	workflowExecutionPairedItemMappings: { [itemId: string]: Set<string> };
 	workflowsById: IWorkflowsMap;
 	testSuitesById: TestSuiteDbMap;
+	nodeOutputsById: NodeOutputDbMap;
 }
 
 export interface RootState {

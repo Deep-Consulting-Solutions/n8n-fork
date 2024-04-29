@@ -1,4 +1,4 @@
-import type { IExecutionsCurrentSummaryExtended, IRestApiContext, TestSuiteDb } from '@/Interface';
+import type { IExecutionsCurrentSummaryExtended, IRestApiContext, NodeOutputDb } from '@/Interface';
 import type { ExecutionFilters, ExecutionOptions, IDataObject } from 'n8n-workflow';
 import { ExecutionStatus, WorkflowExecuteMode } from 'n8n-workflow';
 import { makeRestApiRequest } from '@/utils';
@@ -23,60 +23,36 @@ export async function getWorkflows(context: IRestApiContext, filter?: object) {
 	return await makeRestApiRequest(context, 'GET', '/workflows', sendData);
 }
 
-export async function getTestSuite(workFlowId: string) {
-	return await new Promise<TestSuiteDb[]>((resolve) => {
-		/**
-		 * TODO: FETCH ALL TEST SUITES WITH WORKFLOW ID
-		 */
-		setTimeout(() => {
-			resolve([
-				{
-					name: workFlowId,
-					id: workFlowId,
-					createdAt: new Date().toUTCString(),
-					updatedAt: new Date().toUTCString(),
-					description: 'some description',
-				},
-			]);
-		}, 3000);
-	});
+export async function getTestSuite(context: IRestApiContext, workFlowId: string) {
+	return await makeRestApiRequest(context, 'GET', `/workflow-tests/${workFlowId}`);
 }
 
-export async function postTestSuite(workFlowId: string, description: string) {
-	return await new Promise<TestSuiteDb[]>((resolve) => {
-		/**
-		 * TODO: FETCH ALL TEST SUITES WITH WORKFLOW ID
-		 */
-		setTimeout(() => {
-			resolve([
-				{
-					name: workFlowId,
-					id: workFlowId,
-					createdAt: new Date().toUTCString(),
-					updatedAt: new Date().toUTCString(),
-					description,
-				},
-			]);
-		}, 3000);
-	});
+export async function postTestSuite(
+	context: IRestApiContext,
+	payload: {
+		workflowId: string;
+		description: string;
+	},
+) {
+	return await makeRestApiRequest(context, 'POST', '/workflow-tests', payload);
 }
 
-export async function patchTestSuite(payload: {
-	workflowId: string;
-	testId: string;
-	id: string;
-	outputType: string;
-	error: string;
-	output: string;
-}) {
-	return await new Promise((resolve) => {
-		/**
-		 * TODO: FETCH ALL TEST SUITES WITH WORKFLOW ID
-		 */
-		setTimeout(() => {
-			resolve(payload);
-		}, 3000);
-	});
+export async function patchTestSuite(context: IRestApiContext, payload: NodeOutputDb) {
+	return await makeRestApiRequest(
+		context,
+		'PUT',
+		`/workflow-tests/nodes-output/${payload.workflowTestId}`,
+		payload,
+	);
+}
+
+export async function createTestSuite(context: IRestApiContext, payload: Omit<NodeOutputDb, 'id'>) {
+	return await makeRestApiRequest(
+		context,
+		'POST',
+		`/workflow-tests/nodes-output/${payload.workflowTestId}`,
+		payload,
+	);
 }
 
 export async function getActiveWorkflows(context: IRestApiContext) {
