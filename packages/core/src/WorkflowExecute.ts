@@ -714,7 +714,8 @@ export class WorkflowExecute {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
 		console.dir(workflow.connectionsBySourceNode, { depth: null });
 		console.dir(workflow.connectionsByDestinationNode, { depth: null });
-		console.log(workflow.nodes, { depth: true });
+		console.log('nodeExecutionStack');
+		console.dir(this.runExecutionData.executionData!.nodeExecutionStack, { depth: null });
 
 		const startedAt = new Date();
 
@@ -839,8 +840,8 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
-					// console.log('Execution data');
-					// console.dir(executionData, { depth: null });
+					console.log('Execution data');
+					console.dir(executionData, { depth: null });
 					nodeStack.push(executionData);
 
 					// Update the pairedItem information on items
@@ -1053,22 +1054,22 @@ export class WorkflowExecute {
 									}
 								} else {
 									if (executionData.node.type === 'n8n-nodes-base.dcsWait') {
-										console.log('connections');
-										console.dir(workflow.connectionsBySourceNode[executionData.node.name], {
-											depth: null,
-										});
-										const sourceConnections = workflow.getConnectedNodes(
-											workflow.connectionsByDestinationNode,
-											executionData.node.name,
-										);
-										const destConnections = workflow.getConnectedNodes(
-											workflow.connectionsBySourceNode,
-											executionData.node.name,
-										);
-										console.log('sourceConnections');
-										console.dir(sourceConnections, { depth: null });
-										console.log('destConnections');
-										console.dir(destConnections, { depth: null });
+										// console.log('connections');
+										// console.dir(workflow.connectionsBySourceNode[executionData.node.name], {
+										// 	depth: null,
+										// });
+										// const sourceConnections = workflow.getConnectedNodes(
+										// 	workflow.connectionsByDestinationNode,
+										// 	executionData.node.name,
+										// );
+										// const destConnections = workflow.getConnectedNodes(
+										// 	workflow.connectionsBySourceNode,
+										// 	executionData.node.name,
+										// );
+										// console.log('sourceConnections');
+										// console.dir(sourceConnections, { depth: null });
+										// console.log('destConnections');
+										// console.dir(destConnections, { depth: null });
 										const connections =
 											workflow.connectionsBySourceNode[executionData.node.name].main;
 										const flattenedConnections = [];
@@ -1100,6 +1101,7 @@ export class WorkflowExecute {
 										});
 										break;
 									}
+									console.log('About to run node');
 									runNodeData = await workflow.runNode(
 										executionData,
 										this.runExecutionData,
@@ -1108,6 +1110,7 @@ export class WorkflowExecute {
 										NodeExecuteFunctions,
 										this.mode,
 									);
+									console.log('Node ran successfully');
 									nodeSuccessData = runNodeData.data;
 								}
 

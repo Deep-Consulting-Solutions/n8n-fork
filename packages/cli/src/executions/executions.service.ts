@@ -476,12 +476,14 @@ export class ExecutionsService {
 		if (!sharedWorkflowIds.length) return false;
 
 		const { id: executionId } = req.params;
+		console.dir(req, { depth: null });
 		const execution = await Db.collections.Execution.findOne({
 			where: {
 				id: executionId,
 				workflowId: In(sharedWorkflowIds),
 			},
 		});
+		console.dir(execution, { depth: null });
 
 		if (!execution) {
 			LoggerProxy.info(

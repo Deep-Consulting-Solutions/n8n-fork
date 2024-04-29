@@ -846,11 +846,17 @@ export async function getRunData(
 	userId: string,
 	inputData?: INodeExecutionData[],
 	parentWorkflowId?: string,
-	nodeStack?: any,
+	startNode?: any,
+	isFullWorkflow?: boolean,
 ): Promise<IWorkflowExecutionDataProcess> {
 	const mode = 'integrated';
 
-	const startingNode = findSubworkflowStart(workflowData.nodes);
+	let startingNode;
+	if (isFullWorkflow) {
+		startingNode = startNode;
+	} else {
+		startingNode = findSubworkflowStart(workflowData.nodes);
+	}
 
 	// Always start with empty data if no inputData got supplied
 	inputData = inputData || [
@@ -861,17 +867,13 @@ export async function getRunData(
 
 	// Initialize the incoming data
 	const nodeExecutionStack: IExecuteData[] = [];
-	if (nodeStack) {
-		nodeExecutionStack.push(nodeStack);
-	} else {
-		nodeExecutionStack.push({
-			node: startingNode,
-			data: {
-				main: [inputData],
-			},
-			source: null,
-		});
-	}
+	nodeExecutionStack.push({
+		node: startingNode,
+		data: {
+			main: [inputData],
+		},
+		source: null,
+	});
 
 	const runExecutionData: IRunExecutionData = {
 		startData: {},

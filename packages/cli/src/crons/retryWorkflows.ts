@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as Db from '@/Db';
 import { ExecutionsService } from '@/executions/executions.service';
@@ -9,6 +11,7 @@ import { NodeTypes } from '@/NodeTypes';
 import { Container } from 'typedi';
 import { ActiveExecutions } from '@/ActiveExecutions';
 import { getRunData } from '../WorkflowExecuteAdditionalData';
+import { getWorkflowOwner } from '@/UserManagement/UserManagementHelper';
 
 const getExecutionId = async (workflowId: string, nodeId: string, userId: string) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -38,25 +41,29 @@ const getExecutionId = async (workflowId: string, nodeId: string, userId: string
 		workflowInstance.connectionsByDestinationNode,
 		waitNode.name,
 	);
-	const sourcetionNodes = workflowInstance.getConnectedNodes(
+	const sourceNodes = workflowInstance.getConnectedNodes(
 		workflowInstance.connectionsBySourceNode,
 		waitNode.name,
 	);
-	const connectedNodes = [...destinationNodes, ...sourcetionNodes];
+	const nextNodeName = sourceNodes.reverse()[0];
+	const nextNode = workflowInstance.getNode(nextNodeName);
+	const connectedNodes = [...destinationNodes, ...sourceNodes, waitNode.name];
 	for (const node of nodes) {
 		if (!connectedNodes.includes(node.name)) {
-			delete workflowInstance.nodes[node.name];
-			delete workflowInstance.connectionsByDestinationNode[node.name];
+			workflow.nodes = workflow.nodes.filter((no) => no.name !== node.name);
+			delete workflow.connections[node.name];
 		}
 	}
-	const data = {
-		node: waitNode,
-		data: {
-			main: [],
-		},
-		source: null,
-	};
-	const runData = await getRunData(workflow as IWorkflowBase, userId, undefined, undefined, data);
+	console.log('Logging workflow', workflow);
+	console.log(workflow);
+	const runData = await getRunData(
+		workflow as IWorkflowBase,
+		userId,
+		undefined,
+		undefined,
+		nextNode,
+		true,
+	);
 	const executionId = await Container.get(ActiveExecutions).add(runData);
 	return executionId;
 };
@@ -69,18 +76,19 @@ export async function retryWorkflows() {
 	});
 	console.dir(resumeWorkflowTimerRecords, { depth: null });
 
-	const globalRole = await Db.collections.Role.findOne({ where: { scope: 'global' } });
-	const adminUser = await Db.collections.User.findOne({ where: { globalRoleId: globalRole!.id } });
+	// const globalRole = await Db.collections.Role.findOne({ where: { scope: 'global' } });
+	// const adminUser = await Db.collections.User.findOne({ where: { globalRoleId: globalRole!.id } });
 	const promises: Array<Promise<boolean>> = [];
 
 	for (const resumeWorkflowTimerRecord of resumeWorkflowTimerRecords) {
 		// TODO: Get new execution id
 		const workflowId = resumeWorkflowTimerRecord.executionId;
 		const nodeId = resumeWorkflowTimerRecord.waitNodeId;
-		const newExecutionId = getExecutionId(workflowId, nodeId, adminUser!.id);
+		const owner = await getWorkflowOwner(workflowId);
+		const newExecutionId = await getExecutionId(workflowId, nodeId, owner.id);
 
 		const executionPayload = {
-			user: adminUser!,
+			user: owner,
 			params: {
 				id: newExecutionId,
 			},
