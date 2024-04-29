@@ -118,6 +118,7 @@ workflowsController.post(
 workflowsController.get(
 	'/',
 	ResponseHelper.send(async (req: WorkflowRequest.GetAll) => {
+		console.log('got ya');
 		return WorkflowsService.getMany(req.user, req.query.filter);
 	}),
 );

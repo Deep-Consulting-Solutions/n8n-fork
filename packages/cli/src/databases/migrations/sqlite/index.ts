@@ -37,6 +37,8 @@ import { AddUserActivatedProperty1681134145996 } from './1681134145996-AddUserAc
 import { AddUserOTPSecret1681134145997 } from './1681134145997-AddUserOTPSecret';
 import { AddSaveRequestLog1681134145998 } from './1681134145998-AddSaveRequestLog';
 import { addIncidentHandlingTables1689942863738 } from './1689942863738-addIncidentHandlingTables';
+import { N8NTestingFramework1689942863738 } from './1689942865738-N8NTestingFramework';
+import { ResumeWorkflowTimerTable1689949863759 } from './1689949863759-ResumeWorfklowTimer';
 
 const sqliteMigrations = [
 	InitialMigration1588102412422,
@@ -78,6 +80,8 @@ const sqliteMigrations = [
 	AddUserOTPSecret1681134145997,
 	AddSaveRequestLog1681134145998,
 	addIncidentHandlingTables1689942863738,
+	N8NTestingFramework1689942863738,
+	ResumeWorkflowTimerTable1689949863759,
 ];
 
 export { sqliteMigrations };

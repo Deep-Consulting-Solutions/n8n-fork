@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-labels */
@@ -24,6 +26,7 @@ import type {
 	IRun,
 	IRunData,
 	IRunExecutionData,
+	IRunNodeResponse,
 	ISourceData,
 	ITaskData,
 	ITaskDataConnections,
@@ -32,13 +35,15 @@ import type {
 	IWaitingForExecutionSource,
 	IWorkflowExecuteAdditionalData,
 	NodeApiError,
-	NodeOperationError,
 	Workflow,
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
+// eslint-disable-next-line @typescript-eslint/no-duplicate-imports
 import { LoggerProxy as Logger, WorkflowOperationError } from 'n8n-workflow';
 import get from 'lodash.get';
 import * as NodeExecuteFunctions from './NodeExecuteFunctions';
+import { getProjectTables } from './Utils';
 
 export class WorkflowExecute {
 	runExecutionData: IRunExecutionData;
@@ -685,13 +690,20 @@ export class WorkflowExecute {
 	//            PCancelable to a regular Promise and does so not allow canceling
 	//            active executions anymore
 	// eslint-disable-next-line @typescript-eslint/promise-function-async
-	processRunExecutionData(workflow: Workflow): PCancelable<IRun> {
+	processRunExecutionData(workflow: Workflow, extraData?: any): PCancelable<IRun> {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
+		// console.dir(workflow.nodeTypes, { depth: null });
+		console.dir(workflow.connectionsBySourceNode, { depth: null });
+		console.dir(workflow.connectionsByDestinationNode, { depth: null });
+		console.dir(workflow.staticData, { depth: null });
+		console.dir(workflow.settings, { depth: null });
+		// console.log(Object.keys(workflow));
 
 		const startedAt = new Date();
 
 		this.status = 'running';
 
+		console.dir(this.runExecutionData, { showHidden: true, depth: 3 });
 		const startNode = this.runExecutionData.executionData!.nodeExecutionStack[0].node.name;
 
 		let destinationNode: string | undefined;
@@ -720,6 +732,7 @@ export class WorkflowExecute {
 		let runIndex: number;
 		let startTime: number;
 		let taskData: ITaskData;
+		let runNodeData: IRunNodeResponse;
 
 		if (this.runExecutionData.startData === undefined) {
 			this.runExecutionData.startData = {};
@@ -800,6 +813,7 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
+					console.dir(executionData.data, { showHidden: true, depth: 3 });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -823,6 +837,7 @@ export class WorkflowExecute {
 						);
 					}
 					executionData.data = newTaskDataConnections;
+					console.dir(executionData.data, { showHidden: true, depth: 3 });
 
 					Logger.debug(`Start processing node "${executionNode.name}"`, {
 						node: executionNode.name,
@@ -948,17 +963,70 @@ export class WorkflowExecute {
 									node: executionNode.name,
 									workflowId: workflow.id,
 								});
-								const runNodeData = await workflow.runNode(
-									executionData,
-									this.runExecutionData,
-									runIndex,
-									this.additionalData,
-									NodeExecuteFunctions,
-									this.mode,
-								);
-								nodeSuccessData = runNodeData.data;
+								// console.log(executionData);
+								if (extraData?.isTest) {
+									const node = executionData.node;
+									const nodeOutputData = extraData?.nodeOutputs?.find(
+										(no: any) => no.nodeId === node.id,
+									);
+									if (nodeOutputData) {
+										if (nodeOutputData.errorMessage) {
+											throw new NodeOperationError(node, nodeOutputData.errorMessage as string);
+										}
+										nodeSuccessData = [[nodeOutputData.data]];
+									} else {
+										if (
+											node.type === '@deep-consulting-solutions/n8n-nodes-dcs-noco-db.dcsNocoDb'
+										) {
+											const originalProjectId = process.env.DCS_CUSMTOM_BACKEND_PROJECT_ID || '';
+											const testProjectId = process.env.DCS_CUSMTOM_BACKEND_TEST_PROJECT_ID || '';
+											const originalProjectTables = await getProjectTables(originalProjectId);
+											const originalTable = originalProjectTables?.find(
+												(t) => t.id === node.parameters.table,
+											);
+											if (!originalTable) {
+												throw new NodeOperationError(
+													node,
+													`Original table with id ${node?.parameters?.table as string} not found`,
+												);
+											}
+											const testProjectTables = await getProjectTables(testProjectId);
+											const testTable = testProjectTables?.find(
+												(t) => t.table_name === originalTable.table_name,
+											);
+											if (!testTable) {
+												throw new NodeOperationError(node, 'Test table not found');
+											}
+											executionData.node.parameters.projectId = testProjectId;
+											executionData.node.parameters.table = testTable?.id;
+										} else if (node.type === 'n8n-nodes-base.nocoDbHttpRequest') {
+											let route = node.parameters.route as string;
+											route = route?.replace('CustomBackend', 'CustomBackendTest');
+											executionData.node.parameters.route = route;
+										}
+										runNodeData = await workflow.runNode(
+											executionData,
+											this.runExecutionData,
+											runIndex,
+											this.additionalData,
+											NodeExecuteFunctions,
+											this.mode,
+										);
+										nodeSuccessData = runNodeData.data;
+									}
+								} else {
+									runNodeData = await workflow.runNode(
+										executionData,
+										this.runExecutionData,
+										runIndex,
+										this.additionalData,
+										NodeExecuteFunctions,
+										this.mode,
+									);
+									nodeSuccessData = runNodeData.data;
+								}
 
-								if (runNodeData.closeFunction) {
+								if (runNodeData?.closeFunction) {
 									// Explanation why we do this can be found in n8n-workflow/Workflow.ts -> runNode
 									// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 									closeFunction = runNodeData.closeFunction();
@@ -976,6 +1044,7 @@ export class WorkflowExecute {
 									if (outputData === null) {
 										continue;
 									}
+
 									for (const [index, item] of outputData.entries()) {
 										if (!item.pairedItem) {
 											// The pairedItem data is missing, so check if it can get automatically fixed

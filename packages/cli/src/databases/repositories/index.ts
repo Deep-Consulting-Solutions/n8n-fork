@@ -18,3 +18,6 @@ export { WorkflowRepository } from './workflow.repository';
 export { WorkflowStatisticsRepository } from './workflowStatistics.repository';
 export { WorkflowTagMappingRepository } from './workflowTagMapping.repository';
 export { SaveRequestLogRepository } from './saveRequestLog.repository';
+export { WorkflowTestRepository } from './workflowTest.repository';
+export { NodeOutputRepository } from './nodeOutput.repository';
+export { ResumeWorkflowTimerRepository } from './resumeWorkflowTimer.repository';

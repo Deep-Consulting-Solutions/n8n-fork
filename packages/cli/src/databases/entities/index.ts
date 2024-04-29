@@ -21,6 +21,9 @@ import { ExecutionMetadata } from './ExecutionMetadata';
 import { SaveRequestLog } from './SaveRequestLog';
 import { DataRecoveryActivity } from './DataRecoveryActivity';
 import { ServerIncident } from './ServerIncident';
+import { NodeOutput } from './NodeOutput';
+import { WorkflowTest } from './WorkflowTest';
+import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
 
 export const entities = {
 	AuthIdentity,
@@ -45,4 +48,7 @@ export const entities = {
 	SaveRequestLog,
 	DataRecoveryActivity,
 	ServerIncident,
+	NodeOutput,
+	WorkflowTest,
+	ResumeWorkflowTimer,
 };

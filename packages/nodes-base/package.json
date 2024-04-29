@@ -460,6 +460,7 @@
       "dist/nodes/FunctionItem/FunctionItem.node.js",
       "dist/nodes/GetResponse/GetResponse.node.js",
       "dist/nodes/GetResponse/GetResponseTrigger.node.js",
+      "dist/nodes/DcsWait/DcsWait.node.js",
       "dist/nodes/Ghost/Ghost.node.js",
       "dist/nodes/Git/Git.node.js",
       "dist/nodes/Github/Github.node.js",
@@ -732,7 +733,8 @@
       "dist/nodes/Zendesk/ZendeskTrigger.node.js",
       "dist/nodes/Zoho/ZohoCrm.node.js",
       "dist/nodes/Zoom/Zoom.node.js",
-      "dist/nodes/Zulip/Zulip.node.js"
+      "dist/nodes/Zulip/Zulip.node.js",
+      "dist/nodes/DcsWait/DcsWait.node.js"
     ]
   },
   "devDependencies": {
