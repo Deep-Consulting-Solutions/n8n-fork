@@ -712,10 +712,6 @@ export class WorkflowExecute {
 	// eslint-disable-next-line @typescript-eslint/promise-function-async
 	processRunExecutionData(workflow: Workflow, extraData?: any): PCancelable<IRun> {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
-		console.dir(workflow.connectionsBySourceNode, { depth: null });
-		console.dir(workflow.connectionsByDestinationNode, { depth: null });
-		console.log('nodeExecutionStack');
-		console.dir(this.runExecutionData.executionData!.nodeExecutionStack, { depth: null });
 
 		const startedAt = new Date();
 
@@ -840,8 +836,6 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
-					console.log('Execution data');
-					console.dir(executionData, { depth: null });
 					nodeStack.push(executionData);
 
 					// Update the pairedItem information on items
@@ -1053,33 +1047,16 @@ export class WorkflowExecute {
 										nodeSuccessData = runNodeData.data;
 									}
 								} else {
-									if (executionData.node.type === 'n8n-nodes-base.dcsWait') {
-										// console.log('connections');
-										// console.dir(workflow.connectionsBySourceNode[executionData.node.name], {
-										// 	depth: null,
-										// });
-										// const sourceConnections = workflow.getConnectedNodes(
-										// 	workflow.connectionsByDestinationNode,
-										// 	executionData.node.name,
-										// );
-										// const destConnections = workflow.getConnectedNodes(
-										// 	workflow.connectionsBySourceNode,
-										// 	executionData.node.name,
-										// );
-										// console.log('sourceConnections');
-										// console.dir(sourceConnections, { depth: null });
-										// console.log('destConnections');
-										// console.dir(destConnections, { depth: null });
+									if (
+										executionData.node.type === 'n8n-nodes-base.dcsWait' ||
+										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+									) {
 										const connections =
 											workflow.connectionsBySourceNode[executionData.node.name].main;
 										const flattenedConnections = [];
 										for (const conn of connections) {
 											flattenedConnections.push(...conn);
 										}
-										// for (const connectedNode of flattenedConnections) {
-										// 	delete workflow.connectionsBySourceNode[connectedNode.node];
-										// 	delete workflow.nodes[connectedNode.node];
-										// } use while loop
 										delete workflow.connectionsBySourceNode[executionData.node.name];
 										delete workflow.nodes[executionData.node.name];
 										nodeSuccessData = [
@@ -1354,7 +1331,11 @@ export class WorkflowExecute {
 										};
 										nextNodeData.push(dataForNextNode);
 										// console.dir(nextNodeData, { depth: null });
-										if (executionData.node.type === 'n8n-nodes-base.dcsWait') {
+										if (
+											executionData.node.type === 'n8n-nodes-base.dcsWait' ||
+											executionData.node.type ===
+												'@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+										) {
 											const nodeToAdd = nextNodeData.pop();
 											this.addNodeToBeExecuted(
 												nodeToAdd!.workflow,

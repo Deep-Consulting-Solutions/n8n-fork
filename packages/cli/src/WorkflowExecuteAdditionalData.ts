@@ -670,7 +670,7 @@ function hookFunctionsSave(parentProcessMode?: string): IWorkflowExecuteHooks {
 						Logger.error(`Failed to save metadata for execution ID ${this.executionId}`, e);
 					}
 
-					if (fullRunData.finished === true && this.retryOf !== undefined) {
+					if (fullRunData.finished === true && !!this.retryOf) {
 						// If the retry was successful save the reference it on the original execution
 						// await Db.collections.Execution.save(executionData as IExecutionFlattedDb);
 						await Db.collections.Execution.update(this.retryOf, {

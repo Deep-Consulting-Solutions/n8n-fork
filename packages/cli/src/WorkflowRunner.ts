@@ -484,7 +484,6 @@ export class WorkflowRunner {
 
 			throw error;
 		}
-
 		return executionId;
 	}
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -9,9 +10,10 @@ import type { IWorkflowBase } from 'n8n-workflow';
 import { Workflow } from 'n8n-workflow';
 import { NodeTypes } from '@/NodeTypes';
 import { Container } from 'typedi';
-import { ActiveExecutions } from '@/ActiveExecutions';
 import { getRunData } from '../WorkflowExecuteAdditionalData';
 import { getWorkflowOwner } from '@/UserManagement/UserManagementHelper';
+import type { IExecutionDb, IExecutionFlattedDb } from '@/Interfaces';
+import * as ResponseHelper from '@/ResponseHelper';
 
 const getExecutionId = async (workflowId: string, nodeId: string, userId: string) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -54,8 +56,7 @@ const getExecutionId = async (workflowId: string, nodeId: string, userId: string
 			delete workflow.connections[node.name];
 		}
 	}
-	console.log('Logging workflow', workflow);
-	console.log(workflow);
+
 	const runData = await getRunData(
 		workflow as IWorkflowBase,
 		userId,
@@ -64,8 +65,29 @@ const getExecutionId = async (workflowId: string, nodeId: string, userId: string
 		nextNode,
 		true,
 	);
-	const executionId = await Container.get(ActiveExecutions).add(runData);
-	return executionId;
+	const fullExecutionData: IExecutionDb = {
+		workflowId,
+		data: runData.executionData!,
+		mode: runData.executionMode,
+		finished: false,
+		startedAt: new Date(),
+		workflowData: runData.workflowData,
+		status: 'running',
+	};
+
+	if (runData.retryOf !== undefined) {
+		fullExecutionData.retryOf = runData.retryOf.toString();
+	}
+
+	const execution = ResponseHelper.flattenExecutionData(fullExecutionData);
+
+	// const executionResult = await Db.collections.Execution.save(execution as IExecutionFlattedDb);
+	// const executionId: string =
+	// 	typeof executionResult.id === 'object'
+	// 		? // @ts-ignore
+	// 		  executionResult.id.toString()
+	// 		: executionResult.id + '';
+	return execution as IExecutionFlattedDb;
 };
 
 export async function retryWorkflows() {
@@ -74,10 +96,7 @@ export async function retryWorkflows() {
 			resumptionTime: LessThanOrEqual(new Date(Date.now() + 60 * 1000)),
 		},
 	});
-	console.dir(resumeWorkflowTimerRecords, { depth: null });
 
-	// const globalRole = await Db.collections.Role.findOne({ where: { scope: 'global' } });
-	// const adminUser = await Db.collections.User.findOne({ where: { globalRoleId: globalRole!.id } });
 	const promises: Array<Promise<boolean>> = [];
 
 	for (const resumeWorkflowTimerRecord of resumeWorkflowTimerRecords) {
@@ -85,19 +104,21 @@ export async function retryWorkflows() {
 		const workflowId = resumeWorkflowTimerRecord.executionId;
 		const nodeId = resumeWorkflowTimerRecord.waitNodeId;
 		const owner = await getWorkflowOwner(workflowId);
-		const newExecutionId = await getExecutionId(workflowId, nodeId, owner.id);
+		const execution = await getExecutionId(workflowId, nodeId, owner.id);
 
 		const executionPayload = {
 			user: owner,
 			params: {
-				id: newExecutionId,
+				id: '',
 			},
 			body: {
 				loadWorkflow: false,
 			},
 		} as unknown as ExecutionRequest.Retry;
 
-		promises.push(ExecutionsService.retryExecution(executionPayload, resumeWorkflowTimerRecord.id));
+		promises.push(
+			ExecutionsService.retryExecution(executionPayload, resumeWorkflowTimerRecord.id, execution!),
+		);
 	}
 
 	await Promise.allSettled(promises);

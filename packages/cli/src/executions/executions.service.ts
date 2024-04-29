@@ -41,6 +41,7 @@ import {
 } from './executionHelpers';
 import { ExecutionMetadata } from '@db/entities/ExecutionMetadata';
 import { DateUtils } from 'typeorm/util/DateUtils';
+import type { IExecutionFlattedDb } from '../Interfaces';
 
 interface IGetExecutionsQueryFilter {
 	id?: FindOperator<string> | string;
@@ -471,19 +472,23 @@ export class ExecutionsService {
 	static async retryExecution(
 		req: ExecutionRequest.Retry,
 		resumeWorkflowTimerId?: string,
+		executionEntity?: IExecutionFlattedDb,
 	): Promise<boolean> {
 		const sharedWorkflowIds = await this.getWorkflowIdsForUser(req.user);
 		if (!sharedWorkflowIds.length) return false;
 
+		let execution;
 		const { id: executionId } = req.params;
-		console.dir(req, { depth: null });
-		const execution = await Db.collections.Execution.findOne({
-			where: {
-				id: executionId,
-				workflowId: In(sharedWorkflowIds),
-			},
-		});
-		console.dir(execution, { depth: null });
+		if (executionEntity) {
+			execution = executionEntity;
+		} else {
+			execution = await Db.collections.Execution.findOne({
+				where: {
+					id: executionId,
+					workflowId: In(sharedWorkflowIds),
+				},
+			});
+		}
 
 		if (!execution) {
 			LoggerProxy.info(
