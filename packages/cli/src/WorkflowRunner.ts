@@ -52,6 +52,7 @@ import { Queue } from '@/Queue';
 import * as ResponseHelper from '@/ResponseHelper';
 import * as WebhookHelpers from '@/WebhookHelpers';
 import * as WorkflowHelpers from '@/WorkflowHelpers';
+import { createPartialExecution } from './GenericHelpers';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 import { generateFailedExecutionFromError } from '@/WorkflowHelpers';
 import { initErrorHandling } from '@/ErrorReporting';
@@ -62,6 +63,14 @@ import { recoverExecutionDataFromEventLogMessages } from './eventbus/MessageEven
 import { Container } from 'typedi';
 import { InternalHooks } from './InternalHooks';
 import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
+import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
+
+const createResumeTimerEntity = async (data: any) => {
+	let resumeWorkflowEntity = new ResumeWorkflowTimer();
+	Object.assign(resumeWorkflowEntity, data);
+	resumeWorkflowEntity = await Db.collections.ResumeWorkflowTimer.save(resumeWorkflowEntity);
+	return resumeWorkflowEntity;
+};
 
 export class WorkflowRunner {
 	activeExecutions: ActiveExecutions;
@@ -392,6 +401,8 @@ export class WorkflowRunner {
 				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
 					isTest,
 					nodeOutputs,
+					createPartialExecution,
+					createResumeTimerEntity,
 				});
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);

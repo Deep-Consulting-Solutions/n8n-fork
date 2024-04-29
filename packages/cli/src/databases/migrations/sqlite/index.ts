@@ -39,6 +39,8 @@ import { AddSaveRequestLog1681134145998 } from './1681134145998-AddSaveRequestLo
 import { addIncidentHandlingTables1689942863738 } from './1689942863738-addIncidentHandlingTables';
 import { N8NTestingFramework1689942863738 } from './1689942865738-N8NTestingFramework';
 import { ResumeWorkflowTimerTable1689949863759 } from './1689949863759-ResumeWorfklowTimer';
+import { UpdateResumeWorfklowTimer1779949863759 } from './1779949863759-UpdateResumeWorfklowTimer';
+import { UpdateResumeWorfklowTimer1879949869859 } from './1879949869859-UpdateResumeWorfklowTimer';
 
 const sqliteMigrations = [
 	InitialMigration1588102412422,
@@ -82,6 +84,8 @@ const sqliteMigrations = [
 	addIncidentHandlingTables1689942863738,
 	N8NTestingFramework1689942863738,
 	ResumeWorkflowTimerTable1689949863759,
+	UpdateResumeWorfklowTimer1779949863759,
+	UpdateResumeWorfklowTimer1879949869859,
 ];
 
 export { sqliteMigrations };
