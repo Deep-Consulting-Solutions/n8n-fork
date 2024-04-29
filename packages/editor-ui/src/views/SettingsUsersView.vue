@@ -181,7 +181,7 @@ export default mixins(showMessage, copyPaste).extend({
 }
 
 .setupInfoContainer {
-	max-width: 728px;
+	max-width: 1300px;
 }
 
 .alert {

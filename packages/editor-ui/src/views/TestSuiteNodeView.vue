@@ -58,6 +58,7 @@ const TestSuiteNodeView = mixins(showMessage, debounceHelper).extend({
 		async initialize() {
 			await this.workflowsStore.fetchWorkflow(this.$route.params.workflow);
 			await this.workflowsStore.fetchWorkflowTestSuites(this.$route.params.workflow);
+			await this.workflowsStore.fetchWorkflowNodeOutput(this.$route.params.test);
 		},
 	},
 	watch: {},

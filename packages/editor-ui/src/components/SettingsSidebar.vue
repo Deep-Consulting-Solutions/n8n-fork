@@ -132,7 +132,7 @@ export default mixins(userHelpers).extend({
 
 			menuItems.push({
 				id: 'test-suites',
-				icon: 'fas:chart-column',
+				icon: 'chart-bar',
 				label: this.$locale.baseText('settings.testSuites'),
 				position: 'top',
 				available: true,
