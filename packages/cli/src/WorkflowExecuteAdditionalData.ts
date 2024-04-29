@@ -846,6 +846,7 @@ export async function getRunData(
 	userId: string,
 	inputData?: INodeExecutionData[],
 	parentWorkflowId?: string,
+	nodeStack?: any,
 ): Promise<IWorkflowExecutionDataProcess> {
 	const mode = 'integrated';
 
@@ -860,13 +861,17 @@ export async function getRunData(
 
 	// Initialize the incoming data
 	const nodeExecutionStack: IExecuteData[] = [];
-	nodeExecutionStack.push({
-		node: startingNode,
-		data: {
-			main: [inputData],
-		},
-		source: null,
-	});
+	if (nodeStack) {
+		nodeExecutionStack.push(nodeStack);
+	} else {
+		nodeExecutionStack.push({
+			node: startingNode,
+			data: {
+				main: [inputData],
+			},
+			source: null,
+		});
+	}
 
 	const runExecutionData: IRunExecutionData = {
 		startData: {},
