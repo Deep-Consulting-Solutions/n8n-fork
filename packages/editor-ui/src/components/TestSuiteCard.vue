@@ -1,18 +1,16 @@
 <template>
 	<n8n-card :class="$style.cardLink" @click="onClick">
 		<template #header>
-			<n8n-heading
-				tag="h2"
-				bold
-				class="ph-no-capture"
-				:class="$style.cardHeading"
-				data-test-id="workflow-card-name"
-			>
-				{{ data.name }}
-			</n8n-heading>
-		</template>
-		<div :class="$style.cardDescription">
-			<div :class="$style.flex1">
+			<div>
+				<n8n-heading
+					tag="h2"
+					bold
+					class="ph-no-capture"
+					:class="$style.cardHeading"
+					data-test-id="workflow-card-name"
+				>
+					{{ data.name }}
+				</n8n-heading>
 				<n8n-text color="text-light" size="small">
 					<span v-show="data"
 						>{{ $locale.baseText('workflows.item.updated') }} <time-ago :date="data.updatedAt" />
@@ -22,13 +20,15 @@
 						>{{ $locale.baseText('workflows.item.created') }} {{ formattedCreatedAtDate }}
 					</span>
 				</n8n-text>
+			</div>
+			<div :class="$style.cardDescription">
 				<div v-if="isTestCard" :class="$style.flex1">
 					<n8n-text size="large" color="text-base">
 						{{ data.description }}
 					</n8n-text>
 				</div>
 			</div>
-		</div>
+		</template>
 	</n8n-card>
 </template>
 
@@ -133,19 +133,11 @@ export default mixins(showMessage).extend({
 }
 
 .cardDescription {
-	min-height: 19px;
 	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	flex-flow: nowrap;
-	gap: 16px;
+	justify-content: flex-end;
 }
 
 .flex1 {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
 	flex: 1;
 }
 </style>
