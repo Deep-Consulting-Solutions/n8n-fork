@@ -208,4 +208,86 @@ export async function createErrorExecution(
 	await Db.collections.Execution.save(execution as IExecutionFlattedDb);
 }
 
+/**
+ * Create an error execution
+ *
+ * @param {INode} node
+ * @param {IWorkflowDb} workflowData
+ * @param {Workflow} workflow
+ * @param {WorkflowExecuteMode} mode
+ * @returns
+ * @memberof ActiveWorkflowRunner
+ */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function createPartialExecution(
+	node: INode,
+	workflowData: IWorkflowDb,
+	workflow: Workflow,
+	mode: WorkflowExecuteMode,
+): Promise<any> {
+	const saveDataErrorExecutionDisabled = workflowData?.settings?.saveDataErrorExecution === 'none';
+
+	if (saveDataErrorExecutionDisabled) return;
+
+	const executionData: IRunExecutionData = {
+		startData: {
+			destinationNode: node.name,
+			runNodeFilter: [node.name],
+		},
+		executionData: {
+			contextData: {},
+			nodeExecutionStack: [
+				{
+					node,
+					data: {
+						main: [
+							[
+								{
+									json: {},
+									pairedItem: {
+										item: 0,
+									},
+								},
+							],
+						],
+					},
+					source: null,
+				},
+			],
+			waitingExecution: {},
+			waitingExecutionSource: {},
+		},
+		resultData: {
+			runData: {
+				[node.name]: [
+					{
+						startTime: 0,
+						executionTime: 0,
+						error: undefined,
+						source: [],
+					},
+				],
+			},
+			error: undefined,
+			lastNodeExecuted: node.name,
+		},
+	};
+
+	const fullExecutionData: IExecutionDb = {
+		data: executionData,
+		mode,
+		finished: false,
+		startedAt: new Date(),
+		workflowData,
+		workflowId: workflow.id,
+		stoppedAt: new Date(),
+		status: 'running',
+	};
+
+	let execution = ResponseHelper.flattenExecutionData(fullExecutionData);
+
+	execution = await Db.collections.Execution.save(execution as IExecutionFlattedDb);
+	return execution;
+}
+
 export const DEFAULT_EXECUTIONS_GET_ALL_LIMIT = 20;

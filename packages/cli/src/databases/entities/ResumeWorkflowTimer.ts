@@ -15,5 +15,14 @@ export class ResumeWorkflowTimer extends AbstractEntity {
 	executionId: string;
 
 	@Column({ type: 'varchar' })
+	waitNodeId: string;
+
+	@Column({ type: 'varchar' })
 	status: string;
+
+	@Column({
+		type: 'jsonb',
+		default: {},
+	})
+	resultData: any;
 }

@@ -201,7 +201,7 @@ export declare namespace ExecutionRequest {
 	type GetAll = AuthenticatedRequest<{}, {}, {}, QueryParam.GetAll>;
 	type Get = AuthenticatedRequest<{ id: string }, {}, {}, { unflattedResponse: 'true' | 'false' }>;
 	type Delete = AuthenticatedRequest<{}, {}, IExecutionDeleteFilter>;
-	type Retry = AuthenticatedRequest<{ id: string }, {}, { loadWorkflow: boolean }, {}>;
+	type Retry = AuthenticatedRequest<{ id?: string }, {}, { loadWorkflow: boolean }, {}>;
 	type Stop = AuthenticatedRequest<{ id: string }>;
 	type GetAllCurrent = AuthenticatedRequest<{}, {}, {}, QueryParam.GetAllCurrent>;
 }

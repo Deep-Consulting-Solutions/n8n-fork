@@ -670,7 +670,7 @@ function hookFunctionsSave(parentProcessMode?: string): IWorkflowExecuteHooks {
 						Logger.error(`Failed to save metadata for execution ID ${this.executionId}`, e);
 					}
 
-					if (fullRunData.finished === true && this.retryOf !== undefined) {
+					if (fullRunData.finished === true && !!this.retryOf) {
 						// If the retry was successful save the reference it on the original execution
 						// await Db.collections.Execution.save(executionData as IExecutionFlattedDb);
 						await Db.collections.Execution.update(this.retryOf, {
@@ -846,10 +846,18 @@ export async function getRunData(
 	userId: string,
 	inputData?: INodeExecutionData[],
 	parentWorkflowId?: string,
+	startNode?: any,
+	isFullWorkflow?: boolean,
+	resultData?: any,
 ): Promise<IWorkflowExecutionDataProcess> {
 	const mode = 'integrated';
 
-	const startingNode = findSubworkflowStart(workflowData.nodes);
+	let startingNode;
+	if (isFullWorkflow) {
+		startingNode = startNode;
+	} else {
+		startingNode = findSubworkflowStart(workflowData.nodes);
+	}
 
 	// Always start with empty data if no inputData got supplied
 	inputData = inputData || [
@@ -880,6 +888,10 @@ export async function getRunData(
 			waitingExecutionSource: {},
 		},
 	};
+
+	if (!!resultData) {
+		runExecutionData.resultData = resultData;
+	}
 
 	const runData: IWorkflowExecutionDataProcess = {
 		executionMode: mode,

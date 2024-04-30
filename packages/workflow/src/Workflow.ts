@@ -272,7 +272,8 @@ export class Workflow {
 			nodeIssues = null;
 			node = this.nodes[nodeName];
 
-			if (node.disabled === true) {
+			// if (!node) continue;
+			if (node && node.disabled === true) {
 				continue;
 			}
 

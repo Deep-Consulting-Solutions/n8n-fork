@@ -45,6 +45,26 @@ import get from 'lodash.get';
 import * as NodeExecuteFunctions from './NodeExecuteFunctions';
 import { getProjectTables } from './Utils';
 
+function calculateNextTime(unit: string, value: number) {
+	const currentTime = new Date();
+
+	const unitToMilliseconds: { [key: string]: number } = {
+		seconds: 1000,
+		minutes: 60000,
+		hours: 3600000,
+		days: 86400000,
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+	if (unitToMilliseconds.hasOwnProperty(unit)) {
+		const milliseconds = unitToMilliseconds[unit] * value;
+		const nextTime = new Date(currentTime.getTime() + milliseconds);
+		return nextTime;
+	} else {
+		return null;
+	}
+}
+
 export class WorkflowExecute {
 	runExecutionData: IRunExecutionData;
 
@@ -692,18 +712,11 @@ export class WorkflowExecute {
 	// eslint-disable-next-line @typescript-eslint/promise-function-async
 	processRunExecutionData(workflow: Workflow, extraData?: any): PCancelable<IRun> {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
-		// console.dir(workflow.nodeTypes, { depth: null });
-		console.dir(workflow.connectionsBySourceNode, { depth: null });
-		console.dir(workflow.connectionsByDestinationNode, { depth: null });
-		console.dir(workflow.staticData, { depth: null });
-		console.dir(workflow.settings, { depth: null });
-		// console.log(Object.keys(workflow));
 
 		const startedAt = new Date();
 
 		this.status = 'running';
 
-		console.dir(this.runExecutionData, { showHidden: true, depth: 3 });
 		const startNode = this.runExecutionData.executionData!.nodeExecutionStack[0].node.name;
 
 		let destinationNode: string | undefined;
@@ -748,6 +761,16 @@ export class WorkflowExecute {
 		let currentExecutionTry = '';
 		let lastExecutionTry = '';
 		let closeFunction: Promise<void> | undefined;
+
+		const nodeStack: IExecuteData[] = [];
+		const nextNodeData: Array<{
+			workflow: Workflow;
+			connectionData: IConnection;
+			outputIndex: string;
+			nodeName: string;
+			nodeSuccessData: INodeExecutionData[][] | null | undefined;
+			runIndex: number;
+		}> = [];
 
 		return new PCancelable(async (resolve, reject, onCancel) => {
 			let gotCancel = false;
@@ -813,7 +836,7 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
-					console.dir(executionData.data, { showHidden: true, depth: 3 });
+					nodeStack.push(executionData);
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -837,7 +860,6 @@ export class WorkflowExecute {
 						);
 					}
 					executionData.data = newTaskDataConnections;
-					console.dir(executionData.data, { showHidden: true, depth: 3 });
 
 					Logger.debug(`Start processing node "${executionNode.name}"`, {
 						node: executionNode.name,
@@ -963,7 +985,6 @@ export class WorkflowExecute {
 									node: executionNode.name,
 									workflowId: workflow.id,
 								});
-								// console.log(executionData);
 								if (extraData?.isTest) {
 									const node = executionData.node;
 									const nodeOutputData = extraData?.nodeOutputs?.find(
@@ -1003,6 +1024,15 @@ export class WorkflowExecute {
 											let route = node.parameters.route as string;
 											route = route?.replace('CustomBackend', 'CustomBackendTest');
 											executionData.node.parameters.route = route;
+										} else if (node.type === 'n8n-nodes-base.dcsWait') {
+											nodeSuccessData = [
+												[
+													{
+														json: {},
+													},
+												],
+											];
+											break;
 										}
 										runNodeData = await workflow.runNode(
 											executionData,
@@ -1015,15 +1045,64 @@ export class WorkflowExecute {
 										nodeSuccessData = runNodeData.data;
 									}
 								} else {
-									runNodeData = await workflow.runNode(
-										executionData,
-										this.runExecutionData,
-										runIndex,
-										this.additionalData,
-										NodeExecuteFunctions,
-										this.mode,
-									);
-									nodeSuccessData = runNodeData.data;
+									if (
+										executionData.node.type === 'n8n-nodes-base.dcsWait' ||
+										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+									) {
+										const connections =
+											workflow.connectionsBySourceNode[executionData.node.name].main;
+										const flattenedConnections = [];
+										for (const conn of connections) {
+											flattenedConnections.push(...conn);
+										}
+										delete workflow.connectionsBySourceNode[executionData.node.name];
+										delete workflow.nodes[executionData.node.name];
+										if (nextNodeData.length) {
+											const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
+											nodeSuccessData = lastNodeInStack.nodeSuccessData;
+										} else {
+											nodeSuccessData = [
+												[
+													{
+														json: {},
+													},
+												],
+											];
+										}
+										const amount = executionData.node.parameters.amount as number;
+										const unit = executionData.node.parameters.unit as string;
+										const resumptionTime = calculateNextTime(unit, amount);
+										const { createResumeTimerEntity } = extraData;
+										taskData = {
+											startTime,
+											executionTime: new Date().getTime() - startTime,
+											source: !executionData.source ? [] : executionData.source.main,
+											executionStatus: 'success',
+											data: {
+												main: nodeSuccessData,
+											} as ITaskDataConnections,
+										};
+										this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
+										await createResumeTimerEntity({
+											resumptionTime,
+											executionId: workflow.id,
+											waitNodeId: executionData.node.id,
+											resultData: this.runExecutionData.resultData,
+											status: 'running',
+										});
+										delete this.runExecutionData.resultData.runData[executionData.node.name];
+										// break;
+									} else {
+										runNodeData = await workflow.runNode(
+											executionData,
+											this.runExecutionData,
+											runIndex,
+											this.additionalData,
+											NodeExecuteFunctions,
+											this.mode,
+										);
+										nodeSuccessData = runNodeData.data;
+									}
 								}
 
 								if (runNodeData?.closeFunction) {
@@ -1254,14 +1333,39 @@ export class WorkflowExecute {
 										(nodeSuccessData![outputIndex].length !== 0 || connectionData.index > 0)
 									) {
 										// Add the node only if it did execute or if connected to second "optional" input
-										this.addNodeToBeExecuted(
+										const dataForNextNode = {
 											workflow,
 											connectionData,
-											parseInt(outputIndex, 10),
-											executionNode.name,
-											nodeSuccessData!,
+											outputIndex,
+											nodeName: executionNode.name,
+											nodeSuccessData,
 											runIndex,
-										);
+										};
+										nextNodeData.push(dataForNextNode);
+										if (
+											executionData.node.type === 'n8n-nodes-base.dcsWait' ||
+											executionData.node.type ===
+												'@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+										) {
+											const nodeToAdd = nextNodeData.pop();
+											this.addNodeToBeExecuted(
+												nodeToAdd!.workflow,
+												nodeToAdd!.connectionData,
+												parseInt(nodeToAdd!.outputIndex, 10),
+												nodeToAdd!.nodeName,
+												nodeToAdd!.nodeSuccessData!,
+												nodeToAdd!.runIndex,
+											);
+										} else {
+											this.addNodeToBeExecuted(
+												workflow,
+												connectionData,
+												parseInt(outputIndex, 10),
+												executionNode.name,
+												nodeSuccessData!,
+												runIndex,
+											);
+										}
 									}
 								}
 							}
@@ -1278,7 +1382,6 @@ export class WorkflowExecute {
 						this.runExecutionData,
 					]);
 				}
-
 				return;
 			})()
 				.then(async () => {
