@@ -837,6 +837,7 @@ export class WorkflowExecute {
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
 					nodeStack.push(executionData);
+					console.dir(executionNode, { depth: null });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -1046,8 +1047,7 @@ export class WorkflowExecute {
 									}
 								} else {
 									if (
-										executionData.node.type === 'n8n-nodes-base.dcsWait' ||
-										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
 									) {
 										const connections =
 											workflow.connectionsBySourceNode[executionData.node.name].main;
@@ -1343,9 +1343,8 @@ export class WorkflowExecute {
 										};
 										nextNodeData.push(dataForNextNode);
 										if (
-											executionData.node.type === 'n8n-nodes-base.dcsWait' ||
 											executionData.node.type ===
-												'@deep-consulting-solutions/n8n-nodes-base.dcsWait'
+											'@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
 										) {
 											const nodeToAdd = nextNodeData.pop();
 											this.addNodeToBeExecuted(

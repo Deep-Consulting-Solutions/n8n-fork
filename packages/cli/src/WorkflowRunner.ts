@@ -303,6 +303,7 @@ export class WorkflowRunner {
 		}
 
 		const nodeTypes = Container.get(NodeTypes);
+		Logger.verbose(`nodeTypes: ${nodeTypes}`);
 
 		// Soft timeout to stop workflow execution after current running node
 		// Changes were made by adding the `workflowTimeout` to the `additionalData`
