@@ -1059,36 +1059,52 @@ export class WorkflowExecute {
 										}
 										delete workflow.connectionsBySourceNode[executionData.node.name];
 										delete workflow.nodes[executionData.node.name];
-										nodeSuccessData = [
-											[
-												{
-													json: {},
-												},
-											],
-										];
+										if (nextNodeData.length) {
+											const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
+											nodeSuccessData = lastNodeInStack.nodeSuccessData;
+										} else {
+											nodeSuccessData = [
+												[
+													{
+														json: {},
+													},
+												],
+											];
+										}
 										const amount = executionData.node.parameters.amount as number;
 										const unit = executionData.node.parameters.unit as string;
 										const resumptionTime = calculateNextTime(unit, amount);
 										const { createResumeTimerEntity } = extraData;
+										taskData = {
+											startTime,
+											executionTime: new Date().getTime() - startTime,
+											source: !executionData.source ? [] : executionData.source.main,
+											executionStatus: 'success',
+											data: {
+												main: nodeSuccessData,
+											} as ITaskDataConnections,
+										};
+										this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
 										await createResumeTimerEntity({
 											resumptionTime,
 											executionId: workflow.id,
 											waitNodeId: executionData.node.id,
+											resultData: this.runExecutionData.resultData,
 											status: 'running',
 										});
-										break;
+										delete this.runExecutionData.resultData.runData[executionData.node.name];
+										// break;
+									} else {
+										runNodeData = await workflow.runNode(
+											executionData,
+											this.runExecutionData,
+											runIndex,
+											this.additionalData,
+											NodeExecuteFunctions,
+											this.mode,
+										);
+										nodeSuccessData = runNodeData.data;
 									}
-									console.log('About to run node');
-									runNodeData = await workflow.runNode(
-										executionData,
-										this.runExecutionData,
-										runIndex,
-										this.additionalData,
-										NodeExecuteFunctions,
-										this.mode,
-									);
-									console.log('Node ran successfully');
-									nodeSuccessData = runNodeData.data;
 								}
 
 								if (runNodeData?.closeFunction) {
@@ -1371,6 +1387,8 @@ export class WorkflowExecute {
 						this.runExecutionData,
 					]);
 				}
+				// console.dir(this.runExecutionData.resultData, { depth: null });
+				// console.dir(this.runExecutionData, { depth: null });
 				return;
 			})()
 				.then(async () => {

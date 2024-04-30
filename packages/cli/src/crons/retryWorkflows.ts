@@ -15,7 +15,12 @@ import { getWorkflowOwner } from '@/UserManagement/UserManagementHelper';
 import type { IExecutionDb, IExecutionFlattedDb } from '@/Interfaces';
 import * as ResponseHelper from '@/ResponseHelper';
 
-const getExecutionId = async (workflowId: string, nodeId: string, userId: string) => {
+const getExecutionId = async (
+	workflowId: string,
+	nodeId: string,
+	userId: string,
+	resultData?: any,
+) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const workflow = await Db.collections.Workflow.findOneBy({ id: workflowId });
 	const nodeTypes = Container.get(NodeTypes);
@@ -57,14 +62,27 @@ const getExecutionId = async (workflowId: string, nodeId: string, userId: string
 		}
 	}
 
-	const runData = await getRunData(
-		workflow as IWorkflowBase,
-		userId,
-		undefined,
-		undefined,
-		nextNode,
-		true,
-	);
+	let runData;
+	if (resultData) {
+		runData = await getRunData(
+			workflow as IWorkflowBase,
+			userId,
+			undefined,
+			undefined,
+			nextNode,
+			true,
+			resultData,
+		);
+	} else {
+		runData = await getRunData(
+			workflow as IWorkflowBase,
+			userId,
+			undefined,
+			undefined,
+			nextNode,
+			true,
+		);
+	}
 	const fullExecutionData: IExecutionDb = {
 		workflowId,
 		data: runData.executionData!,
@@ -81,12 +99,6 @@ const getExecutionId = async (workflowId: string, nodeId: string, userId: string
 
 	const execution = ResponseHelper.flattenExecutionData(fullExecutionData);
 
-	// const executionResult = await Db.collections.Execution.save(execution as IExecutionFlattedDb);
-	// const executionId: string =
-	// 	typeof executionResult.id === 'object'
-	// 		? // @ts-ignore
-	// 		  executionResult.id.toString()
-	// 		: executionResult.id + '';
 	return execution as IExecutionFlattedDb;
 };
 
@@ -103,8 +115,9 @@ export async function retryWorkflows() {
 		// TODO: Get new execution id
 		const workflowId = resumeWorkflowTimerRecord.executionId;
 		const nodeId = resumeWorkflowTimerRecord.waitNodeId;
+		const resultData = resumeWorkflowTimerRecord.resultData;
 		const owner = await getWorkflowOwner(workflowId);
-		const execution = await getExecutionId(workflowId, nodeId, owner.id);
+		const execution = await getExecutionId(workflowId, nodeId, owner.id, resultData);
 
 		const executionPayload = {
 			user: owner,

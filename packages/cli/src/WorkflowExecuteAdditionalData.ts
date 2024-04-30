@@ -848,6 +848,7 @@ export async function getRunData(
 	parentWorkflowId?: string,
 	startNode?: any,
 	isFullWorkflow?: boolean,
+	resultData?: any,
 ): Promise<IWorkflowExecutionDataProcess> {
 	const mode = 'integrated';
 
@@ -887,6 +888,10 @@ export async function getRunData(
 			waitingExecutionSource: {},
 		},
 	};
+
+	if (!!resultData) {
+		runExecutionData.resultData = resultData;
+	}
 
 	const runData: IWorkflowExecutionDataProcess = {
 		executionMode: mode,

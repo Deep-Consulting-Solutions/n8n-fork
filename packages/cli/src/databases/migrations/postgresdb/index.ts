@@ -42,6 +42,7 @@ import { N8NTestingFramework1689942863738 } from './1689942865738-N8NTestingFram
 import { ResumeWorkflowTimerTable1689949863759 } from './1689949863759-ResumeWorfklowTimer';
 import { UpdateResumeWorfklowTimer1779949863759 } from './1779949863759-UpdateResumeWorfklowTimer';
 import { UpdateResumeWorfklowTimer1879949869859 } from './1879949869859-UpdateResumeWorfklowTimer';
+import { ResultDataResumeWorfklowTimer1899949999859 } from './1899949999859-ResultDataResumeWorfklowTimer';
 
 export const postgresMigrations = [
 	InitialMigration1587669153312,
@@ -88,4 +89,5 @@ export const postgresMigrations = [
 	ResumeWorkflowTimerTable1689949863759,
 	UpdateResumeWorfklowTimer1779949863759,
 	UpdateResumeWorfklowTimer1879949869859,
+	ResultDataResumeWorfklowTimer1899949999859,
 ];
