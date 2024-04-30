@@ -860,7 +860,6 @@ export class WorkflowExecute {
 						);
 					}
 					executionData.data = newTaskDataConnections;
-					// console.dir(executionData.data, { depth: null });
 
 					Logger.debug(`Start processing node "${executionNode.name}"`, {
 						node: executionNode.name,
@@ -986,7 +985,6 @@ export class WorkflowExecute {
 									node: executionNode.name,
 									workflowId: workflow.id,
 								});
-								// console.log(executionData);
 								if (extraData?.isTest) {
 									const node = executionData.node;
 									const nodeOutputData = extraData?.nodeOutputs?.find(
@@ -1118,8 +1116,6 @@ export class WorkflowExecute {
 								node: executionNode.name,
 								workflowId: workflow.id,
 							});
-							// console.log('nodeStack');
-							// console.dir(nodeStack, { depth: null });
 
 							if (nodeSuccessData) {
 								// Check if the output data contains pairedItem data
@@ -1346,7 +1342,6 @@ export class WorkflowExecute {
 											runIndex,
 										};
 										nextNodeData.push(dataForNextNode);
-										// console.dir(nextNodeData, { depth: null });
 										if (
 											executionData.node.type === 'n8n-nodes-base.dcsWait' ||
 											executionData.node.type ===
@@ -1387,8 +1382,6 @@ export class WorkflowExecute {
 						this.runExecutionData,
 					]);
 				}
-				// console.dir(this.runExecutionData.resultData, { depth: null });
-				// console.dir(this.runExecutionData, { depth: null });
 				return;
 			})()
 				.then(async () => {
