@@ -238,6 +238,28 @@ export interface IWorkflowDb {
 	usedCredentials?: IUsedCredential[];
 }
 
+export interface TestSuiteDb {
+	name: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	description: string;
+}
+
+export interface NodeOutputDb {
+	[key: string]: any;
+	id: string;
+	workflowTestId: string;
+	nodeId: string;
+	outputType: 'error' | 'data' | null;
+	errorMessage?: string;
+	data?: any;
+}
+
+export interface NodeOutputDbMap {
+	[name: string]: NodeOutputDb;
+}
+
 // Identical to cli.Interfaces.ts
 export interface IWorkflowShortResponse {
 	id: string;
@@ -871,6 +893,8 @@ export interface WorkflowsState {
 	workflowExecutionData: IExecutionResponse | null;
 	workflowExecutionPairedItemMappings: { [itemId: string]: Set<string> };
 	workflowsById: IWorkflowsMap;
+	testSuitesById: TestSuiteDbMap;
+	nodeOutputsById: NodeOutputDbMap;
 }
 
 export interface RootState {
@@ -1172,7 +1196,9 @@ export interface IWorkflowsState {
 export interface IWorkflowsMap {
 	[name: string]: IWorkflowDb;
 }
-
+export interface TestSuiteDbMap {
+	[name: string]: TestSuiteDb;
+}
 export interface CommunityNodesState {
 	availablePackageCount: number;
 	installedPackages: CommunityPackageMap;
