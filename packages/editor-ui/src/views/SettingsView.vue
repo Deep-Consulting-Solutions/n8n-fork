@@ -65,7 +65,7 @@ export default SettingsView;
 .content {
 	height: 100%;
 	width: 100%;
-	max-width: 800px;
+	max-width: 1300px;
 	padding: 0 var(--spacing-2xl);
 }
 </style>
