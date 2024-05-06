@@ -6,11 +6,10 @@ import type {
 	IVersionedNodeType,
 	LoadedClass,
 } from 'n8n-workflow';
-import { NodeHelpers } from 'n8n-workflow';
+import { NodeHelpers, LoggerProxy } from 'n8n-workflow';
 import { Service } from 'typedi';
 import { RESPONSE_ERROR_MESSAGES } from './constants';
 import { LoadNodesAndCredentials } from './LoadNodesAndCredentials';
-import { LoggerProxy } from 'n8n-workflow';
 
 @Service()
 export class NodeTypes implements INodeTypes {
@@ -56,11 +55,13 @@ export class NodeTypes implements INodeTypes {
 	private getNode(type: string): LoadedClass<INodeType | IVersionedNodeType> {
 		LoggerProxy.verbose(`Logging the type of node to get: ${type}`);
 		const loadedNodes = this.loadedNodes;
+		LoggerProxy.verbose(`Logging the loaded nodes: ${JSON.stringify(loadedNodes)}`);
 		if (type in loadedNodes) {
 			return loadedNodes[type];
 		}
 
 		const knownNodes = this.knownNodes;
+		console.log(`Logging the known nodes: ${JSON.stringify(knownNodes)}`);
 		if (type in knownNodes) {
 			const { className, sourcePath } = knownNodes[type];
 			const loaded: INodeType = loadClassInIsolation(sourcePath, className);
