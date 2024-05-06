@@ -61,12 +61,17 @@ export class NodeTypes implements INodeTypes {
 		}
 
 		const knownNodes = this.knownNodes;
-		console.log(`Logging the known nodes: ${JSON.stringify(knownNodes)}`);
+		// console.log(`Logging the known nodes: ${JSON.stringify(knownNodes)}`);
 		if (type in knownNodes) {
+			LoggerProxy.verbose(`Node in known nodes, NodeType: ${JSON.stringify(type)}`);
 			const { className, sourcePath } = knownNodes[type];
+			LoggerProxy.verbose(`className: ${className}, sourcePath: ${sourcePath}`);
 			const loaded: INodeType = loadClassInIsolation(sourcePath, className);
+			LoggerProxy.verbose(`Loaded node: ${JSON.stringify(loaded)}`);
 			NodeHelpers.applySpecialNodeParameters(loaded);
 			loadedNodes[type] = { sourcePath, type: loaded };
+			if (type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait')
+				LoggerProxy.verbose('Added node to loaded nodes');
 			return loadedNodes[type];
 		}
 		throw new Error(`${RESPONSE_ERROR_MESSAGES.NO_NODE}: ${type}`);
