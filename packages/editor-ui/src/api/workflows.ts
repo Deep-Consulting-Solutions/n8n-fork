@@ -1,13 +1,13 @@
 import type { IExecutionsCurrentSummaryExtended, IRestApiContext } from '@/Interface';
 import type { ExecutionFilters, ExecutionOptions, IDataObject } from 'n8n-workflow';
-import { ExecutionStatus, WorkflowExecuteMode } from 'n8n-workflow';
-import { makeRestApiRequest } from '@/utils';
+import { makeRestApiRequest } from '@/utils/apiUtils';
 
 export async function getNewWorkflow(context: IRestApiContext, name?: string) {
 	const response = await makeRestApiRequest(context, 'GET', '/workflows/new', name ? { name } : {});
 	return {
 		name: response.name,
 		onboardingFlowEnabled: response.onboardingFlowEnabled === true,
+		settings: response.defaultSettings,
 	};
 }
 
@@ -24,11 +24,13 @@ export async function getWorkflows(context: IRestApiContext, filter?: object) {
 }
 
 export async function getActiveWorkflows(context: IRestApiContext) {
-	return await makeRestApiRequest(context, 'GET', '/active');
+	return await makeRestApiRequest(context, 'GET', '/active-workflows');
 }
 
-export async function getCurrentExecutions(context: IRestApiContext, filter: IDataObject) {
-	return await makeRestApiRequest(context, 'GET', '/executions-current', { filter });
+export async function getActiveExecutions(context: IRestApiContext, filter: IDataObject) {
+	const output = await makeRestApiRequest(context, 'GET', '/executions', { filter });
+
+	return output.results;
 }
 
 export async function getExecutions(

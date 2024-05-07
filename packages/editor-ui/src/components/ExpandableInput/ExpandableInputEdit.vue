@@ -1,16 +1,16 @@
 <template>
-	<ExpandableInputBase :value="value" :placeholder="placeholder">
+	<ExpandableInputBase :model-value="modelValue" :placeholder="placeholder">
 		<input
+			ref="input"
+			v-on-click-outside="onClickOutside"
 			class="el-input__inner"
-			:value="value"
+			:value="modelValue"
 			:placeholder="placeholder"
 			:maxlength="maxlength"
+			size="4"
 			@input="onInput"
 			@keydown.enter="onEnter"
 			@keydown.esc="onEscape"
-			ref="input"
-			size="4"
-			v-click-outside="onClickOutside"
 		/>
 	</ExpandableInputBase>
 </template>
@@ -19,13 +19,13 @@
 import { defineComponent } from 'vue';
 import ExpandableInputBase from './ExpandableInputBase.vue';
 import type { PropType } from 'vue';
-import type { EventBus } from '@/event-bus';
+import type { EventBus } from 'n8n-design-system';
 
 export default defineComponent({
-	components: { ExpandableInputBase },
 	name: 'ExpandableInputEdit',
+	components: { ExpandableInputBase },
 	props: {
-		value: {},
+		modelValue: {},
 		placeholder: {},
 		maxlength: {},
 		autofocus: {},
@@ -40,7 +40,7 @@ export default defineComponent({
 		}
 		this.eventBus?.on('focus', this.focus);
 	},
-	destroyed() {
+	beforeUnmount() {
 		this.eventBus?.off('focus', this.focus);
 	},
 	methods: {
@@ -50,7 +50,7 @@ export default defineComponent({
 			}
 		},
 		onInput() {
-			this.$emit('input', (this.$refs.input as HTMLInputElement).value);
+			this.$emit('update:modelValue', (this.$refs.input as HTMLInputElement).value);
 		},
 		onEnter() {
 			this.$emit('enter', (this.$refs.input as HTMLInputElement).value);

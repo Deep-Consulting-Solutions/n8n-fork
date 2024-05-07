@@ -9,39 +9,49 @@
 	>
 		<div
 			id="collapse-change-button"
-			:class="{
-				['clickable']: true,
-				[$style.sideMenuCollapseButton]: true,
-				[$style.expandedButton]: !isCollapsed,
-			}"
+			:class="['clickable', $style.sideMenuCollapseButton]"
 			@click="toggleCollapse"
-		></div>
+		>
+			<n8n-icon v-if="isCollapsed" icon="chevron-right" size="xsmall" class="ml-5xs" />
+			<n8n-icon v-else icon="chevron-left" size="xsmall" class="mr-5xs" />
+		</div>
 		<n8n-menu :items="mainMenuItems" :collapsed="isCollapsed" @select="handleSelect">
 			<template #header>
 				<div :class="$style.logo">
-					<img
-						:src="basePath + (isCollapsed ? 'n8n-logo-collapsed.svg' : 'n8n-logo-expanded.svg')"
-						:class="$style.icon"
-						alt="n8n"
-					/>
+					<img :src="logoPath" data-test-id="n8n-logo" :class="$style.icon" alt="n8n" />
 				</div>
 			</template>
-			<template #menuSuffix v-if="hasVersionUpdates">
-				<div :class="$style.updates" @click="openUpdatesPanel">
-					<div :class="$style.giftContainer">
-						<GiftNotificationIcon />
-					</div>
-					<n8n-text
-						:class="{ ['ml-xs']: true, [$style.expanded]: fullyExpanded }"
-						color="text-base"
+
+			<template #beforeLowerMenu>
+				<BecomeTemplateCreatorCta v-if="fullyExpanded && !userIsTrialing" />
+				<ExecutionsUsage
+					v-if="fullyExpanded && userIsTrialing"
+					:cloud-plan-data="currentPlanAndUsageData"
+			/></template>
+			<template #menuSuffix>
+				<div>
+					<div
+						v-if="hasVersionUpdates"
+						data-test-id="version-updates-panel-button"
+						:class="$style.updates"
+						@click="openUpdatesPanel"
 					>
-						{{ nextVersions.length > 99 ? '99+' : nextVersions.length }} update{{
-							nextVersions.length > 1 ? 's' : ''
-						}}
-					</n8n-text>
+						<div :class="$style.giftContainer">
+							<GiftNotificationIcon />
+						</div>
+						<n8n-text
+							:class="{ ['ml-xs']: true, [$style.expanded]: fullyExpanded }"
+							color="text-base"
+						>
+							{{ nextVersions.length > 99 ? '99+' : nextVersions.length }} update{{
+								nextVersions.length > 1 ? 's' : ''
+							}}
+						</n8n-text>
+					</div>
+					<MainSidebarSourceControl :is-collapsed="isCollapsed" />
 				</div>
 			</template>
-			<template #footer v-if="showUserArea">
+			<template v-if="showUserArea" #footer>
 				<div :class="$style.userArea">
 					<div class="ml-3xs" data-test-id="main-sidebar-user-menu">
 						<!-- This dropdown is only enabled when sidebar is collapsed -->
@@ -53,8 +63,8 @@
 						>
 							<div :class="{ [$style.avatar]: true, ['clickable']: isCollapsed }">
 								<n8n-avatar
-									:firstName="usersStore.currentUser.firstName"
-									:lastName="usersStore.currentUser.lastName"
+									:first-name="usersStore.currentUser.firstName"
+									:last-name="usersStore.currentUser.lastName"
 									size="small"
 								/>
 							</div>
@@ -81,6 +91,7 @@
 						<n8n-action-dropdown
 							:items="userMenuItems"
 							placement="top-start"
+							data-test-id="user-menu"
 							@select="onUserActionToggle"
 						/>
 					</div>
@@ -91,46 +102,52 @@
 </template>
 
 <script lang="ts">
-import type { IExecutionResponse, IMenuItem, IVersion } from '../Interface';
-
+import type { CloudPlanAndUsageData, IExecutionResponse, IMenuItem, IVersion } from '@/Interface';
 import GiftNotificationIcon from './GiftNotificationIcon.vue';
-import WorkflowSettings from '@/components/WorkflowSettings.vue';
 
-import { genericHelpers } from '@/mixins/genericHelpers';
-import { showMessage } from '@/mixins/showMessage';
-import { workflowHelpers } from '@/mixins/workflowHelpers';
-import { workflowRun } from '@/mixins/workflowRun';
-
-import mixins from 'vue-typed-mixins';
+import { useMessage } from '@/composables/useMessage';
 import { ABOUT_MODAL_KEY, VERSIONS_MODAL_KEY, VIEWS } from '@/constants';
 import { userHelpers } from '@/mixins/userHelpers';
-import { debounceHelper } from '@/mixins/debounce';
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
-import { useWorkflowsStore } from '@/stores/workflows';
-import { useRootStore } from '@/stores/n8nRootStore';
-import { useVersionsStore } from '@/stores/versions';
-import { isNavigationFailure } from 'vue-router';
+import { useCloudPlanStore } from '@/stores/cloudPlan.store';
+import { useRootStore } from '@/stores/n8nRoot.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useSourceControlStore } from '@/stores/sourceControl.store';
+import { useUIStore } from '@/stores/ui.store';
+import { useUsersStore } from '@/stores/users.store';
+import { useVersionsStore } from '@/stores/versions.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+import { useTemplatesStore } from '@/stores/templates.store';
+import ExecutionsUsage from '@/components/executions/ExecutionsUsage.vue';
+import BecomeTemplateCreatorCta from '@/components/BecomeTemplateCreatorCta/BecomeTemplateCreatorCta.vue';
+import MainSidebarSourceControl from '@/components/MainSidebarSourceControl.vue';
+import { hasPermission } from '@/rbac/permissions';
+import { useExternalHooks } from '@/composables/useExternalHooks';
+import { useDebounce } from '@/composables/useDebounce';
+import { useBecomeTemplateCreatorStore } from '@/components/BecomeTemplateCreatorCta/becomeTemplateCreatorStore';
 
-export default mixins(
-	genericHelpers,
-	showMessage,
-	workflowHelpers,
-	workflowRun,
-	userHelpers,
-	debounceHelper,
-).extend({
+export default defineComponent({
 	name: 'MainSidebar',
 	components: {
 		GiftNotificationIcon,
-		WorkflowSettings,
+		ExecutionsUsage,
+		MainSidebarSourceControl,
+		BecomeTemplateCreatorCta,
+	},
+	mixins: [userHelpers],
+	setup(props, ctx) {
+		const externalHooks = useExternalHooks();
+		const { callDebounced } = useDebounce();
+
+		return {
+			externalHooks,
+			callDebounced,
+			...useMessage(),
+		};
 	},
 	data() {
 		return {
-			// @ts-ignore
 			basePath: '',
 			fullyExpanded: false,
 		};
@@ -143,9 +160,19 @@ export default mixins(
 			useUsersStore,
 			useVersionsStore,
 			useWorkflowsStore,
+			useCloudPlanStore,
+			useSourceControlStore,
+			useBecomeTemplateCreatorStore,
+			useTemplatesStore,
 		),
+		logoPath(): string {
+			return this.basePath + (this.isCollapsed ? 'static/logo/collapsed.svg' : this.uiStore.logo);
+		},
 		hasVersionUpdates(): boolean {
-			return this.versionsStore.hasVersionUpdates;
+			return (
+				this.settingsStore.settings.releaseChannel === 'stable' &&
+				this.versionsStore.hasVersionUpdates
+			);
 		},
 		nextVersions(): IVersion[] {
 			return this.versionsStore.nextVersions;
@@ -158,11 +185,7 @@ export default mixins(
 			return accessibleRoute !== null;
 		},
 		showUserArea(): boolean {
-			return (
-				this.settingsStore.isUserManagementEnabled &&
-				this.usersStore.canUserAccessSidebarUserInfo &&
-				this.usersStore.currentUser !== null
-			);
+			return hasPermission(['authenticated']);
 		},
 		workflowExecution(): IExecutionResponse | null {
 			return this.workflowsStore.getWorkflowExecution;
@@ -181,38 +204,48 @@ export default mixins(
 		},
 		mainMenuItems(): IMenuItem[] {
 			const items: IMenuItem[] = [];
-			const injectedItems = this.uiStore.sidebarMenuItems;
 
-			if (injectedItems && injectedItems.length > 0) {
-				for (const item of injectedItems) {
-					items.push({
-						id: item.id,
-						// @ts-ignore
-						icon: item.properties ? item.properties.icon : '',
-						// @ts-ignore
-						label: item.properties ? item.properties.title : '',
-						position: item.position,
-						type: item.properties?.href ? 'link' : 'regular',
-						properties: item.properties,
-					} as IMenuItem);
-				}
-			}
+			const workflows: IMenuItem = {
+				id: 'workflows',
+				icon: 'network-wired',
+				label: this.$locale.baseText('mainSidebar.workflows'),
+				position: 'top',
+				route: { to: { name: VIEWS.WORKFLOWS } },
+				secondaryIcon: this.sourceControlStore.preferences.branchReadOnly
+					? {
+							name: 'lock',
+							tooltip: {
+								content: this.$locale.baseText('mainSidebar.workflows.readOnlyEnv.tooltip'),
+							},
+						}
+					: undefined,
+			};
 
+			const defaultSettingsRoute = this.findFirstAccessibleSettingsRoute();
 			const regularItems: IMenuItem[] = [
+				workflows,
 				{
-					id: 'workflows',
-					icon: 'network-wired',
-					label: this.$locale.baseText('mainSidebar.workflows'),
-					position: 'top',
-					activateOnRouteNames: [VIEWS.WORKFLOWS],
-				},
-				{
+					// Link to in-app templates, available if custom templates are enabled
 					id: 'templates',
 					icon: 'box-open',
 					label: this.$locale.baseText('mainSidebar.templates'),
 					position: 'top',
-					available: this.settingsStore.isTemplatesEnabled,
-					activateOnRouteNames: [VIEWS.TEMPLATES],
+					available:
+						this.settingsStore.isTemplatesEnabled && this.templatesStore.hasCustomTemplatesHost,
+					route: { to: { name: VIEWS.TEMPLATES } },
+				},
+				{
+					// Link to website templates, available if custom templates are not enabled
+					id: 'templates',
+					icon: 'box-open',
+					label: this.$locale.baseText('mainSidebar.templates'),
+					position: 'top',
+					available:
+						this.settingsStore.isTemplatesEnabled && !this.templatesStore.hasCustomTemplatesHost,
+					link: {
+						href: this.templatesStore.websiteTemplateRepositoryURL,
+						target: '_blank',
+					},
 				},
 				{
 					id: 'credentials',
@@ -220,7 +253,7 @@ export default mixins(
 					label: this.$locale.baseText('mainSidebar.credentials'),
 					customIconSize: 'medium',
 					position: 'top',
-					activateOnRouteNames: [VIEWS.CREDENTIALS],
+					route: { to: { name: VIEWS.CREDENTIALS } },
 				},
 				{
 					id: 'variables',
@@ -228,14 +261,21 @@ export default mixins(
 					label: this.$locale.baseText('mainSidebar.variables'),
 					customIconSize: 'medium',
 					position: 'top',
-					activateOnRouteNames: [VIEWS.VARIABLES],
+					route: { to: { name: VIEWS.VARIABLES } },
 				},
 				{
 					id: 'executions',
 					icon: 'tasks',
 					label: this.$locale.baseText('mainSidebar.executions'),
 					position: 'top',
-					activateOnRouteNames: [VIEWS.EXECUTIONS],
+					route: { to: { name: VIEWS.EXECUTIONS } },
+				},
+				{
+					id: 'cloud-admin',
+					position: 'bottom',
+					label: 'Admin Panel',
+					icon: 'home',
+					available: this.settingsStore.isCloudDeployment && hasPermission(['instanceOwner']),
 				},
 				{
 					id: 'settings',
@@ -244,6 +284,7 @@ export default mixins(
 					position: 'bottom',
 					available: this.canUserAccessSettings && this.usersStore.currentUser !== null,
 					activateOnRouteNames: [VIEWS.USERS_SETTINGS, VIEWS.API_SETTINGS, VIEWS.PERSONAL_SETTINGS],
+					route: { to: defaultSettingsRoute },
 				},
 				{
 					id: 'help',
@@ -255,40 +296,36 @@ export default mixins(
 							id: 'quickstart',
 							icon: 'video',
 							label: this.$locale.baseText('mainSidebar.helpMenuItems.quickstart'),
-							type: 'link',
-							properties: {
+							link: {
 								href: 'https://www.youtube.com/watch?v=1MwSoB0gnM4',
-								newWindow: true,
+								target: '_blank',
 							},
 						},
 						{
 							id: 'docs',
 							icon: 'book',
 							label: this.$locale.baseText('mainSidebar.helpMenuItems.documentation'),
-							type: 'link',
-							properties: {
-								href: 'https://docs.n8n.io',
-								newWindow: true,
+							link: {
+								href: 'https://docs.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
+								target: '_blank',
 							},
 						},
 						{
 							id: 'forum',
 							icon: 'users',
 							label: this.$locale.baseText('mainSidebar.helpMenuItems.forum'),
-							type: 'link',
-							properties: {
-								href: 'https://community.n8n.io',
-								newWindow: true,
+							link: {
+								href: 'https://community.n8n.io?utm_source=n8n_app&utm_medium=app_sidebar',
+								target: '_blank',
 							},
 						},
 						{
 							id: 'examples',
 							icon: 'graduation-cap',
 							label: this.$locale.baseText('mainSidebar.helpMenuItems.course'),
-							type: 'link',
-							properties: {
+							link: {
 								href: 'https://www.youtube.com/watch?v=1MwSoB0gnM4',
-								newWindow: true,
+								target: '_blank',
 							},
 						},
 						{
@@ -302,24 +339,44 @@ export default mixins(
 			];
 			return [...items, ...regularItems];
 		},
+		userIsTrialing(): boolean {
+			return this.cloudPlanStore.userIsTrialing;
+		},
+		currentPlanAndUsageData(): CloudPlanAndUsageData | null {
+			const planData = this.cloudPlanStore.currentPlanData;
+			const usage = this.cloudPlanStore.currentUsageData;
+			if (!planData || !usage) return null;
+			return {
+				...planData,
+				usage,
+			};
+		},
 	},
 	async mounted() {
 		this.basePath = this.rootStore.baseUrl;
 		if (this.$refs.user) {
-			this.$externalHooks().run('mainSidebar.mounted', { userRef: this.$refs.user });
+			void this.externalHooks.run('mainSidebar.mounted', {
+				userRef: this.$refs.user as Element,
+			});
 		}
-		if (window.innerWidth < 900 || this.uiStore.isNodeView) {
-			this.uiStore.sidebarMenuCollapsed = true;
-		} else {
-			this.uiStore.sidebarMenuCollapsed = false;
-		}
-		await Vue.nextTick();
-		this.fullyExpanded = !this.isCollapsed;
+
+		void this.$nextTick(() => {
+			if (window.innerWidth < 900 || this.uiStore.isNodeView) {
+				this.uiStore.sidebarMenuCollapsed = true;
+			} else {
+				this.uiStore.sidebarMenuCollapsed = false;
+			}
+
+			this.fullyExpanded = !this.isCollapsed;
+		});
+
+		this.becomeTemplateCreatorStore.startMonitoringCta();
 	},
 	created() {
 		window.addEventListener('resize', this.onResize);
 	},
-	destroyed() {
+	beforeUnmount() {
+		this.becomeTemplateCreatorStore.stopMonitoringCta();
 		window.removeEventListener('resize', this.onResize);
 	},
 	methods: {
@@ -329,20 +386,26 @@ export default mixins(
 				workflow_id: this.workflowsStore.workflowId,
 			});
 		},
+		trackTemplatesClick() {
+			this.$telemetry.track('User clicked on templates', {
+				role: this.usersStore.currentUserCloudInfo?.role,
+				active_workflow_count: this.workflowsStore.activeWorkflows.length,
+			});
+		},
 		async onUserActionToggle(action: string) {
 			switch (action) {
 				case 'logout':
 					this.onLogout();
 					break;
 				case 'settings':
-					this.$router.push({ name: VIEWS.PERSONAL_SETTINGS });
+					void this.$router.push({ name: VIEWS.PERSONAL_SETTINGS });
 					break;
 				default:
 					break;
 			}
 		},
 		onLogout() {
-			this.$router.push({ name: VIEWS.SIGNOUT });
+			void this.$router.push({ name: VIEWS.SIGNOUT });
 		},
 		toggleCollapse() {
 			this.uiStore.toggleSidebarMenuCollapse();
@@ -360,49 +423,21 @@ export default mixins(
 		},
 		async handleSelect(key: string) {
 			switch (key) {
-				case 'workflows': {
-					if (this.$router.currentRoute.name !== VIEWS.WORKFLOWS) {
-						this.goToRoute({ name: VIEWS.WORKFLOWS });
+				case 'templates':
+					if (
+						this.settingsStore.isTemplatesEnabled &&
+						!this.templatesStore.hasCustomTemplatesHost
+					) {
+						this.trackTemplatesClick();
 					}
 					break;
-				}
-				case 'templates': {
-					if (this.$router.currentRoute.name !== VIEWS.TEMPLATES) {
-						this.goToRoute({ name: VIEWS.TEMPLATES });
-					}
-					break;
-				}
-				case 'credentials': {
-					if (this.$router.currentRoute.name !== VIEWS.CREDENTIALS) {
-						this.goToRoute({ name: VIEWS.CREDENTIALS });
-					}
-					break;
-				}
-				case 'variables': {
-					if (this.$router.currentRoute.name !== VIEWS.VARIABLES) {
-						this.goToRoute({ name: VIEWS.VARIABLES });
-					}
-					break;
-				}
-				case 'executions': {
-					if (this.$router.currentRoute.name !== VIEWS.EXECUTIONS) {
-						this.goToRoute({ name: VIEWS.EXECUTIONS });
-					}
-					break;
-				}
-				case 'settings': {
-					const defaultRoute = this.findFirstAccessibleSettingsRoute();
-					if (defaultRoute) {
-						const routeProps = this.$router.resolve({ name: defaultRoute });
-						if (this.$router.currentRoute.name !== defaultRoute) {
-							this.goToRoute(routeProps.route.path);
-						}
-					}
-					break;
-				}
 				case 'about': {
 					this.trackHelpItemClick('about');
 					this.uiStore.openModal(ABOUT_MODAL_KEY);
+					break;
+				}
+				case 'cloud-admin': {
+					void this.cloudPlanStore.redirectToDashboard();
 					break;
 				}
 				case 'quickstart':
@@ -416,46 +451,36 @@ export default mixins(
 					break;
 			}
 		},
-		goToRoute(route: string | { name: string }) {
-			this.$router.push(route).catch((failure) => {
-				// Catch navigation failures caused by route guards
-				if (!isNavigationFailure(failure)) {
-					console.error(failure);
-				}
-			});
-		},
 		findFirstAccessibleSettingsRoute() {
-			// Get all settings rotes by filtering them by pageCategory property
 			const settingsRoutes = this.$router
 				.getRoutes()
-				.filter(
-					(category) =>
-						category.meta.telemetry && category.meta.telemetry.pageCategory === 'settings',
-				)
-				.map((route) => route.name || '');
-			let defaultSettingsRoute = null;
+				.find((route) => route.path === '/settings')!
+				.children.map((route) => route.name ?? '');
 
+			let defaultSettingsRoute = { name: VIEWS.USERS_SETTINGS };
 			for (const route of settingsRoutes) {
-				if (this.canUserAccessRouteByName(route)) {
-					defaultSettingsRoute = route;
+				if (this.canUserAccessRouteByName(route.toString())) {
+					defaultSettingsRoute = {
+						name: route.toString() as VIEWS,
+					};
 					break;
 				}
 			}
+
 			return defaultSettingsRoute;
 		},
 		onResize(event: UIEvent) {
-			this.callDebounced('onResizeEnd', { debounceTime: 100 }, event);
+			void this.callDebounced(this.onResizeEnd, { debounceTime: 100 }, event);
 		},
-		onResizeEnd(event: UIEvent) {
+		async onResizeEnd(event: UIEvent) {
 			const browserWidth = (event.target as Window).outerWidth;
-			this.checkWidthAndAdjustSidebar(browserWidth);
+			await this.checkWidthAndAdjustSidebar(browserWidth);
 		},
-		checkWidthAndAdjustSidebar(width: number) {
+		async checkWidthAndAdjustSidebar(width: number) {
 			if (width < 900) {
 				this.uiStore.sidebarMenuCollapsed = true;
-				Vue.nextTick(() => {
-					this.fullyExpanded = !this.isCollapsed;
-				});
+				await this.$nextTick();
+				this.fullyExpanded = !this.isCollapsed;
 			}
 		},
 	},
@@ -498,47 +523,25 @@ export default mixins(
 	z-index: 999;
 	display: flex;
 	justify-content: center;
-	align-items: flex-end;
+	align-items: center;
 	color: var(--color-text-base);
 	background-color: var(--color-foreground-xlight);
 	width: 20px;
 	height: 20px;
 	border: var(--border-width-base) var(--border-style-base) var(--color-foreground-base);
-	text-align: center;
 	border-radius: 50%;
 
-	&::before {
-		display: block;
-		position: relative;
-		left: px;
-		top: -2.5px;
-		transform: rotate(270deg);
-		content: '\e6df';
-		font-family: element-icons;
-		font-size: var(--font-size-2xs);
-		font-weight: bold;
-		color: var(--color-text-base);
-	}
-
-	&.expandedButton {
-		&::before {
-			transform: rotate(90deg);
-			left: 0px;
-		}
-	}
-
 	&:hover {
-		&::before {
-			color: var(--color-primary-shade-1);
-		}
+		color: var(--color-primary-shade-1);
 	}
 }
 
 .updates {
 	display: flex;
 	align-items: center;
-	height: 26px;
 	cursor: pointer;
+	padding: var(--spacing-2xs) var(--spacing-l);
+	margin: var(--spacing-2xs) 0 0;
 
 	svg {
 		color: var(--color-text-base) !important;

@@ -1,7 +1,7 @@
 <template>
 	<AuthView
 		:form="FORM_CONFIG"
-		:formLoading="loading"
+		:form-loading="loading"
 		data-test-id="setup-form"
 		@submit="onSubmit"
 		@secondaryClick="showSkipConfirmation"
@@ -14,23 +14,24 @@
 			</div>
 		</div>
 	</AuthView>
+	/>
 </template>
 
 <script lang="ts">
 import AuthView from './AuthView.vue';
-import { showMessage } from '@/mixins/showMessage';
+import { defineComponent } from 'vue';
 
 import mixins from 'vue-typed-mixins';
 import QRCode from 'qrcode';
+import { useToast } from '@/composables/useToast';
 import type { IFormBoxConfig } from '@/Interface';
 import { VIEWS } from '@/constants';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
-import { useCredentialsStore } from '@/stores/credentials';
+import { useUIStore } from '@/stores/ui.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUsersStore } from '@/stores/users.store';
 
-export default mixins(showMessage).extend({
+export default defineComponent({
 	name: 'SetupView',
 	components: {
 		AuthView,
@@ -47,12 +48,13 @@ export default mixins(showMessage).extend({
 		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
 			this.otpSecretAuthURL = dataUrl;
 		});
+	setup() {
+		return useToast();
 	},
 	data() {
 		const FORM_CONFIG: IFormBoxConfig = {
 			title: this.$locale.baseText('auth.setup.setupOwner'),
 			buttonText: this.$locale.baseText('auth.setup.next'),
-			secondaryButtonText: this.$locale.baseText('auth.setup.skipSetupTemporarily'),
 			inputs: [
 				{
 					name: 'email',
@@ -126,53 +128,11 @@ export default mixins(showMessage).extend({
 		};
 	},
 	computed: {
-		...mapStores(useCredentialsStore, useSettingsStore, useUIStore, useUsersStore),
+		...mapStores(useSettingsStore, useUIStore, useUsersStore),
 	},
 	methods: {
-		async confirmSetupOrGoBack(): Promise<boolean> {
-			if (this.workflowsCount === 0 && this.credentialsCount === 0) {
-				return true;
-			}
-
-			const workflows =
-				this.workflowsCount > 0
-					? this.$locale.baseText('auth.setup.setupConfirmation.existingWorkflows', {
-							adjustToNumber: this.workflowsCount,
-					  })
-					: '';
-
-			const credentials =
-				this.credentialsCount > 0
-					? this.$locale.baseText('auth.setup.setupConfirmation.credentials', {
-							adjustToNumber: this.credentialsCount,
-					  })
-					: '';
-
-			const entities =
-				workflows && credentials
-					? this.$locale.baseText('auth.setup.setupConfirmation.concatEntities', {
-							interpolate: { workflows, credentials },
-					  })
-					: workflows || credentials;
-			return await this.confirmMessage(
-				this.$locale.baseText('auth.setup.confirmOwnerSetupMessage', {
-					interpolate: {
-						entities,
-					},
-				}),
-				this.$locale.baseText('auth.setup.confirmOwnerSetup'),
-				null,
-				this.$locale.baseText('auth.setup.createAccount'),
-				this.$locale.baseText('auth.setup.goBack'),
-			);
-		},
 		async onSubmit(values: { [key: string]: string | boolean }) {
 			try {
-				const confirmSetup = await this.confirmSetupOrGoBack();
-				if (!confirmSetup) {
-					return;
-				}
-
 				const forceRedirectedHere = this.settingsStore.showSetupPage;
 				this.loading = true;
 
@@ -202,27 +162,9 @@ export default mixins(showMessage).extend({
 					await this.$router.push({ name: VIEWS.USERS_SETTINGS });
 				}
 			} catch (error) {
-				this.$showError(error, this.$locale.baseText('auth.setup.settingUpOwnerError'));
+				this.showError(error, this.$locale.baseText('auth.setup.settingUpOwnerError'));
 			}
 			this.loading = false;
-		},
-		async showSkipConfirmation() {
-			const skip = await this.confirmMessage(
-				this.$locale.baseText('auth.setup.ownerAccountBenefits'),
-				this.$locale.baseText('auth.setup.skipOwnerSetupQuestion'),
-				null,
-				this.$locale.baseText('auth.setup.skipSetup'),
-				this.$locale.baseText('auth.setup.goBack'),
-			);
-			if (skip) {
-				this.onSkip();
-			}
-		},
-		onSkip() {
-			this.usersStore.skipOwnerSetup();
-			this.$router.push({
-				name: VIEWS.NEW_WORKFLOW,
-			});
 		},
 	},
 });

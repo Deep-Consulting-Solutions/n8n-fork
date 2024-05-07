@@ -1,44 +1,44 @@
 <template>
-	<div class="ph-no-capture" :class="$style.container">
+	<div :class="$style.container">
 		<span v-if="readonly" :class="$style.headline">
-			{{ name }}
+			{{ modelValue }}
 		</span>
 		<div
 			v-else
+			v-on-click-outside="disableNameEdit"
 			:class="[$style.headline, $style['headline-editable']]"
 			@keydown.stop
 			@click="enableNameEdit"
-			v-click-outside="disableNameEdit"
 		>
 			<div v-if="!isNameEdit">
-				<span>{{ name }}</span>
+				<span>{{ modelValue }}</span>
 				<i><font-awesome-icon icon="pen" /></i>
 			</div>
 			<div v-else :class="$style.nameInput">
 				<n8n-input
-					:value="name"
-					size="xlarge"
 					ref="nameInput"
-					@input="onNameEdit"
-					@change="disableNameEdit"
+					:model-value="modelValue"
+					size="xlarge"
 					:maxlength="64"
+					@update:model-value="onNameEdit"
+					@change="disableNameEdit"
 				/>
 			</div>
 		</div>
-		<div :class="$style.subtitle" v-if="!isNameEdit && subtitle">
+		<div v-if="!isNameEdit && subtitle" :class="$style.subtitle">
 			{{ subtitle }}
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import mixins from 'vue-typed-mixins';
-import { showMessage } from '@/mixins/showMessage';
+import { defineComponent } from 'vue';
+import { useToast } from '@/composables/useToast';
 
-export default mixins(showMessage).extend({
+export default defineComponent({
 	name: 'InlineNameEdit',
 	props: {
-		name: {
+		modelValue: {
 			type: String,
 		},
 		subtitle: {
@@ -52,6 +52,11 @@ export default mixins(showMessage).extend({
 			default: false,
 		},
 	},
+	setup() {
+		return {
+			...useToast(),
+		};
+	},
 	data() {
 		return {
 			isNameEdit: false,
@@ -59,7 +64,7 @@ export default mixins(showMessage).extend({
 	},
 	methods: {
 		onNameEdit(value: string) {
-			this.$emit('input', value);
+			this.$emit('update:modelValue', value);
 		},
 		enableNameEdit() {
 			this.isNameEdit = true;
@@ -72,10 +77,10 @@ export default mixins(showMessage).extend({
 			}, 0);
 		},
 		disableNameEdit() {
-			if (!this.name) {
-				this.$emit('input', `Untitled ${this.type}`);
+			if (!this.modelValue) {
+				this.$emit('update:modelValue', `Untitled ${this.type}`);
 
-				this.$showToast({
+				this.showToast({
 					title: 'Error',
 					message: `${this.type} name cannot be empty`,
 					type: 'warning',

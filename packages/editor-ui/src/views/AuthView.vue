@@ -10,10 +10,10 @@
 			<n8n-form-box
 				v-bind="form"
 				data-test-id="auth-form"
-				:buttonLoading="formLoading"
-				@secondaryClick="onSecondaryClick"
+				:button-loading="formLoading"
+				@secondary-click="onSecondaryClick"
 				@submit="onSubmit"
-				@input="onInput"
+				@update="onUpdate"
 			>
 				<SSOLogin v-if="withSso" />
 				<template #additional>
@@ -51,8 +51,8 @@ export default defineComponent({
 		},
 	},
 	methods: {
-		onInput(e: { name: string; value: string }) {
-			this.$emit('input', e);
+		onUpdate(e: { name: string; value: string }) {
+			this.$emit('update', e);
 		},
 		onSubmit(values: { [key: string]: string }) {
 			this.$emit('submit', values);

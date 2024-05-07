@@ -1,8 +1,8 @@
 <template>
 	<Modal
-		width="540px"
+		max-width="540px"
 		:title="$locale.baseText('about.aboutN8n')"
-		:eventBus="modalBus"
+		:event-bus="modalBus"
 		:name="ABOUT_MODAL_KEY"
 		:center="true"
 	>
@@ -47,7 +47,12 @@
 
 		<template #footer>
 			<div class="action-buttons">
-				<n8n-button @click="closeDialog" float="right" :label="$locale.baseText('about.close')" />
+				<n8n-button
+					float="right"
+					:label="$locale.baseText('about.close')"
+					data-test-id="close-about-modal-button"
+					@click="closeDialog"
+				/>
 			</div>
 		</template>
 	</Modal>
@@ -55,12 +60,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { mapStores } from 'pinia';
+import { createEventBus } from 'n8n-design-system/utils';
 import Modal from './Modal.vue';
 import { ABOUT_MODAL_KEY } from '../constants';
-import { mapStores } from 'pinia';
-import { useSettingsStore } from '@/stores/settings';
-import { useRootStore } from '@/stores/n8nRootStore';
-import { createEventBus } from '@/event-bus';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useRootStore } from '@/stores/n8nRoot.store';
 
 export default defineComponent({
 	name: 'About',

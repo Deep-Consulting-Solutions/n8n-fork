@@ -1,45 +1,32 @@
-import Vue from 'vue';
+import type { Plugin } from 'vue';
 import axios from 'axios';
-import VueI18n from 'vue-i18n';
+import { createI18n } from 'vue-i18n';
+import { locale } from 'n8n-design-system';
+import type { INodeProperties, INodePropertyCollection, INodePropertyOptions } from 'n8n-workflow';
+
 import type { INodeTranslationHeaders } from '@/Interface';
-import { IRootState } from '@/Interface';
+import { useUIStore } from '@/stores/ui.store';
+import { useNDVStore } from '@/stores/ndv.store';
+import { useRootStore } from '@/stores/n8nRoot.store';
+import englishBaseText from './locales/en.json';
 import {
 	deriveMiddleKey,
 	isNestedInCollectionLike,
 	normalize,
 	insertOptionsAndValues,
 } from './utils';
-import { locale } from 'n8n-design-system';
 
-import englishBaseText from './locales/en.json';
-import { useUIStore } from '@/stores/ui';
-import { useNDVStore } from '@/stores/ndv';
-import type { INodeProperties, INodePropertyCollection, INodePropertyOptions } from 'n8n-workflow';
-
-Vue.use(VueI18n);
-locale.use('en');
-
-export let i18n: I18nClass;
-
-export function I18nPlugin(vue: typeof Vue): void {
-	i18n = new I18nClass();
-
-	Object.defineProperty(vue, '$locale', {
-		get() {
-			return i18n;
-		},
-	});
-
-	Object.defineProperty(vue.prototype, '$locale', {
-		get() {
-			return i18n;
-		},
-	});
-}
+export const i18nInstance = createI18n({
+	locale: 'en',
+	fallbackLocale: 'en',
+	messages: { en: englishBaseText },
+});
 
 export class I18nClass {
-	private get i18n(): VueI18n {
-		return i18nInstance;
+	private baseTextCache = new Map<string, string>();
+
+	private get i18n() {
+		return i18nInstance.global;
 	}
 
 	// ----------------------------------
@@ -65,11 +52,25 @@ export class I18nClass {
 		key: BaseTextKey,
 		options?: { adjustToNumber?: number; interpolate?: { [key: string]: string } },
 	): string {
-		if (options && options.adjustToNumber) {
-			return this.i18n.tc(key, options.adjustToNumber, options && options.interpolate).toString();
+		// Create a unique cache key
+		const cacheKey = `${key}-${JSON.stringify(options)}`;
+
+		// Check if the result is already cached
+		if (this.baseTextCache.has(cacheKey)) {
+			return this.baseTextCache.get(cacheKey) ?? key;
 		}
 
-		return this.i18n.t(key, options && options.interpolate).toString();
+		let result: string;
+		if (options?.adjustToNumber !== undefined) {
+			result = this.i18n.tc(key, options.adjustToNumber, options?.interpolate ?? {}).toString();
+		} else {
+			result = this.i18n.t(key, options?.interpolate ?? {}).toString();
+		}
+
+		// Store the result in the cache
+		this.baseTextCache.set(cacheKey, result);
+
+		return result;
 	}
 
 	/**
@@ -77,6 +78,22 @@ export class I18nClass {
 	 */
 	private dynamicRender({ key, fallback }: { key: string; fallback?: string }) {
 		return this.i18n.te(key) ? this.i18n.t(key).toString() : fallback ?? '';
+	}
+
+	displayTimer(msPassed: number, showMs = false): string {
+		if (msPassed < 60000) {
+			if (!showMs) {
+				return `${Math.floor(msPassed / 1000)}${this.baseText('genericHelpers.secShort')}`;
+			}
+
+			return `${msPassed / 1000}${this.baseText('genericHelpers.secShort')}`;
+		}
+
+		const secondsPassed = Math.floor(msPassed / 1000);
+		const minutesPassed = Math.floor(secondsPassed / 60);
+		const secondsLeft = (secondsPassed - minutesPassed * 60).toString().padStart(2, '0');
+
+		return `${minutesPassed}:${secondsLeft}${this.baseText('genericHelpers.minShort')}`;
 	}
 
 	/**
@@ -179,7 +196,7 @@ export class I18nClass {
 	nodeText() {
 		const ndvStore = useNDVStore();
 		const activeNode = ndvStore.activeNode;
-		const nodeType = activeNode ? this.shortNodeType(activeNode.type as string) : ''; // unused in eventTriggerDescription
+		const nodeType = activeNode ? this.shortNodeType(activeNode.type) : ''; // unused in eventTriggerDescription
 		const initialKey = `n8n-nodes-base.nodes.${nodeType}.nodeView`;
 		const context = this;
 
@@ -327,9 +344,23 @@ export class I18nClass {
 		};
 	}
 
-	rootVars: Record<string, string | undefined> = {
+	localizeNodeName(nodeName: string, type: string) {
+		const isEnglishLocale = useRootStore().defaultLocale === 'en';
+
+		if (isEnglishLocale) return nodeName;
+
+		const nodeTypeName = this.shortNodeType(type);
+
+		return this.headerText({
+			key: `headers.${nodeTypeName}.displayName`,
+			fallback: nodeName,
+		});
+	}
+
+	rootVars = {
 		$binary: this.baseText('codeNodeEditor.completer.binary'),
 		$execution: this.baseText('codeNodeEditor.completer.$execution'),
+		$ifEmpty: this.baseText('codeNodeEditor.completer.$ifEmpty'),
 		$input: this.baseText('codeNodeEditor.completer.$input'),
 		$jmespath: this.baseText('codeNodeEditor.completer.$jmespath'),
 		$json: this.baseText('codeNodeEditor.completer.json'),
@@ -344,7 +375,11 @@ export class I18nClass {
 		$today: this.baseText('codeNodeEditor.completer.$today'),
 		$vars: this.baseText('codeNodeEditor.completer.$vars'),
 		$workflow: this.baseText('codeNodeEditor.completer.$workflow'),
-	};
+		DateTime: this.baseText('codeNodeEditor.completer.dateTime'),
+		$request: this.baseText('codeNodeEditor.completer.$request'),
+		$response: this.baseText('codeNodeEditor.completer.$response'),
+		$pageCount: this.baseText('codeNodeEditor.completer.$pageCount'),
+	} as const satisfies Record<string, string | undefined>;
 
 	proxyVars: Record<string, string | undefined> = {
 		'$input.all': this.baseText('codeNodeEditor.completer.$input.all'),
@@ -359,6 +394,7 @@ export class I18nClass {
 		'$().itemMatching': this.baseText('codeNodeEditor.completer.selector.itemMatching'),
 		'$().last': this.baseText('codeNodeEditor.completer.selector.last'),
 		'$().params': this.baseText('codeNodeEditor.completer.selector.params'),
+		'$().isExecuted': this.baseText('codeNodeEditor.completer.selector.isExecuted'),
 
 		'$prevNode.name': this.baseText('codeNodeEditor.completer.$prevNode.name'),
 		'$prevNode.outputIndex': this.baseText('codeNodeEditor.completer.$prevNode.outputIndex'),
@@ -367,6 +403,7 @@ export class I18nClass {
 		'$execution.id': this.baseText('codeNodeEditor.completer.$workflow.id'),
 		'$execution.mode': this.baseText('codeNodeEditor.completer.$execution.mode'),
 		'$execution.resumeUrl': this.baseText('codeNodeEditor.completer.$execution.resumeUrl'),
+		'$execution.resumeFormUrl': this.baseText('codeNodeEditor.completer.$execution.resumeFormUrl'),
 
 		'$workflow.active': this.baseText('codeNodeEditor.completer.$workflow.active'),
 		'$workflow.id': this.baseText('codeNodeEditor.completer.$workflow.id'),
@@ -510,26 +547,15 @@ export class I18nClass {
 	};
 }
 
-export const i18nInstance = new VueI18n({
-	locale: 'en',
-	fallbackLocale: 'en',
-	messages: { en: englishBaseText },
-	silentTranslationWarn: true,
-});
-
-locale.i18n((key: string, options?: { interpolate: object }) =>
-	i18nInstance.t(key, options && options.interpolate),
-);
-
 const loadedLanguages = ['en'];
 
-function setLanguage(language: string) {
-	i18nInstance.locale = language;
+async function setLanguage(language: string) {
+	i18nInstance.global.locale = language as 'en';
 	axios.defaults.headers.common['Accept-Language'] = language;
 	document!.querySelector('html')!.setAttribute('lang', language);
 
 	// update n8n design system and element ui
-	locale.use(language);
+	await locale.use(language);
 
 	return language;
 }
@@ -537,27 +563,25 @@ function setLanguage(language: string) {
 export async function loadLanguage(language?: string) {
 	if (!language) return;
 
-	if (i18nInstance.locale === language) {
-		setLanguage(language);
-		return;
+	if (i18nInstance.global.locale === language) {
+		return await setLanguage(language);
 	}
 
 	if (loadedLanguages.includes(language)) {
-		setLanguage(language);
-		return;
+		return await setLanguage(language);
 	}
 
 	const { numberFormats, ...rest } = (await import(`./locales/${language}.json`)).default;
 
-	i18nInstance.setLocaleMessage(language, rest);
+	i18nInstance.global.setLocaleMessage(language, rest);
 
 	if (numberFormats) {
-		i18nInstance.setNumberFormat(language, numberFormats);
+		i18nInstance.global.setNumberFormat(language, numberFormats);
 	}
 
 	loadedLanguages.push(language);
 
-	setLanguage(language);
+	return await setLanguage(language);
 }
 
 /**
@@ -567,7 +591,7 @@ export function addNodeTranslation(
 	nodeTranslation: { [nodeType: string]: object },
 	language: string,
 ) {
-	const oldNodesBase = i18nInstance.messages[language]['n8n-nodes-base'] || {};
+	const oldNodesBase = i18nInstance.global.messages[language]['n8n-nodes-base'] || {};
 
 	const updatedNodes = {
 		// @ts-ignore
@@ -579,9 +603,9 @@ export function addNodeTranslation(
 		'n8n-nodes-base': Object.assign(oldNodesBase, { nodes: updatedNodes }),
 	};
 
-	i18nInstance.setLocaleMessage(
+	i18nInstance.global.setLocaleMessage(
 		language,
-		Object.assign(i18nInstance.messages[language], newNodesBase),
+		Object.assign(i18nInstance.global.messages[language], newNodesBase),
 	);
 }
 
@@ -592,7 +616,7 @@ export function addCredentialTranslation(
 	nodeCredentialTranslation: { [credentialType: string]: object },
 	language: string,
 ) {
-	const oldNodesBase = i18nInstance.messages[language]['n8n-nodes-base'] || {};
+	const oldNodesBase = i18nInstance.global.messages[language]['n8n-nodes-base'] || {};
 
 	const updatedCredentials = {
 		// @ts-ignore
@@ -604,9 +628,9 @@ export function addCredentialTranslation(
 		'n8n-nodes-base': Object.assign(oldNodesBase, { credentials: updatedCredentials }),
 	};
 
-	i18nInstance.setLocaleMessage(
+	i18nInstance.global.setLocaleMessage(
 		language,
-		Object.assign(i18nInstance.messages[language], newNodesBase),
+		Object.assign(i18nInstance.global.messages[language], newNodesBase),
 	);
 }
 
@@ -614,21 +638,29 @@ export function addCredentialTranslation(
  * Add a node's header strings to the i18n instance's `messages` object.
  */
 export function addHeaders(headers: INodeTranslationHeaders, language: string) {
-	i18nInstance.setLocaleMessage(
+	i18nInstance.global.setLocaleMessage(
 		language,
-		Object.assign(i18nInstance.messages[language], { headers }),
+		Object.assign(i18nInstance.global.messages[language], { headers }),
 	);
 }
+
+export const i18n: I18nClass = new I18nClass();
+
+export const I18nPlugin: Plugin<{}> = {
+	async install(app) {
+		locale.i18n((key: string, options?: { interpolate: Record<string, unknown> }) =>
+			i18nInstance.global.t(key, options?.interpolate || {}),
+		);
+
+		app.config.globalProperties.$locale = i18n;
+
+		await locale.use('en');
+	},
+};
 
 // ----------------------------------
 //             typings
 // ----------------------------------
-
-declare module 'vue/types/vue' {
-	interface Vue {
-		$locale: I18nClass;
-	}
-}
 
 type GetBaseTextKey<T> = T extends `_${string}` ? never : T;
 

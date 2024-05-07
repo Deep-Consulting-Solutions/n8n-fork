@@ -1,36 +1,36 @@
 <template>
 	<div v-if="windowVisible" :class="['binary-data-window', binaryData?.fileType]">
 		<n8n-button
-			@click.stop="closeWindow"
 			size="small"
 			class="binary-data-window-back"
 			:title="$locale.baseText('binaryDataDisplay.backToOverviewPage')"
 			icon="arrow-left"
 			:label="$locale.baseText('binaryDataDisplay.backToList')"
+			@click.stop="closeWindow"
 		/>
 
 		<div class="binary-data-window-wrapper">
 			<div v-if="!binaryData">
 				{{ $locale.baseText('binaryDataDisplay.noDataFoundToDisplay') }}
 			</div>
-			<BinaryDataDisplayEmbed v-else :binaryData="binaryData" />
+			<BinaryDataDisplayEmbed v-else :binary-data="binaryData" />
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
+import { mapStores } from 'pinia';
 import type { IBinaryData, IRunData } from 'n8n-workflow';
 
 import BinaryDataDisplayEmbed from '@/components/BinaryDataDisplayEmbed.vue';
 
-import { nodeHelpers } from '@/mixins/nodeHelpers';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+import { useNodeHelpers } from '@/composables/useNodeHelpers';
 
-import mixins from 'vue-typed-mixins';
-import { mapStores } from 'pinia';
-import { useWorkflowsStore } from '@/stores/workflows';
-
-export default mixins(nodeHelpers).extend({
+export default defineComponent({
 	name: 'BinaryDataDisplay',
+
 	components: {
 		BinaryDataDisplayEmbed,
 	},
@@ -38,10 +38,17 @@ export default mixins(nodeHelpers).extend({
 		'displayData', // IBinaryData
 		'windowVisible', // boolean
 	],
+	setup() {
+		const nodeHelpers = useNodeHelpers();
+
+		return {
+			nodeHelpers,
+		};
+	},
 	computed: {
 		...mapStores(useWorkflowsStore),
 		binaryData(): IBinaryData | null {
-			const binaryData = this.getBinaryData(
+			const binaryData = this.nodeHelpers.getBinaryData(
 				this.workflowRunData,
 				this.displayData.node,
 				this.displayData.runIndex,
@@ -92,7 +99,7 @@ export default mixins(nodeHelpers).extend({
 	z-index: 10;
 	width: 100%;
 	height: calc(100% - 50px);
-	background-color: var(--color-background-base);
+	background-color: var(--color-run-data-background);
 	overflow: hidden;
 	text-align: center;
 

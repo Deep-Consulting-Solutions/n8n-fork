@@ -1,21 +1,19 @@
-import * as Db from '@/Db';
 import { Reset } from '@/commands/user-management/reset';
-import type { Role } from '@db/entities/Role';
-import * as testDb from '../shared/testDb';
-import { mockInstance } from '../shared/utils';
 import { InternalHooks } from '@/InternalHooks';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { NodeTypes } from '@/NodeTypes';
+import Container from 'typedi';
+import { UserRepository } from '@db/repositories/user.repository';
 
-let globalOwnerRole: Role;
+import { mockInstance } from '../../shared/mocking';
+import * as testDb from '../shared/testDb';
+import { createUser } from '../shared/db/users';
 
 beforeAll(async () => {
 	mockInstance(InternalHooks);
 	mockInstance(LoadNodesAndCredentials);
 	mockInstance(NodeTypes);
 	await testDb.init();
-
-	globalOwnerRole = await testDb.getGlobalOwnerRole();
 });
 
 beforeEach(async () => {
@@ -26,12 +24,13 @@ afterAll(async () => {
 	await testDb.terminate();
 });
 
+// eslint-disable-next-line n8n-local-rules/no-skipped-tests
 test.skip('user-management:reset should reset DB to default user state', async () => {
-	await testDb.createUser({ globalRole: globalOwnerRole });
+	await createUser({ role: 'global:owner' });
 
 	await Reset.run();
 
-	const user = await Db.collections.User.findOneBy({ globalRoleId: globalOwnerRole.id });
+	const user = await Container.get(UserRepository).findOneBy({ role: 'global:owner' });
 
 	if (!user) {
 		fail('No owner found after DB reset to default user state');
@@ -41,7 +40,5 @@ test.skip('user-management:reset should reset DB to default user state', async (
 	expect(user.firstName).toBeNull();
 	expect(user.lastName).toBeNull();
 	expect(user.password).toBeNull();
-	expect(user.resetPasswordToken).toBeNull();
-	expect(user.resetPasswordTokenExpiration).toBeNull();
 	expect(user.personalizationAnswers).toBeNull();
 });
