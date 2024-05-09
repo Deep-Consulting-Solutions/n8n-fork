@@ -29,7 +29,6 @@ import { removeTrailingSlash } from './utils';
 import type { TestWebhookRegistration } from '@/services/test-webhook-registrations.service';
 import { TestWebhookRegistrationsService } from '@/services/test-webhook-registrations.service';
 import { OrchestrationService } from '@/services/orchestration.service';
-import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 
 @Service()
 export class TestWebhooks implements IWebhookManager {
