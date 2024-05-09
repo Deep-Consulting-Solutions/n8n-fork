@@ -19,6 +19,8 @@ import { WorkflowStatistics } from './WorkflowStatistics';
 import { ExecutionMetadata } from './ExecutionMetadata';
 import { ExecutionData } from './ExecutionData';
 import { WorkflowHistory } from './WorkflowHistory';
+import { ServerIncident } from './ServerIncident';
+import { DataRecoveryActivity } from './DataRecoveryActivity';
 
 export const entities = {
 	AuthIdentity,
@@ -41,4 +43,6 @@ export const entities = {
 	ExecutionMetadata,
 	ExecutionData,
 	WorkflowHistory,
+	ServerIncident,
+	DataRecoveryActivity,
 };

@@ -81,7 +81,7 @@ export const createPostmanCollectionRequestsForWorkflowWebhooks = async (
 					},
 					{},
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error: any, conversionResult) => {
+					(error: any, conversionResult: any) => {
 						if (!conversionResult.result) {
 							const message =
 								// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -91,7 +91,7 @@ export const createPostmanCollectionRequestsForWorkflowWebhooks = async (
 							reject(new Error(message));
 						} else {
 							const foundCollection = conversionResult.output.find(
-								(collection) => collection.type === 'collection',
+								(collection: any) => collection.type === 'collection',
 							);
 							if (foundCollection) {
 								resolve(foundCollection.data);
@@ -174,7 +174,7 @@ export const createPostmanCollectionRequestsForWorkflowWebhooks = async (
 
 				if (collectionItems) {
 					// find it directly in the collection, i.e. not within folders
-					collectionRequestItemIndex = collectionItems.findIndex((requestItem) => {
+					collectionRequestItemIndex = collectionItems.findIndex((requestItem: any) => {
 						if ('request' in requestItem) {
 							const requestItemUrlData =
 								typeof requestItem.request?.url === 'string'

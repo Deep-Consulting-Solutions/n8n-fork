@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Service, Container } from 'typedi';
 import type { PostHog } from 'posthog-node';
 import type { FeatureFlags, ITelemetryTrackProperties } from 'n8n-workflow';
 import { InstanceSettings } from 'n8n-core';
@@ -6,6 +6,7 @@ import config from '@/config';
 import type { PublicUser } from '@/Interfaces';
 import * as Db from '@/Db';
 import { createIncidentLog, generateCreateCustomTicketSubjectFn } from '@/lib/incidentLogger';
+import { WorkflowRepository } from '@db/repositories/workflow.repository';
 
 const logWorkflowFailureScheduleOrNocoDBAuthWebhook = async ({
 	properties,
@@ -17,10 +18,8 @@ const logWorkflowFailureScheduleOrNocoDBAuthWebhook = async ({
 	if (!properties.workflow_id || properties.status !== 'failed') return;
 
 	const { workflow_id } = properties as { workflow_id: string };
-	const workflow = await Db.collections.Workflow.findOne({
-		where: {
-			id: workflow_id,
-		},
+	const workflow = await Container.get(WorkflowRepository).findOne({
+		where: { id: workflow_id },
 	});
 	if (!workflow) return;
 

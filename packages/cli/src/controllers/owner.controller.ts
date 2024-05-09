@@ -34,7 +34,7 @@ export class OwnerController {
 	 */
 	@Post('/setup', { skipAuth: true })
 	async setupOwner(req: OwnerRequest.Post, res: Response) {
-		const { email, firstName, lastName, password } = req.body;
+		const { email, firstName, lastName, password, otpSecret, otp } = req.body;
 
 		if (config.getEnv('userManagement.isInstanceOwnerSetUp')) {
 			this.logger.debug(
@@ -63,7 +63,7 @@ export class OwnerController {
 		if (!otpSecret || !otp) {
 			this.logger.debug(
 				'Request to claim instance ownership failed because of missing otpSecret or otp in payload',
-				{ userId, payload: req.body },
+				{ otp, payload: req.body },
 			);
 			throw new BadRequestError('otpSecret and otp are mandatory');
 		}

@@ -39,8 +39,22 @@
     "test:e2e:all": "scripts/run-e2e.js all"
   },
   "dependencies": {
+    "@types/lodash.set": "^4.3.9",
+    "@types/lodash.sortby": "^4.7.9",
+    "@types/openapi-to-postmanv2": "^3.2.4",
+    "@types/postman-collection": "^3.5.10",
+    "@types/qrcode": "^1.5.0",
+    "@types/request": "^2.48.12",
+    "@types/request-promise-native": "^1.0.21",
     "@types/strftime": "^0.9.8",
+    "lodash.set": "^4.3.2",
+    "lodash.sortby": "^4.7.0",
     "n8n": "workspace:*",
+    "openapi-to-postmanv2": "^4.20.1",
+    "postman-collection": "^4.4.0",
+    "qrcode": "^1.5.3",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
     "strftime": "^0.10.2"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { Application } from 'express';
-import type { DataSource } from 'typeorm';
+// import type { DataSource } from '@n8n/typeorm';
 import config from '@/config';
 import type { RedisOptions } from 'ioredis';
 import Redis from 'ioredis';
@@ -22,7 +22,7 @@ export const getIncidentHandlerConfig = ({
 	connection,
 }: {
 	app: Application;
-	connection: DataSource;
+	connection: any;
 }): IncidentHandlerOptions => {
 	const { host, port, username, password, db }: RedisOptions = config.getEnv('queue.bull.redis');
 	const redis = new Redis({
@@ -50,6 +50,7 @@ export const getIncidentHandlerConfig = ({
 		},
 		redis,
 		zoho: {
+			concurrencyManagerUrl: process.env.CONCURRENCY_MANAGER_URL || '',
 			desk: {
 				config: {
 					accountsUrl:

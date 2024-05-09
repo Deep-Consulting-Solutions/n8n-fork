@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AbstractEntity } from './AbstractEntity';
+import { WithTimestampsAndStringId } from './AbstractEntity';
 import { User } from './User';
 import { WorkflowEntity } from './WorkflowEntity';
 
@@ -9,7 +9,7 @@ export const enum SaveRequestStatusEnum {
 }
 
 @Entity()
-export class SaveRequestLog extends AbstractEntity {
+export class SaveRequestLog extends WithTimestampsAndStringId {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 

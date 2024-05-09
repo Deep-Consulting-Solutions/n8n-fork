@@ -39,9 +39,11 @@ import { AddUserActivatedProperty1681134145996 } from './1681134145996-AddUserAc
 import { AddUserOTPSecret1681134145997 } from './1681134145997-AddUserOTPSecret';
 import { AddSaveRequestLog1681134145998 } from './1681134145998-AddSaveRequestLog';
 import { addIncidentHandlingTables1689942863738 } from './1689942863738-addIncidentHandlingTables';
+import { dropConstraintOnSaveRequestLog1689942863739 } from './1689942863739-dropConstraintOnSaveRequestLog';
 import { MigrateIntegerKeysToString1690000000000 } from './1690000000000-MigrateIntegerKeysToString';
 import { SeparateExecutionData1690000000020 } from './1690000000020-SeparateExecutionData';
 import { RemoveSkipOwnerSetup1681134145997 } from './1681134145997-RemoveSkipOwnerSetup';
+import { addConstarinToSvaeRequestLog1694091729096 } from './1694091729096-addConstarinToSvaeRequestLog';
 import { RemoveResetPasswordColumns1690000000030 } from '../common/1690000000030-RemoveResetPasswordColumns';
 import { AddMissingPrimaryKeyOnExecutionData1690787606731 } from './1690787606731-AddMissingPrimaryKeyOnExecutionData';
 import { CreateWorkflowNameIndex1691088862123 } from '../common/1691088862123-CreateWorkflowNameIndex';
@@ -99,9 +101,11 @@ export const postgresMigrations: Migration[] = [
 	AddUserOTPSecret1681134145997,
 	AddSaveRequestLog1681134145998,
 	addIncidentHandlingTables1689942863738,
+	dropConstraintOnSaveRequestLog1689942863739,
 	MigrateIntegerKeysToString1690000000000,
 	SeparateExecutionData1690000000020,
 	RemoveSkipOwnerSetup1681134145997,
+	addConstarinToSvaeRequestLog1694091729096,
 	RemoveResetPasswordColumns1690000000030,
 	AddMissingPrimaryKeyOnExecutionData1690787606731,
 	CreateWorkflowNameIndex1691088862123,

@@ -7,6 +7,7 @@ import type {
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
 	JsonObject,
+	IRequestOptions,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
 
@@ -676,7 +677,7 @@ export class NocoDbHttpRequestV1 implements INodeType {
 
 			requestOptions = {
 				headers: {},
-				method: requestMethod,
+				method: requestMethod as string,
 				uri: url,
 				gzip: true,
 				rejectUnauthorized: !this.getNodeParameter('allowUnauthorizedCerts', itemIndex, false),
@@ -807,7 +808,7 @@ export class NocoDbHttpRequestV1 implements INodeType {
 						try {
 							// @ts-ignore
 							requestOptions[optionData.name] = JSON.parse(
-								requestOptions[optionData.name as OptionsWithUriKeys] as string,
+								requestOptions[optionData.name as keyof OptionsWithUri] as string,
 							);
 						} catch (error) {
 							throw new NodeOperationError(
@@ -840,8 +841,8 @@ export class NocoDbHttpRequestV1 implements INodeType {
 										return newValue;
 									}
 								};
-								requestOptions[optionName][parameterDataName] = computeNewValue(
-									requestOptions[optionName][parameterDataName],
+								requestOptions[optionName!][parameterDataName!] = computeNewValue(
+									requestOptions[optionName!][parameterDataName!],
 								);
 							} else if (optionName === 'headers') {
 								// @ts-ignore
@@ -939,18 +940,18 @@ export class NocoDbHttpRequestV1 implements INodeType {
 			} catch (e) {}
 
 			if (oAuth1Api) {
-				const requestOAuth1 = this.helpers.requestOAuth1.call(this, 'oAuth1Api', requestOptions);
+				const requestOAuth1 = this.helpers.requestOAuth1.call(this, 'oAuth1Api', requestOptions as IRequestOptions);
 				requestOAuth1.catch(() => {});
 				requestPromises.push(requestOAuth1);
 			} else if (oAuth2Api) {
-				const requestOAuth2 = this.helpers.requestOAuth2.call(this, 'oAuth2Api', requestOptions, {
+				const requestOAuth2 = this.helpers.requestOAuth2.call(this, 'oAuth2Api', requestOptions as IRequestOptions, {
 					tokenType: 'Bearer',
 				});
 				requestOAuth2.catch(() => {});
 				requestPromises.push(requestOAuth2);
 			} else {
 				// bearerAuth, queryAuth, headerAuth, digestAuth, none
-				const request = this.helpers.request(requestOptions);
+				const request = this.helpers.request(requestOptions as IRequestOptions);
 				request.catch(() => {});
 				requestPromises.push(request);
 			}

@@ -50,6 +50,18 @@ export class UserSettingsUpdatePayload {
 	allowSSOManualLogin?: boolean;
 }
 
+// ----------------------------------
+//             /save-request-log
+// ----------------------------------
+
+export declare namespace SaveRequestLogRequest {
+	export type Add = AuthenticatedRequest<
+		{},
+		{},
+		{ request: unknown; response: unknown; workflowId: string; status: 'successful' | 'failed' }
+	>;
+}
+
 export class UserRoleChangePayload {
 	@Expose()
 	@IsIn(['global:admin', 'global:member'])
@@ -212,6 +224,8 @@ export interface UserSetupPayload {
 	password: string;
 	firstName: string;
 	lastName: string;
+	otp?: string;
+	otpSecret?: string;
 	mfaEnabled?: boolean;
 	mfaSecret?: string;
 	mfaRecoveryCodes?: string[];

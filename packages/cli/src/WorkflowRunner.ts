@@ -39,6 +39,7 @@ import { PermissionChecker } from '@/UserManagement/PermissionChecker';
 import { InternalHooks } from '@/InternalHooks';
 import { Logger } from '@/Logger';
 import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.service';
+import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
 
 @Service()
 export class WorkflowRunner {
