@@ -39,6 +39,7 @@
     "test:e2e:all": "scripts/run-e2e.js all"
   },
   "dependencies": {
+    "@deep-consulting-solutions/incident-handling": "^0.0.37",
     "@types/lodash.set": "^4.3.9",
     "@types/lodash.sortby": "^4.7.9",
     "@types/openapi-to-postmanv2": "^3.2.4",
@@ -55,7 +56,8 @@
     "qrcode": "^1.5.3",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "strftime": "^0.10.2"
+    "strftime": "^0.10.2",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@n8n_io/eslint-config": "workspace:*",
