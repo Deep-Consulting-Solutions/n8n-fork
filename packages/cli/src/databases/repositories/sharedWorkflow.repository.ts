@@ -159,4 +159,4 @@ export class SharedWorkflowRepository extends Repository<SharedWorkflow> {
 			workflowId: In(sharedWorkflowIds),
 		});
 	}
-}
+};

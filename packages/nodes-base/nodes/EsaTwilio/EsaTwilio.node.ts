@@ -5,6 +5,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	ILoadOptionsFunctions,
+	IHttpRequestMethods,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
@@ -231,7 +232,7 @@ export class EsaTwilio implements INodeType {
 		// For Query string
 		let qs: IDataObject;
 
-		let requestMethod: string;
+		let requestMethod: IHttpRequestMethods;
 		let endpoint: string;
 
 		for (let i = 0; i < items.length; i++) {

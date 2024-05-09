@@ -39,9 +39,24 @@
     "test:e2e:all": "scripts/run-e2e.js all"
   },
   "dependencies": {
+    "@n8n/chat": "workspace:^",
+    "@types/lodash.set": "^4.3.9",
+    "@types/lodash.sortby": "^4.7.9",
+    "@types/node": "16.18.12",
+    "@types/qrcode": "^1.5.0",
+    "@types/request": "^2.48.12",
+    "@types/request-promise-native": "^1.0.21",
     "@types/strftime": "^0.9.8",
+    "lodash": "4.17.21",
+    "lodash.set": "^4.3.2",
+    "lodash.sortby": "^4",
     "n8n": "workspace:*",
-    "strftime": "^0.10.2"
+    "qrcode": "^1.5.3",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "sass": "1.55.0",
+    "strftime": "^0.10.2",
+    "terser": "5.16.1"
   },
   "devDependencies": {
     "@n8n_io/eslint-config": "workspace:*",
@@ -70,7 +85,7 @@
     "tsc-watch": "^6.0.4",
     "turbo": "1.10.12",
     "typescript": "*",
-    "vite": "^5.1.6",
+    "vite": "^4.0.4",
     "vite-plugin-checker": "^0.6.4",
     "vitest": "^1.3.1",
     "vue-tsc": "^2.0.6"

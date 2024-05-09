@@ -21,13 +21,13 @@
     "build:storybook": "storybook build",
     "release": "pnpm run build:full && cd dist && pnpm publish"
   },
-  "main": "./chat.umd.js",
-  "module": "./chat.es.js",
-  "types": "./types/index.d.ts",
+  "main": "./dist/chat.umd.js",
+  "module": "./dist/chat.es.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./style.css": {
       "import": "./style.css",

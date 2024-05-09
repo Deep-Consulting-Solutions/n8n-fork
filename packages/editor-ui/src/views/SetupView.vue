@@ -48,6 +48,7 @@ export default defineComponent({
 		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
 			this.otpSecretAuthURL = dataUrl;
 		});
+	},
 	setup() {
 		return useToast();
 	},

@@ -15,15 +15,13 @@ function insertIf(condition: boolean, elements: string[]): string[] {
 }
 
 export async function getSharedWorkflowIds(user: User): Promise<string[]> {
-	const where = ['global:owner', 'global:admin'].includes(user.role) ? {} : { userId: user.id };
-	const sharedWorkflows = process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true'
-	? await Db.collections.SharedWorkflow.find({
-			where,
-			select: ['workflowId'],
-	  })
-	: await Db.collections.SharedWorkflow.find({
-			select: ['workflowId'],
-	  });
+	const where = process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true' ?
+	   ['global:owner', 'global:admin'].includes(user.role) ? {} : { userId: user.id } :
+	   {}
+	const sharedWorkflows = await Container.get(SharedWorkflowRepository).find({
+		where,
+		select: ['workflowId'],
+	});
 	return sharedWorkflows.map(({ workflowId }) => workflowId);
 }
 

@@ -18,6 +18,7 @@ import { verifyCrmToken, verifyOauth2Token, verifyPortalToken } from './authenti
 import { v4 as uuid } from 'uuid';
 import basicAuth from 'basic-auth';
 import isbot from 'isbot';
+import type { Response } from 'express';
 import { file as tmpFile } from 'tmp-promise';
 import type { OpenAPIRequestValidatorArgs } from 'openapi-request-validator';
 import OpenAPIRequestValidator from 'openapi-request-validator';
@@ -43,6 +44,23 @@ import {
 	setupOutputConnection,
 } from './utils';
 import { formatPrivateKey } from '../../utils/utilities';
+
+function authorizationError(resp: Response, realm: string, responseCode: number, message?: string) {
+	if (message === undefined) {
+		message = 'Authorization problem!';
+		if (responseCode === 401) {
+			message = 'Authorization is required!';
+		} else if (responseCode === 403) {
+			message = 'Authorization data is wrong!';
+		}
+	}
+
+	resp.writeHead(responseCode, { 'WWW-Authenticate': `Basic realm="${realm}"` });
+	resp.end(message);
+	return {
+		noWebhookResponse: true,
+	};
+}
 
 export class Webhook extends Node {
 	authPropertyName = 'authentication';
@@ -201,6 +219,8 @@ export class Webhook extends Node {
 		const req = context.getRequestObject();
 		const resp = context.getResponseObject();
 		const requestMethod = context.getRequestObject().method;
+		const swagger = context.getNodeParameter('swagger', '{}') as Record<string, any>;
+		const realm = 'Webhook';
 
 		if (!isIpWhitelisted(options.ipWhitelist, req.ips, req.ip)) {
 			resp.writeHead(403);
@@ -261,6 +281,40 @@ export class Webhook extends Node {
 				: undefined,
 		};
 
+		if (swagger) {
+			// eslint-disable-next-line n8n-local-rules/no-uncaught-json-parse
+			const parsedSwaggerDoc = JSON.parse(swagger as unknown as string);
+			const endpointPaths = parsedSwaggerDoc?.paths as Record<string, any>;
+			const endpoints = Object.keys(endpointPaths || {});
+			const endpointPath = endpoints[0] || '';
+			const method = (context.getNodeParameter('httpMethod') as string)?.toLowerCase();
+			const parameters = endpointPaths?.[endpointPath]?.[method]
+				?.parameters as OpenAPIRequestValidatorArgs['parameters'];
+			const requestBody = endpointPaths?.[endpointPath]?.[method]
+				?.requestBody as OpenAPIRequestValidatorArgs['requestBody'];
+
+			if (parameters?.length || requestBody) {
+				const componentSchemas = (parsedSwaggerDoc?.components?.schemas ||
+					{}) as OpenAPIRequestValidatorArgs['componentSchemas'];
+
+				const requestValidator = new OpenAPIRequestValidator({
+					requestBody,
+					parameters,
+					componentSchemas,
+				});
+				const errors = requestValidator.validateRequest(response.json);
+				if (errors) {
+					const firstError = errors?.errors[0];
+					return authorizationError(
+						resp,
+						realm,
+						400,
+						`${firstError?.message} in the request ${firstError?.location}`,
+					);
+				}
+			}
+		}
+
 		return {
 			webhookResponse: options.responseData,
 			workflowData: prepareOutput(response),
@@ -272,7 +326,19 @@ export class Webhook extends Node {
 		if (authentication === 'none') return;
 
 		const req = context.getRequestObject();
+		const resp = context.getResponseObject();
+		const swagger = context.getNodeParameter('swagger', '{}') as Record<string, any>;
 		const headers = context.getHeaderData();
+		const realm = 'Webhook';
+		const requestAuthData: {
+			tokenData: Record<string, any>;
+			authentication: string;
+		} = {
+			authentication,
+			tokenData: null!,
+		};
+
+		const [, token] = headers.authorization?.split(' ') || [];
 
 		if (authentication === 'basicAuth') {
 			// Basic authorization is needed to call webhook
@@ -296,7 +362,7 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'clientPortalAuth') {
 			try {
-				const authData = await verifyPortalToken(token, this.helpers.httpRequest);
+				const authData = await verifyPortalToken(token, context.helpers.httpRequest);
 				requestAuthData.tokenData = authData;
 			} catch (error) {
 				return authorizationError(
@@ -308,8 +374,8 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'zohoCRMAuth') {
 			try {
-				const authData = await verifyCrmToken(token, this.helpers.httpRequest);
-				const roles = (this.getNodeParameter('roles', '') as string)
+				const authData = await verifyCrmToken(token, context.helpers.httpRequest);
+				const roles = (context.getNodeParameter('roles', '') as string)
 					?.trim()
 					?.split(',')
 					.filter((fragment) => !!fragment);
@@ -332,8 +398,8 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'oauth2TokenAuth') {
 			try {
-				const authData = await verifyOauth2Token(token, this.helpers.httpRequest);
-				const scopes = (this.getNodeParameter('scopes', '') as string)
+				const authData = await verifyOauth2Token(token, context.helpers.httpRequest);
+				const scopes = (context.getNodeParameter('scopes', '') as string)
 					?.trim()
 					?.split(',')
 					.filter((fragment) => !!fragment);
@@ -352,7 +418,7 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'clientPortalAuth') {
 			try {
-				const authData = await verifyPortalToken(token, this.helpers.httpRequest);
+				const authData = await verifyPortalToken(token, context.helpers.httpRequest);
 				requestAuthData.tokenData = authData;
 			} catch (error) {
 				return authorizationError(
@@ -364,8 +430,8 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'zohoCRMAuth') {
 			try {
-				const authData = await verifyCrmToken(token, this.helpers.httpRequest);
-				const roles = (this.getNodeParameter('roles', '') as string)
+				const authData = await verifyCrmToken(token, context.helpers.httpRequest);
+				const roles = (context.getNodeParameter('roles', '') as string)
 					?.trim()
 					?.split(',')
 					.filter((fragment) => !!fragment);
@@ -388,8 +454,8 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'oauth2TokenAuth') {
 			try {
-				const authData = await verifyOauth2Token(token, this.helpers.httpRequest);
-				const scopes = (this.getNodeParameter('scopes', '') as string)
+				const authData = await verifyOauth2Token(token, context.helpers.httpRequest);
+				const scopes = (context.getNodeParameter('scopes', '') as string)
 					?.trim()
 					?.split(',')
 					.filter((fragment) => !!fragment);
@@ -499,11 +565,19 @@ export class Webhook extends Node {
 	) {
 		const req = context.getRequestObject() as MultiPartFormData.Request;
 		const options = context.getNodeParameter('options', {}) as IDataObject;
+		const authentication = context.getNodeParameter(this.authPropertyName) as string;
 		const { data, files } = req.body;
+		const requestAuthData: {
+			tokenData: Record<string, any>;
+			authentication: string;
+		} = {
+			authentication,
+			tokenData: null!,
+		};
 
 		const returnItem: INodeExecutionData = {
 			json: {
-							authData: requestAuthData,
+				authData: requestAuthData,
 				headers: req.headers,
 				params: req.params,
 				query: req.query,
@@ -559,6 +633,14 @@ export class Webhook extends Node {
 	): Promise<IWebhookResponseData> {
 		const req = context.getRequestObject();
 		const options = context.getNodeParameter('options', {}) as IDataObject;
+		const authentication = context.getNodeParameter(this.authPropertyName) as string;
+		const requestAuthData: {
+			tokenData: Record<string, any>;
+			authentication: string;
+		} = {
+			authentication,
+			tokenData: null!,
+		};
 
 		// TODO: create empty binaryData placeholder, stream into that path, and then finalize the binaryData
 		const binaryFile = await tmpFile({ prefix: 'n8n-webhook-' });
@@ -568,7 +650,7 @@ export class Webhook extends Node {
 
 			const returnItem: INodeExecutionData = {
 				json: {
-						authData: requestAuthData,
+					authData: requestAuthData,
 					headers: req.headers,
 					params: req.params,
 					query: req.query,

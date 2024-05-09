@@ -2853,10 +2853,11 @@ const executionCancellationFunctions = (
 	getExecutionCancelSignal: () => abortSignal,
 	onExecutionCancellation: (handler) => {
 		const fn = () => {
-			abortSignal?.removeEventListener('abort', fn);
+			// abortSignal?.removeEventListener('abort', fn);
+			abortSignal;
 			handler();
 		};
-		abortSignal?.addEventListener('abort', fn);
+		// abortSignal?.addEventListener('abort', fn);
 	},
 });
 

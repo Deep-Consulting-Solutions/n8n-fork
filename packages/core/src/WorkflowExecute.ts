@@ -826,7 +826,7 @@ export class WorkflowExecute {
 
 		return new PCancelable(async (resolve, reject, onCancel) => {
 			// Let as many nodes listen to the abort signal, without getting the MaxListenersExceededWarning
-			setMaxListeners(Infinity, this.abortController.signal);
+			// setMaxListeners(Infinity, this.abortController.signal);
 
 			onCancel.shouldReject = false;
 			onCancel(() => {

@@ -9,6 +9,7 @@ import type {
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
 	JsonObject,
+	IRequestOptions,
 } from 'n8n-workflow';
 
 import { BINARY_ENCODING, jsonParse, NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
@@ -859,7 +860,7 @@ export class NocoDbHttpRequestV3 implements INodeType {
 		}
 
 		type RequestOptions = OptionsWithUri & { useStream?: boolean };
-		let requestOptions: RequestOptions = {
+		let requestOptions: OptionsWithUri & { useStream?: boolean } = {
 			uri: '',
 		};
 
@@ -1013,11 +1014,12 @@ export class NocoDbHttpRequestV3 implements INodeType {
 					const binaryData = this.helpers.assertBinaryData(itemIndex, cur.inputDataFieldName);
 					let uploadData: Buffer | Readable;
 					const itemBinaryData = items[itemIndex].binary![cur.inputDataFieldName];
-					if (itemBinaryData.id) {
-						uploadData = this.helpers.getBinaryStream(itemBinaryData.id);
-					} else {
-						uploadData = Buffer.from(itemBinaryData.data, BINARY_ENCODING);
-					}
+					// if (itemBinaryData.id) {
+					// 	uploadData = this.helpers.getBinaryStream(itemBinaryData.id);
+					// } else {
+					// 	uploadData = Buffer.from(itemBinaryData.data, BINARY_ENCODING);
+					// }
+					uploadData = Buffer.from(itemBinaryData.data, BINARY_ENCODING);
 
 					accumulator[cur.name] = {
 						value: uploadData,
@@ -1086,7 +1088,7 @@ export class NocoDbHttpRequestV3 implements INodeType {
 					const itemBinaryData = this.helpers.assertBinaryData(itemIndex, inputDataFieldName);
 
 					if (itemBinaryData.id) {
-						uploadData = this.helpers.getBinaryStream(itemBinaryData.id);
+						uploadData = await this.helpers.getBinaryStream(itemBinaryData.id);
 						const metadata = await this.helpers.getBinaryMetadata(itemBinaryData.id);
 						contentLength = metadata.fileSize;
 					} else {
@@ -1220,18 +1222,18 @@ export class NocoDbHttpRequestV3 implements INodeType {
 				authentication === 'none'
 			) {
 				if (oAuth1Api) {
-					const requestOAuth1 = this.helpers.requestOAuth1.call(this, 'oAuth1Api', requestOptions);
+					const requestOAuth1 = this.helpers.requestOAuth1.call(this, 'oAuth1Api', requestOptions as IRequestOptions);
 					requestOAuth1.catch(() => {});
 					requestPromises.push(requestOAuth1);
 				} else if (oAuth2Api) {
-					const requestOAuth2 = this.helpers.requestOAuth2.call(this, 'oAuth2Api', requestOptions, {
+					const requestOAuth2 = this.helpers.requestOAuth2.call(this, 'oAuth2Api', requestOptions as IRequestOptions, {
 						tokenType: 'Bearer',
 					});
 					requestOAuth2.catch(() => {});
 					requestPromises.push(requestOAuth2);
 				} else {
 					// bearerAuth, queryAuth, headerAuth, digestAuth, none
-					const request = this.helpers.request(requestOptions);
+					const request = this.helpers.request(requestOptions as IRequestOptions);
 					request.catch(() => {});
 					requestPromises.push(request);
 				}
@@ -1243,7 +1245,7 @@ export class NocoDbHttpRequestV3 implements INodeType {
 				const requestWithAuthentication = this.helpers.requestWithAuthentication.call(
 					this,
 					nodeCredentialType,
-					requestOptions,
+					requestOptions as IRequestOptions,
 					additionalOAuth2Options && { oauth2: additionalOAuth2Options },
 				);
 				requestWithAuthentication.catch(() => {});

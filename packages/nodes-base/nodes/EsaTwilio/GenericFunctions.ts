@@ -3,6 +3,8 @@ import type {
 	IHookFunctions,
 	IDataObject,
 	ILoadOptionsFunctions,
+	IRequestOptions,
+	IHttpRequestMethods
 } from 'n8n-workflow';
 import sortBy from 'lodash.sortby';
 import axios from 'axios';
@@ -18,7 +20,7 @@ import type { MessagingService, MessagingServicesResponse } from './types';
  */
 export async function twilioApiRequest(
 	this: IHookFunctions | IExecuteFunctions,
-	method: string,
+	method: IHttpRequestMethods,
 	endpoint: string,
 	body: IDataObject,
 	query?: IDataObject,
@@ -35,7 +37,7 @@ export async function twilioApiRequest(
 		query = {};
 	}
 
-	const options: OptionsWithUri = {
+	const options: IRequestOptions = {
 		method,
 		form: body,
 		qs: query,
@@ -43,7 +45,7 @@ export async function twilioApiRequest(
 		json: true,
 	};
 
-	return this.helpers.requestWithAuthentication.call(this, 'twilioApi', options);
+	return await this.helpers.requestWithAuthentication.call(this, 'twilioApi', options);
 }
 
 const XML_CHAR_MAP: { [key: string]: string } = {
