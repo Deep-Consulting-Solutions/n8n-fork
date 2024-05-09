@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from '@n8n/typeorm';
 import { WithTimestampsAndStringId } from './AbstractEntity';
 import { User } from './User';
 import { WorkflowEntity } from './WorkflowEntity';

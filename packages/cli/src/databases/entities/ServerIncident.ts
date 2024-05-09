@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Column, Entity } from 'typeorm';
+import { Column, Entity } from '@n8n/typeorm';
 
 import GenericEntity from './GenericEntity';
 
