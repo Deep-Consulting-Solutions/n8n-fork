@@ -1,47 +1,46 @@
 <template>
 	<Modal
 		:name="modalName"
-		:eventBus="modalBus"
-		@enter="save"
+		:event-bus="modalBus"
 		:title="$locale.baseText('duplicateWorkflowDialog.duplicateWorkflow')"
 		:center="true"
 		width="420px"
+		@enter="save"
 	>
 		<template #content>
 			<div :class="$style.content">
 				<n8n-input
-					v-model="name"
 					ref="nameInput"
+					v-model="name"
 					:placeholder="$locale.baseText('duplicateWorkflowDialog.enterWorkflowName')"
 					:maxlength="MAX_WORKFLOW_NAME_LENGTH"
 				/>
 				<TagsDropdown
 					v-if="settingsStore.areTagsEnabled"
-					:createEnabled="true"
-					:currentTagIds="currentTagIds"
-					:eventBus="dropdownBus"
+					ref="dropdown"
+					v-model="currentTagIds"
+					:create-enabled="true"
+					:event-bus="dropdownBus"
+					:placeholder="$locale.baseText('duplicateWorkflowDialog.chooseOrCreateATag')"
 					@blur="onTagsBlur"
 					@esc="onTagsEsc"
-					@update="onTagsUpdate"
-					:placeholder="$locale.baseText('duplicateWorkflowDialog.chooseOrCreateATag')"
-					ref="dropdown"
 				/>
 			</div>
 		</template>
 		<template #footer="{ close }">
 			<div :class="$style.footer">
 				<n8n-button
-					@click="save"
 					:loading="isSaving"
 					:label="$locale.baseText('duplicateWorkflowDialog.save')"
 					float="right"
+					@click="save"
 				/>
 				<n8n-button
 					type="secondary"
-					@click="close"
 					:disabled="isSaving"
 					:label="$locale.baseText('duplicateWorkflowDialog.cancel')"
 					float="right"
+					@click="close"
 				/>
 			</div>
 		</template>
@@ -49,27 +48,36 @@
 </template>
 
 <script lang="ts">
-import mixins from 'vue-typed-mixins';
-
-import { MAX_WORKFLOW_NAME_LENGTH, PLACEHOLDER_EMPTY_WORKFLOW_ID } from '@/constants';
-import { workflowHelpers } from '@/mixins/workflowHelpers';
-import { showMessage } from '@/mixins/showMessage';
-import TagsDropdown from '@/components/TagsDropdown.vue';
-import Modal from './Modal.vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useSettingsStore } from '@/stores/settings';
-import { useWorkflowsStore } from '@/stores/workflows';
+import { MAX_WORKFLOW_NAME_LENGTH, PLACEHOLDER_EMPTY_WORKFLOW_ID } from '@/constants';
+import { useToast } from '@/composables/useToast';
+import TagsDropdown from '@/components/TagsDropdown.vue';
+import Modal from '@/components/Modal.vue';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
 import type { IWorkflowDataUpdate } from '@/Interface';
 import type { IPermissions } from '@/permissions';
 import { getWorkflowPermissions } from '@/permissions';
-import { useUsersStore } from '@/stores/users';
-import { createEventBus } from '@/event-bus';
-import { useCredentialsStore } from '@/stores';
+import { useUsersStore } from '@/stores/users.store';
+import { createEventBus } from 'n8n-design-system/utils';
+import { useCredentialsStore } from '@/stores/credentials.store';
+import { useWorkflowHelpers } from '@/composables/useWorkflowHelpers';
+import { useRouter } from 'vue-router';
 
-export default mixins(showMessage, workflowHelpers).extend({
-	components: { TagsDropdown, Modal },
+export default defineComponent({
 	name: 'DuplicateWorkflow',
+	components: { TagsDropdown, Modal },
 	props: ['modalName', 'isActive', 'data'],
+	setup() {
+		const router = useRouter();
+		const workflowHelpers = useWorkflowHelpers({ router });
+
+		return {
+			...useToast(),
+			workflowHelpers,
+		};
+	},
 	data() {
 		const currentTagIds = this.data.tags;
 
@@ -85,7 +93,8 @@ export default mixins(showMessage, workflowHelpers).extend({
 	},
 	async mounted() {
 		this.name = await this.workflowsStore.getDuplicateCurrentWorkflowName(this.data.name);
-		this.$nextTick(() => this.focusOnNameInput());
+		await this.$nextTick();
+		this.focusOnNameInput();
 	},
 	computed: {
 		...mapStores(useCredentialsStore, useUsersStore, useSettingsStore, useWorkflowsStore),
@@ -117,7 +126,7 @@ export default mixins(showMessage, workflowHelpers).extend({
 		},
 		focusOnNameInput() {
 			const inputRef = this.$refs.nameInput as HTMLElement | undefined;
-			if (inputRef && inputRef.focus) {
+			if (inputRef?.focus) {
 				inputRef.focus();
 			}
 		},
@@ -128,13 +137,10 @@ export default mixins(showMessage, workflowHelpers).extend({
 			// revert last changes
 			this.currentTagIds = this.prevTagIds;
 		},
-		onTagsUpdate(tagIds: string[]) {
-			this.currentTagIds = tagIds;
-		},
 		async save(): Promise<void> {
 			const name = this.name.trim();
 			if (!name) {
-				this.$showMessage({
+				this.showMessage({
 					title: this.$locale.baseText('duplicateWorkflowDialog.errors.missingName.title'),
 					message: this.$locale.baseText('duplicateWorkflowDialog.errors.missingName.message'),
 					type: 'error',
@@ -154,13 +160,13 @@ export default mixins(showMessage, workflowHelpers).extend({
 						await this.workflowsStore.fetchWorkflow(this.data.id);
 					workflowToUpdate = workflow;
 
-					this.removeForeignCredentialsFromWorkflow(
+					this.workflowHelpers.removeForeignCredentialsFromWorkflow(
 						workflowToUpdate,
 						this.credentialsStore.allCredentials,
 					);
 				}
 
-				const saved = await this.saveAsNewWorkflow({
+				const saved = await this.workflowHelpers.saveAsNewWorkflow({
 					name,
 					data: workflowToUpdate,
 					tags: this.currentTagIds,
@@ -181,12 +187,12 @@ export default mixins(showMessage, workflowHelpers).extend({
 				if (error.httpStatusCode === 403) {
 					error.message = this.$locale.baseText('duplicateWorkflowDialog.errors.forbidden.message');
 
-					this.$showError(
+					this.showError(
 						error,
 						this.$locale.baseText('duplicateWorkflowDialog.errors.forbidden.title'),
 					);
 				} else {
-					this.$showError(
+					this.showError(
 						error,
 						this.$locale.baseText('duplicateWorkflowDialog.errors.generic.title'),
 					);

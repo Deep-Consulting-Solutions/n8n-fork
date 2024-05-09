@@ -9,52 +9,43 @@
 		<div v-if="$slots.prepend" :class="$style.prepend">
 			<slot name="prepend" />
 		</div>
-		<el-select
-			v-bind="$props"
-			:value="value"
+		<ElSelect
+			v-bind="{ ...$props, ...listeners }"
+			ref="innerSelect"
+			:model-value="modelValue"
 			:size="computedSize"
 			:class="$style[classes]"
 			:popper-class="popperClass"
-			v-on="$listeners"
-			ref="innerSelect"
 		>
-			<template #prefix>
+			<template v-if="$slots.prefix" #prefix>
 				<slot name="prefix" />
 			</template>
-			<template #suffix>
+			<template v-if="$slots.suffix" #suffix>
 				<slot name="suffix" />
 			</template>
-			<template #default>
-				<slot></slot>
-			</template>
-		</el-select>
+			<slot></slot>
+		</ElSelect>
 	</div>
 </template>
 
 <script lang="ts">
-import { Select as ElSelect } from 'element-ui';
-import { defineComponent } from 'vue';
+import { ElSelect } from 'element-plus';
+import { type PropType, defineComponent } from 'vue';
+import type { SelectSize } from '@/types';
 
 type InnerSelectRef = InstanceType<typeof ElSelect>;
 
-export interface IProps {
-	size?: string;
-	limitPopperWidth?: string;
-	popperClass?: string;
-}
-
 export default defineComponent({
-	name: 'n8n-select',
+	name: 'N8nSelect',
 	components: {
 		ElSelect,
 	},
 	props: {
-		value: {},
+		...ElSelect.props,
+		modelValue: {},
 		size: {
-			type: String,
+			type: String as PropType<SelectSize>,
 			default: 'large',
-			validator: (value: string): boolean =>
-				['mini', 'small', 'medium', 'large', 'xlarge'].includes(value),
 		},
 		placeholder: {
 			type: String,
@@ -94,7 +85,20 @@ export default defineComponent({
 		},
 	},
 	computed: {
-		computedSize(): string | undefined {
+		listeners() {
+			return Object.entries(this.$attrs).reduce<Record<string, () => {}>>((acc, [key, value]) => {
+				if (/^on[A-Z]/.test(key)) {
+					acc[key] = value;
+				}
+
+				return acc;
+			}, {});
+		},
+		computedSize(): InnerSelectRef['$props']['size'] {
+			if (this.size === 'medium') {
+				return 'default';
+			}
+
 			if (this.size === 'xlarge') {
 				return undefined;
 			}

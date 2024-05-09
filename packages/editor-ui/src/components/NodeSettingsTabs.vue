@@ -1,33 +1,46 @@
 <template>
-	<n8n-tabs :options="options" :value="value" @input="onTabSelect" @tooltipClick="onTooltipClick" />
+	<n8n-tabs
+		:options="options"
+		:model-value="modelValue"
+		@update:model-value="onTabSelect"
+		@tooltip-click="onTooltipClick"
+	/>
 </template>
 
 <script lang="ts">
-import { externalHooks } from '@/mixins/externalHooks';
+import { defineComponent } from 'vue';
+import { mapStores } from 'pinia';
 import {
 	BUILTIN_NODES_DOCS_URL,
 	COMMUNITY_NODES_INSTALLATION_DOCS_URL,
 	NPM_PACKAGE_DOCS_BASE_URL,
 } from '@/constants';
 import type { INodeUi, ITab } from '@/Interface';
-import { useNDVStore } from '@/stores/ndv';
-import { useWorkflowsStore } from '@/stores/workflows';
+import { useNDVStore } from '@/stores/ndv.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
 import type { INodeTypeDescription } from 'n8n-workflow';
-import { mapStores } from 'pinia';
+import { NodeConnectionType } from 'n8n-workflow';
 
-import mixins from 'vue-typed-mixins';
-import { isCommunityPackageName } from '@/utils';
+import { isCommunityPackageName } from '@/utils/nodeTypesUtils';
+import { useExternalHooks } from '@/composables/useExternalHooks';
 
-export default mixins(externalHooks).extend({
+export default defineComponent({
 	name: 'NodeSettingsTabs',
 	props: {
-		value: {
+		modelValue: {
 			type: String,
+			default: '',
 		},
 		nodeType: {},
-		sessionId: {
+		pushRef: {
 			type: String,
 		},
+	},
+	setup() {
+		const externalHooks = useExternalHooks();
+		return {
+			externalHooks,
+		};
 	},
 	computed: {
 		...mapStores(useNDVStore, useWorkflowsStore),
@@ -115,15 +128,15 @@ export default mixins(externalHooks).extend({
 	methods: {
 		onTabSelect(tab: string) {
 			if (tab === 'docs' && this.nodeType) {
-				this.$externalHooks().run('dataDisplay.onDocumentationUrlClick', {
+				void this.externalHooks.run('dataDisplay.onDocumentationUrlClick', {
 					nodeType: this.nodeType as INodeTypeDescription,
 					documentationUrl: this.documentationUrl,
 				});
 				this.$telemetry.track('User clicked ndv link', {
 					node_type: this.activeNode.type,
 					workflow_id: this.workflowsStore.workflowId,
-					session_id: this.sessionId,
-					pane: 'main',
+					push_ref: this.pushRef,
+					pane: NodeConnectionType.Main,
 					type: 'docs',
 				});
 			}
@@ -136,7 +149,7 @@ export default mixins(externalHooks).extend({
 			}
 
 			if (tab === 'settings' || tab === 'params') {
-				this.$emit('input', tab);
+				this.$emit('update:modelValue', tab);
 			}
 		},
 		onTooltipClick(tab: string, event: MouseEvent) {

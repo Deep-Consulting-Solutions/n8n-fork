@@ -16,10 +16,12 @@ _START_PACKAGE
 nodelinter.config.json
 **/package-lock.json
 packages/**/.turbo
+.turbo
 *.tsbuildinfo
 cypress/videos/*
 cypress/screenshots/*
+cypress/downloads/*
 *.swp
-
-# Logs
-packages/cli/bin/logs
+CHANGELOG-*.md
+*.mdx
+build-storybook.log

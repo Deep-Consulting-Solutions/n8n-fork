@@ -1,11 +1,11 @@
 <template>
-	<n8n-notice :content="scopesShortContent" :fullContent="scopesFullContent" />
+	<n8n-notice :content="scopesShortContent" :full-content="scopesFullContent" />
 </template>
 
 <script lang="ts">
-import { useCredentialsStore } from '@/stores/credentials';
-import { mapStores } from 'pinia';
 import { defineComponent } from 'vue';
+import { mapStores } from 'pinia';
+import { useCredentialsStore } from '@/stores/credentials.store';
 
 export default defineComponent({
 	name: 'ScopesNotice',
@@ -35,10 +35,12 @@ export default defineComponent({
 			const oauth1Api = this.$locale.baseText('generic.oauth1Api');
 			const oauth2Api = this.$locale.baseText('generic.oauth2Api');
 
-			return this.credentialsStore
-				.getCredentialTypeByName(this.activeCredentialType)
-				.displayName.replace(new RegExp(`${oauth1Api}|${oauth2Api}`), '')
-				.trim();
+			return (
+				this.credentialsStore
+					.getCredentialTypeByName(this.activeCredentialType)
+					?.displayName.replace(new RegExp(`${oauth1Api}|${oauth2Api}`), '')
+					.trim() || ''
+			);
 		},
 	},
 });

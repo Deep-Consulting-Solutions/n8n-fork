@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-loop-func */
-import type { NodeVMOptions, VMRequire } from 'vm2';
-import { NodeVM } from 'vm2';
+import type { NodeVMOptions } from '@n8n/vm2';
+import { NodeVM } from '@n8n/vm2';
 import type {
 	IExecuteFunctions,
 	IBinaryKeyData,
@@ -10,6 +10,7 @@ import type {
 	INodeTypeDescription,
 } from 'n8n-workflow';
 import { deepCopy, NodeOperationError } from 'n8n-workflow';
+import { vmResolver } from '../Code/JavaScriptSandbox';
 
 export class FunctionItem implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,7 +40,7 @@ export class FunctionItem implements INodeType {
 				typeOptions: {
 					alwaysOpenEditWindow: true,
 					codeAutocomplete: 'functionItem',
-					editor: 'code',
+					editor: 'jsEditor',
 					rows: 10,
 				},
 				type: 'string',
@@ -158,23 +159,8 @@ return item;`,
 				const options: NodeVMOptions = {
 					console: mode === 'manual' ? 'redirect' : 'inherit',
 					sandbox,
-					require: {
-						external: false,
-						builtin: [],
-					},
+					require: vmResolver,
 				};
-
-				const vmRequire = options.require as VMRequire;
-				if (process.env.NODE_FUNCTION_ALLOW_BUILTIN) {
-					vmRequire.builtin = process.env.NODE_FUNCTION_ALLOW_BUILTIN.split(',');
-				}
-
-				if (process.env.NODE_FUNCTION_ALLOW_EXTERNAL) {
-					vmRequire.external = {
-						modules: process.env.NODE_FUNCTION_ALLOW_EXTERNAL.split(','),
-						transitive: false,
-					};
-				}
 
 				const vm = new NodeVM(options as unknown as NodeVMOptions);
 
@@ -254,6 +240,6 @@ return item;`,
 				throw error;
 			}
 		}
-		return this.prepareOutputData(returnData);
+		return [returnData];
 	}
 }

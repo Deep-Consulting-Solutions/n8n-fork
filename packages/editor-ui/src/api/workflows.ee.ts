@@ -1,5 +1,5 @@
 import type { IRestApiContext, IShareWorkflowsPayload, IWorkflowsShareResponse } from '@/Interface';
-import { makeRestApiRequest } from '@/utils';
+import { makeRestApiRequest } from '@/utils/apiUtils';
 import type { IDataObject } from 'n8n-workflow';
 
 export async function setWorkflowSharedWith(
@@ -7,7 +7,7 @@ export async function setWorkflowSharedWith(
 	id: string,
 	data: IShareWorkflowsPayload,
 ): Promise<IWorkflowsShareResponse> {
-	return makeRestApiRequest(
+	return await makeRestApiRequest(
 		context,
 		'PUT',
 		`/workflows/${id}/share`,

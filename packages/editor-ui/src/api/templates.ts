@@ -6,23 +6,24 @@ import type {
 	ITemplatesCollectionResponse,
 	ITemplatesWorkflowResponse,
 	IWorkflowTemplate,
+	TemplateSearchFacet,
 } from '@/Interface';
 import type { IDataObject } from 'n8n-workflow';
-import { get } from '@/utils';
+import { get } from '@/utils/apiUtils';
 
 function stringifyArray(arr: number[]) {
 	return arr.join(',');
 }
 
-export function testHealthEndpoint(apiEndpoint: string) {
-	return get(apiEndpoint, '/health');
+export async function testHealthEndpoint(apiEndpoint: string) {
+	return await get(apiEndpoint, '/health');
 }
 
-export function getCategories(
+export async function getCategories(
 	apiEndpoint: string,
 	headers?: IDataObject,
 ): Promise<{ categories: ITemplatesCategory[] }> {
-	return get(apiEndpoint, '/templates/categories', undefined, headers);
+	return await get(apiEndpoint, '/templates/categories', undefined, headers);
 }
 
 export async function getCollections(
@@ -40,14 +41,18 @@ export async function getCollections(
 
 export async function getWorkflows(
 	apiEndpoint: string,
-	query: { skip: number; limit: number; categories: number[]; search: string },
+	query: { page: number; limit: number; categories: number[]; search: string },
 	headers?: IDataObject,
-): Promise<{ totalWorkflows: number; workflows: ITemplatesWorkflow[] }> {
-	return get(
+): Promise<{
+	totalWorkflows: number;
+	workflows: ITemplatesWorkflow[];
+	filters: TemplateSearchFacet[];
+}> {
+	return await get(
 		apiEndpoint,
-		'/templates/workflows',
+		'/templates/search',
 		{
-			skip: query.skip,
+			page: query.page,
 			rows: query.limit,
 			category: stringifyArray(query.categories),
 			search: query.search,

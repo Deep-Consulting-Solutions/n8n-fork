@@ -8,8 +8,9 @@ import type {
 	IDataObject,
 	IHttpRequestOptions,
 	INodeProperties,
+	IRequestOptions,
 } from 'n8n-workflow';
-import type { OptionsWithUri } from 'request';
+import { isObjectEmpty } from 'n8n-workflow';
 
 export const regions = [
 	{
@@ -133,7 +134,7 @@ export class Aws implements ICredentialType {
 
 	documentationUrl = 'aws';
 
-	icon = 'file:AWS.svg';
+	icon = 'file:icons/AWS.svg';
 
 	properties: INodeProperties[] = [
 		{
@@ -164,7 +165,6 @@ export class Aws implements ICredentialType {
 		{
 			displayName: 'Temporary Security Credentials',
 			name: 'temporaryCredentials',
-			// eslint-disable-next-line n8n-nodes-base/node-param-description-boolean-without-whether
 			description: 'Support for temporary credentials from AWS STS',
 			type: 'boolean',
 			default: false,
@@ -284,19 +284,24 @@ export class Aws implements ICredentialType {
 		let path = requestOptions.qs?.path;
 		const method = requestOptions.method;
 		let body = requestOptions.body;
-		let region = credentials.region;
-		let query = requestOptions.qs?.query as IDataObject;
 
-		// ! Workaround as we still use the OptionsWithUri interface which uses uri instead of url
+		let region = credentials.region;
+		if (requestOptions.qs?._region) {
+			region = requestOptions.qs._region as string;
+			delete requestOptions.qs._region;
+		}
+
+		let query = requestOptions.qs?.query as IDataObject;
+		// ! Workaround as we still use the IRequestOptions interface which uses uri instead of url
 		// ! To change when we replace the interface with IHttpRequestOptions
-		const requestWithUri = requestOptions as unknown as OptionsWithUri;
+		const requestWithUri = requestOptions as unknown as IRequestOptions;
 		if (requestWithUri.uri) {
-			requestOptions.url = requestWithUri.uri as string;
+			requestOptions.url = requestWithUri.uri;
 			endpoint = new URL(requestOptions.url);
 			if (service === 'sts') {
 				try {
 					if (requestWithUri.qs?.Action !== 'GetCallerIdentity') {
-						query = requestWithUri.qs;
+						query = requestWithUri.qs as IDataObject;
 					} else {
 						endpoint.searchParams.set('Action', 'GetCallerIdentity');
 						endpoint.searchParams.set('Version', '2011-06-15');
@@ -325,10 +330,10 @@ export class Aws implements ICredentialType {
 				} else if (service === 'sqs' && credentials.sqsEndpoint) {
 					endpointString = credentials.sqsEndpoint as string;
 				} else if (service) {
-					endpointString = `https://${service}.${credentials.region}.amazonaws.com`;
+					endpointString = `https://${service}.${region}.amazonaws.com`;
 				}
 				endpoint = new URL(
-					endpointString!.replace('{region}', credentials.region as string) + (path as string),
+					endpointString!.replace('{region}', region as string) + (path as string),
 				);
 			} else {
 				// If no endpoint is set, we try to decompose the path and use the default endpoint
@@ -353,7 +358,7 @@ export class Aws implements ICredentialType {
 			});
 		}
 
-		if (body && Object.keys(body).length === 0) {
+		if (body && typeof body === 'object' && isObjectEmpty(body)) {
 			body = '';
 		}
 

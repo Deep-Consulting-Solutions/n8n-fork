@@ -1,11 +1,11 @@
 <template>
 	<Modal
 		:name="modalName"
-		@enter="onSubmit"
 		:title="title"
 		:center="true"
 		width="460px"
-		:eventBus="modalBus"
+		:event-bus="modalBus"
+		@enter="onSubmit"
 	>
 		<template #content>
 			<div>
@@ -14,43 +14,51 @@
 						$locale.baseText('settings.users.confirmUserDeletion')
 					}}</n8n-text>
 				</div>
-				<div :class="$style.content" v-else>
+				<div v-else :class="$style.content">
 					<div>
 						<n8n-text color="text-base">{{
 							$locale.baseText('settings.users.confirmDataHandlingAfterDeletion')
 						}}</n8n-text>
 					</div>
-					<el-radio :value="operation" label="transfer" @change="() => setOperation('transfer')">
+					<el-radio
+						:model-value="operation"
+						label="transfer"
+						@update:model-value="() => setOperation('transfer')"
+					>
 						<n8n-text color="text-dark">{{
 							$locale.baseText('settings.users.transferWorkflowsAndCredentials')
 						}}</n8n-text>
 					</el-radio>
-					<div :class="$style.optionInput" v-if="operation === 'transfer'">
+					<div v-if="operation === 'transfer'" :class="$style.optionInput">
 						<n8n-input-label :label="$locale.baseText('settings.users.userToTransferTo')">
 							<n8n-user-select
 								:users="usersStore.allUsers"
-								:value="transferId"
-								:ignoreIds="ignoreIds"
-								:currentUserId="usersStore.currentUserId"
-								@input="setTransferId"
+								:model-value="transferId"
+								:ignore-ids="ignoreIds"
+								:current-user-id="usersStore.currentUserId"
+								@update:model-value="setTransferId"
 							/>
 						</n8n-input-label>
 					</div>
-					<el-radio :value="operation" label="delete" @change="() => setOperation('delete')">
+					<el-radio
+						:model-value="operation"
+						label="delete"
+						@update:model-value="() => setOperation('delete')"
+					>
 						<n8n-text color="text-dark">{{
 							$locale.baseText('settings.users.deleteWorkflowsAndCredentials')
 						}}</n8n-text>
 					</el-radio>
 					<div
-						:class="$style.optionInput"
 						v-if="operation === 'delete'"
+						:class="$style.optionInput"
 						data-test-id="delete-data-input"
 					>
 						<n8n-input-label :label="$locale.baseText('settings.users.deleteConfirmationMessage')">
 							<n8n-input
-								:value="deleteConfirmText"
+								:model-value="deleteConfirmText"
 								:placeholder="$locale.baseText('settings.users.deleteConfirmationText')"
-								@input="setConfirmText"
+								@update:model-value="setConfirmText"
 							/>
 						</n8n-input-label>
 					</div>
@@ -62,28 +70,27 @@
 				:loading="loading"
 				:disabled="!enabled"
 				:label="$locale.baseText('settings.users.delete')"
-				@click="onSubmit"
 				float="right"
+				@click="onSubmit"
 			/>
 		</template>
 	</Modal>
 </template>
 
 <script lang="ts">
-import mixins from 'vue-typed-mixins';
-
-import { showMessage } from '@/mixins/showMessage';
-import Modal from './Modal.vue';
-import type { IUser } from '../Interface';
+import { defineComponent } from 'vue';
+import { useToast } from '@/composables/useToast';
+import Modal from '@/components/Modal.vue';
+import type { IUser } from '@/Interface';
 import { mapStores } from 'pinia';
-import { useUsersStore } from '@/stores/users';
-import { createEventBus } from '@/event-bus';
+import { useUsersStore } from '@/stores/users.store';
+import { createEventBus } from 'n8n-design-system/utils';
 
-export default mixins(showMessage).extend({
+export default defineComponent({
+	name: 'DeleteUserModal',
 	components: {
 		Modal,
 	},
-	name: 'DeleteUserModal',
 	props: {
 		modalName: {
 			type: String,
@@ -91,6 +98,11 @@ export default mixins(showMessage).extend({
 		activeId: {
 			type: String,
 		},
+	},
+	setup() {
+		return {
+			...useToast(),
+		};
 	},
 	data() {
 		return {
@@ -169,7 +181,7 @@ export default mixins(showMessage).extend({
 					}
 				}
 
-				this.$showMessage({
+				this.showMessage({
 					type: 'success',
 					title: this.$locale.baseText('settings.users.userDeleted'),
 					message,
@@ -177,7 +189,7 @@ export default mixins(showMessage).extend({
 
 				this.modalBus.emit('close');
 			} catch (error) {
-				this.$showError(error, this.$locale.baseText('settings.users.userDeletedError'));
+				this.showError(error, this.$locale.baseText('settings.users.userDeletedError'));
 			}
 			this.loading = false;
 		},
