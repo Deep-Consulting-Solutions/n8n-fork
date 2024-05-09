@@ -1,4 +1,4 @@
-ARG NODE_VERSION=16
+ARG NODE_VERSION=18
 ARG ACCESS_TOKEN
 
 # 1. Create an image to build n8n
