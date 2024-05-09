@@ -51,6 +51,9 @@ workflowTestsController.post(
 
 		Object.assign(newWorkflowTest, req.body);
 
+		newWorkflowTest.createdAt = new Date();
+		newWorkflowTest.updatedAt = new Date();
+
 		await validateEntity(newWorkflowTest);
 
 		const savedWorkflowTest = await Db.collections.WorkflowTest.save(newWorkflowTest);
@@ -135,6 +138,8 @@ workflowTestsController.post(
 		};
 
 		Object.assign(nodeOuput, nodeData);
+		nodeOuput.createdAt = new Date();
+		nodeOuput.updatedAt = new Date();
 
 		const savedNodeOutput = await Db.collections.NodeOutput.save(nodeOuput);
 
