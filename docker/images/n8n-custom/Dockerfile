@@ -31,6 +31,7 @@ RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "t
 ENV NODE_ENV=production
 RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
 
+USER node
 # 2 . install packages
 FROM node:${NODE_VERSION}-slim as privatenodepackages
 ARG ACCESS_TOKEN
