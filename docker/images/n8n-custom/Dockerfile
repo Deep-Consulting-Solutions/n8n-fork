@@ -26,6 +26,11 @@ RUN node scripts/trim-fe-packageJson.js
 # Delete any source code, source-mapping, or typings
 RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" -o -name "*.tsbuildinfo" | xargs rm -rf
 
+# Deploy the `n8n` package into /compiled
+RUN mkdir /compiled
+ENV NODE_ENV=production
+RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
+
 # 2 . install packages
 FROM node:${NODE_VERSION}-slim as privatenodepackages
 ARG ACCESS_TOKEN
@@ -34,11 +39,6 @@ RUN cd /home/node && mkdir .n8n && cd .n8n && mkdir nodes && cd nodes
 WORKDIR /home/node/.n8n/nodes
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES > .npmrc
 RUN npm install "@deep-consulting-solutions/n8n-nodes-dcs-crm" "@deep-consulting-solutions/n8n-nodes-dcs-noco-db" "@deep-consulting-solutions/n8n-nodes-dcs-s3" "@deep-consulting-solutions/n8n-nodes-esa-sendgrid" "@deep-consulting-solutions/n8n-nodes-dcs-wait"
-
-# Deploy the `n8n` package into /compiled
-RUN mkdir /compiled
-ENV NODE_ENV=production
-RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
 
 # 3. Start with a new clean image with just the code that is needed to run n8n
 FROM n8nio/base:${NODE_VERSION}
