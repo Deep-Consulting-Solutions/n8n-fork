@@ -6,6 +6,9 @@ FROM n8nio/base:${NODE_VERSION} as builder
 ARG ACCESS_TOKEN
 ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 
+# Install pnpm
+RUN npm install -g pnpm@8.14
+
 COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.backend.json tsconfig.json tsconfig.build.json ./
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node packages ./packages
