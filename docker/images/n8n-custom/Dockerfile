@@ -6,6 +6,8 @@ FROM n8nio/base:${NODE_VERSION} as builder
 ARG ACCESS_TOKEN
 ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 
+RUN mkdir /compiled && chown node:node /compiled
+
 COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.backend.json tsconfig.json tsconfig.build.json ./
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node packages ./packages
@@ -27,9 +29,6 @@ RUN node scripts/trim-fe-packageJson.js
 RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" -o -name "*.tsbuildinfo" | xargs rm -rf
 
 # Deploy the `n8n` package into /compiled
-USER root  # Switch to root user temporarily to create the directory
-RUN mkdir /compiled && chown node:node /compiled  # Create directory with proper ownership
-USER node  # Switch back to the desired user
 ENV NODE_ENV=production
 RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
 
