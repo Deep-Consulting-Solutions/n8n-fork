@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
 	type IExecuteFunctions,
 	type INodeExecutionData,
@@ -105,7 +106,7 @@ export async function sqlAgentAgentExecute(
 			};
 
 			const dbInstance = await SqlDatabase.fromDataSourceParams({
-				appDataSource: dataSource,
+				appDataSource: dataSource as any,
 				includesTables: includedTablesArray.length > 0 ? includedTablesArray : undefined,
 				ignoreTables: ignoredTablesArray.length > 0 ? ignoredTablesArray : undefined,
 				sampleRowsInTableInfo: includedSampleRows ?? 3,
