@@ -15,7 +15,6 @@ COPY --chown=node:node patches ./patches
 
 RUN apk add --update libc6-compat jq
 RUN corepack enable && corepack prepare --activate
-USER node
 
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
 RUN /usr/local/bin/pnpm install --frozen-lockfile
