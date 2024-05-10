@@ -6,9 +6,6 @@ FROM n8nio/base:${NODE_VERSION} as builder
 ARG ACCESS_TOKEN
 ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 
-# Install pnpm
-RUN npm install -g pnpm@8.14
-
 COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.backend.json tsconfig.json tsconfig.build.json ./
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node packages ./packages
@@ -19,8 +16,8 @@ RUN corepack enable && corepack prepare --activate
 USER node
 
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
-RUN pnpm install --frozen-lockfile
-RUN pnpm build
+RUN /usr/local/bin/pnpm install --frozen-lockfile
+RUN /usr/local/bin/pnpm build
 
 # Delete all dev dependencies
 RUN jq 'del(.pnpm.patchedDependencies)' package.json > package.json.tmp; mv package.json.tmp package.json
@@ -40,7 +37,7 @@ RUN npm install "@deep-consulting-solutions/n8n-nodes-dcs-crm" "@deep-consulting
 
 # Deploy the `n8n` package into /compiled
 RUN mkdir /compiled
-RUN NODE_ENV=production pnpm --filter=n8n --prod --no-optional deploy /compiled
+RUN NODE_ENV=production /usr/local/bin/pnpm --filter=n8n --prod --no-optional deploy /compiled
 
 # 3. Start with a new clean image with just the code that is needed to run n8n
 FROM n8nio/base:${NODE_VERSION}
