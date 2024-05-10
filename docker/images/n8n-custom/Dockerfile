@@ -37,7 +37,8 @@ RUN npm install "@deep-consulting-solutions/n8n-nodes-dcs-crm" "@deep-consulting
 
 # Deploy the `n8n` package into /compiled
 RUN mkdir /compiled
-RUN NODE_ENV=production /usr/local/bin/pnpm --filter=n8n --prod --no-optional deploy /compiled
+ENV NODE_ENV=production
+RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
 
 # 3. Start with a new clean image with just the code that is needed to run n8n
 FROM n8nio/base:${NODE_VERSION}
