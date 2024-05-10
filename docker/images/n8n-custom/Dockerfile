@@ -6,7 +6,7 @@ FROM n8nio/base:${NODE_VERSION} as builder
 ARG ACCESS_TOKEN
 ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 
-COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.json ./
+COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.json tsconfig.build.json tsconfig.backend.json  ./
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node packages ./packages
 COPY --chown=node:node patches ./patches
