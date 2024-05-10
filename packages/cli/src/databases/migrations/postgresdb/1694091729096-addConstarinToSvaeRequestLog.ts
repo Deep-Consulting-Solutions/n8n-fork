@@ -6,7 +6,7 @@ export class addConstarinToSvaeRequestLog1694091729096 implements ReversibleMigr
 	public async up({ queryRunner, tablePrefix }: MigrationContext): Promise<void> {
 		await queryRunner.query(
 			`
-			ALTER TABLE ${tablePrefix}save_request_log ALTER COLUMN workflowId TYPE VARCHAR(36)
+			ALTER TABLE ${tablePrefix}save_request_log ALTER COLUMN "workflowId" TYPE VARCHAR(36)
 			`,
 		);	
 		await queryRunner.query(
@@ -22,7 +22,7 @@ export class addConstarinToSvaeRequestLog1694091729096 implements ReversibleMigr
 		);
 		await queryRunner.query(
 			`
-			ALTER TABLE ${tablePrefix}save_request_log ALTER COLUMN workflowId TYPE integer
+			ALTER TABLE ${tablePrefix}save_request_log ALTER COLUMN "workflowId" TYPE integer
 			`,
 		);
 	}
