@@ -27,7 +27,9 @@ RUN node scripts/trim-fe-packageJson.js
 RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" -o -name "*.tsbuildinfo" | xargs rm -rf
 
 # Deploy the `n8n` package into /compiled
-RUN mkdir /compiled
+USER root  # Switch to root user temporarily to create the directory
+RUN mkdir /compiled && chown node:node /compiled  # Create directory with proper ownership
+USER node  # Switch back to the desired user
 ENV NODE_ENV=production
 RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
 
