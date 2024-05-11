@@ -13,7 +13,7 @@ import type { WorkflowTagMapping } from './WorkflowTagMapping';
 import { objectRetriever, sqlite } from '../utils/transformers';
 import { WithTimestampsAndStringId, jsonColumnType } from './AbstractEntity';
 import type { IWorkflowDb } from '@/Interfaces';
-import type { SaveRequestLog } from './SaveRequestLog';
+// import type { SaveRequestLog } from './SaveRequestLog';
 
 @Entity()
 export class WorkflowEntity extends WithTimestampsAndStringId implements IWorkflowDb {
