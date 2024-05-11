@@ -335,6 +335,7 @@ export type LoginRequest = AuthlessRequest<
 	{
 		email: string;
 		password: string;
+		otp: string;
 		mfaToken?: string;
 		mfaRecoveryCode?: string;
 	}

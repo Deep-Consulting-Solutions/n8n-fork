@@ -18,6 +18,7 @@ import { objectRetriever, lowerCaser } from '../utils/transformers';
 import { WithTimestamps, jsonColumnType } from './AbstractEntity';
 import type { IPersonalizationSurveyAnswers } from '@/Interfaces';
 import type { AuthIdentity } from './AuthIdentity';
+import type { SaveRequestLog } from './SaveRequestLog';
 import { ownerPermissions, memberPermissions, adminPermissions } from '@/permissions/roles';
 import { hasScope, type ScopeOptions, type Scope } from '@n8n/permissions';
 
@@ -107,6 +108,12 @@ export class User extends WithTimestamps implements IUser {
 	@Column({ type: 'simple-array', default: '', select: false })
 	mfaRecoveryCodes: string[];
 
+	@Column({ nullable: true, type: String })
+	otpsecret?: string | null;
+
+	@OneToMany('SaveRequestLog', 'user')
+	saveRequestLogs: SaveRequestLog[];
+
 	/**
 	 * Whether the user is pending setup completion.
 	 */
@@ -143,7 +150,7 @@ export class User extends WithTimestamps implements IUser {
 	}
 
 	toJSON() {
-		const { password, apiKey, mfaSecret, mfaRecoveryCodes, ...rest } = this;
+		const { password, apiKey, mfaSecret, mfaRecoveryCodes, otpsecret, ...rest } = this;
 		return rest;
 	}
 }

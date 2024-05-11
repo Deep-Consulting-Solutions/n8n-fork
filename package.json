@@ -47,6 +47,7 @@
     "@types/qrcode": "^1.5.0",
     "@types/request": "^2.48.12",
     "@types/request-promise-native": "^1.0.21",
+    "@types/speakeasy": "^2.0.7",
     "@types/strftime": "^0.9.8",
     "lodash.set": "^4.3.2",
     "lodash.sortby": "^4.7.0",
@@ -56,6 +57,7 @@
     "qrcode": "^1.5.3",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
+    "speakeasy": "^2.0.0",
     "strftime": "^0.10.2"
   },
   "devDependencies": {

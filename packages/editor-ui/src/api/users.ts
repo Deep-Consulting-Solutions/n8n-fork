@@ -4,6 +4,7 @@ import type {
 	IRestApiContext,
 	IUserResponse,
 	InvitableRoleName,
+	GenerateOTPSecretResponse,
 } from '@/Interface';
 import type { IDataObject } from 'n8n-workflow';
 import { makeRestApiRequest } from '@/utils/apiUtils';
@@ -25,9 +26,22 @@ export async function logout(context: IRestApiContext): Promise<void> {
 	await makeRestApiRequest(context, 'POST', '/logout');
 }
 
+export async function generateOTPSecret(
+	context: IRestApiContext,
+): Promise<GenerateOTPSecretResponse> {
+	return await makeRestApiRequest(context, 'POST', '/otp-secret');
+}
+
 export async function setupOwner(
 	context: IRestApiContext,
-	params: { firstName: string; lastName: string; email: string; password: string },
+	params: {
+		firstName: string;
+		lastName: string;
+		email: string;
+		password: string;
+		otpSecret: string;
+		otp: string;
+	},
 ): Promise<CurrentUserResponse> {
 	return await makeRestApiRequest(
 		context,

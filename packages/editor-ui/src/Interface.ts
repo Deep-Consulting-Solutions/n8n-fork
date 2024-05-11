@@ -289,6 +289,11 @@ export interface WorkflowMetadata {
 	templateCredsSetupCompleted?: boolean;
 }
 
+export interface GenerateOTPSecretResponse {
+	base32: string;
+	otpauth_url: string;
+}
+
 // Almost identical to cli.Interfaces.ts
 export interface IWorkflowDb {
 	id: string;

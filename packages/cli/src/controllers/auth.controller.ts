@@ -1,6 +1,7 @@
 import validator from 'validator';
 
 import { AuthService } from '@/auth/auth.service';
+import speakeasy from 'speakeasy';
 import { Get, Post, RestController } from '@/decorators';
 import { RESPONSE_ERROR_MESSAGES } from '@/constants';
 import { Request, Response } from 'express';
@@ -41,9 +42,10 @@ export class AuthController {
 	/** Log in a user */
 	@Post('/login', { skipAuth: true, rateLimit: true })
 	async login(req: LoginRequest, res: Response): Promise<PublicUser | undefined> {
-		const { email, password, mfaToken, mfaRecoveryCode } = req.body;
+		const { email, password, mfaToken, mfaRecoveryCode, otp } = req.body;
 		if (!email) throw new ApplicationError('Email is required to log in');
 		if (!password) throw new ApplicationError('Password is required to log in');
+		if (!otp) throw new Error('OTP is required to log in');
 
 		let user: User | undefined;
 
@@ -71,6 +73,18 @@ export class AuthController {
 			}
 		} else {
 			user = await handleEmailLogin(email, password);
+		}
+
+		if (user?.otpsecret) {
+			const verified = speakeasy.totp.verify({
+				secret: user?.otpsecret,
+				encoding: 'base32',
+				token: otp,
+			});
+
+			if (!verified) {
+				throw new AuthError('OTP is not valid');
+			}
 		}
 
 		if (user) {
@@ -117,6 +131,19 @@ export class AuthController {
 			posthog: this.postHog,
 			withScopes: true,
 		});
+	}
+
+	/**
+	 * Generate OTP Secret
+	 */
+	@Post('/otp-secret')
+	async generateOTPSecret() {
+		const secret = speakeasy.generateSecret();
+
+		return {
+			base32: secret.base32,
+			otpauth_url: secret.otpauth_url,
+		};
 	}
 
 	/** Validate invite token to enable invitee to set up their account */

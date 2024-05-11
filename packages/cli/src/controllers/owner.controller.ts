@@ -75,6 +75,7 @@ export class OwnerController {
 		owner.firstName = firstName;
 		owner.lastName = lastName;
 		owner.password = await this.passwordUtility.hash(validPassword);
+		owner.otpsecret = otpSecret;
 
 		await validateEntity(owner);
 

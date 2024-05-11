@@ -17,6 +17,7 @@ import {
 	validatePasswordToken,
 	validateSignupToken,
 	updateGlobalRole,
+	generateOTPSecret,
 } from '@/api/users';
 import { PERSONALIZATION_MODAL_KEY, STORES, ROLE } from '@/constants';
 import type {
@@ -200,6 +201,8 @@ export const useUsersStore = defineStore(STORES.USERS, {
 			lastName: string;
 			email: string;
 			password: string;
+			otpSecret: string;
+			otp: string;
 		}): Promise<void> {
 			const rootStore = useRootStore();
 			const user = await setupOwner(rootStore.getRestApiContext, params);
@@ -378,6 +381,10 @@ export const useUsersStore = defineStore(STORES.USERS, {
 		},
 		async confirmEmail() {
 			await confirmEmail(useRootStore().getRestApiContext);
+		},
+		async generateOTPSecret() {
+			const rootStore = useRootStore();
+			return await generateOTPSecret(rootStore.getRestApiContext);
 		},
 
 		async updateGlobalRole({ id, newRoleName }: UpdateGlobalRolePayload) {

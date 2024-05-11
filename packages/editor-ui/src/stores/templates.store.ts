@@ -132,7 +132,7 @@ export const useTemplatesStore = defineStore(STORES.TEMPLATES, {
 				utm_awc: String(workflowsStore.activeWorkflows.length),
 			};
 			const userRole: string | undefined =
-				userStore.currentUserCloudInfo?.role ?? userStore.currentUser?.personalizationAnswers?.role;
+				userStore.currentUserCloudInfo?.role ?? userStore.currentUser?.role;
 			if (userRole) {
 				defaultParameters.utm_user_role = userRole;
 			}
