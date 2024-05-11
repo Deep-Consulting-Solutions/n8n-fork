@@ -13,7 +13,7 @@ export class ServerIncident extends GenericEntity {
 	APIMethod: string;
 
 	@Column({ type: 'json', nullable: true })
-	APIBody: any;
+	APIBody: unknown;
 
 	@Column({ nullable: true })
 	queueName: string;
@@ -28,7 +28,7 @@ export class ServerIncident extends GenericEntity {
 	incidentTime: Date;
 
 	@Column({ type: 'json', nullable: true })
-	additionalInformation: any;
+	additionalInformation: unknown;
 
 	@Column({ nullable: true })
 	zohoDeskTicketId: string;
