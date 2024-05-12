@@ -45,6 +45,8 @@ export default defineComponent({
 		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
 			this.otpSecretAuthURL = dataUrl;
 		});
+		console.log('this.otpSecretAuthURL');
+		console.log(this.otpSecretAuthURL);
 	},
 	data() {
 		const FORM_CONFIG: IFormBoxConfig = {
