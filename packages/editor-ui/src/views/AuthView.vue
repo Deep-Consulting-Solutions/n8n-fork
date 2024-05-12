@@ -15,6 +15,15 @@
 				@submit="onSubmit"
 				@update="onUpdate"
 			>
+				<template v-if="showAdditional">
+					<div :class="$style.otp">
+						<p :class="$style.otpLabel">Secret:</p>
+						<p :class="$style.otp32">{{ otpSecretBase32 }}</p>
+						<div :class="$style.otpQR">
+							<img :src="otpSecretAuthUrl" />
+						</div>
+					</div>
+				</template>
 				<SSOLogin v-if="withSso" />
 				<template #additional>
 					<slot />
@@ -48,6 +57,16 @@ export default defineComponent({
 		withSso: {
 			type: Boolean,
 			default: false,
+		},
+		showAdditional: {
+			type: Boolean,
+			default: false,
+		},
+		otpSecretBase32: {
+			type: String,
+		},
+		otpSecretAuthUrl: {
+			type: String,
 		},
 	},
 	methods: {
@@ -92,6 +111,23 @@ body {
 
 .formContainer {
 	padding-bottom: var(--spacing-xl);
+}
+
+.otp {
+	margin-bottom: 10px;
+}
+
+.otpLabel {
+	font-size: var(--font-size-2xs);
+	font-weight: 600;
+}
+
+.otp32 {
+	font-size: var(--font-size-3xs);
+}
+
+.otpQR {
+	text-align: center;
 }
 </style>
 

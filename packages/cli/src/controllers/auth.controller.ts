@@ -136,7 +136,7 @@ export class AuthController {
 	/**
 	 * Generate OTP Secret
 	 */
-	@Post('/otp-secret')
+	@Post('/otp-secret', { skipAuth: true, rateLimit: true })
 	async generateOTPSecret() {
 		const secret = speakeasy.generateSecret();
 

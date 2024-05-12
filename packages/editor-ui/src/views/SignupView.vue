@@ -1,13 +1,13 @@
 <template>
-	<AuthView :form="FORM_CONFIG" :form-loading="loading" :subtitle="inviteMessage" @submit="onSubmit">
-		<div :class="$style.otp">
-			<p :class="$style.otpLabel">Secret:</p>
-			<p :class="$style.otp32">{{ otpSecretBase32 }}</p>
-			<div :class="$style.otpQR">
-				<img :src="otpSecretAuthURL" />
-			</div>
-		</div>
-	</AuthView>
+	<AuthView
+		:form="FORM_CONFIG"
+		:form-loading="loading"
+		:show-additional="true"
+		:otp-secret-auth-url="otpSecretAuthURL"
+		:otp-secret-base32="otpSecretBase32"
+		:subtitle="inviteMessage"
+		@submit="onSubmit"
+	/>
 </template>
 
 <script lang="ts">

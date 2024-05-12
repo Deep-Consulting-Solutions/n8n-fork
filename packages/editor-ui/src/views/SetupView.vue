@@ -2,16 +2,12 @@
 	<AuthView
 		:form="FORM_CONFIG"
 		:form-loading="loading"
+		:show-additional="true"
+		:otp-secret-auth-url="otpSecretAuthURL"
+		:otp-secret-base32="otpSecretBase32"
 		data-test-id="setup-form"
 		@submit="onSubmit"
 	>
-		<div :class="$style.otp">
-			<p :class="$style.otpLabel">Secret:</p>
-			<p :class="$style.otp32">{{ otpSecretBase32 }}</p>
-			<div :class="$style.otpQR">
-				<img :src="otpSecretAuthURL" />
-			</div>
-		</div>
 	</AuthView>
 </template>
 
@@ -32,21 +28,6 @@ export default defineComponent({
 	name: 'SetupView',
 	components: {
 		AuthView,
-	},
-	async mounted() {
-		const [{ credentials, workflows }, { base32, otpauth_url }] = await Promise.all([
-			this.usersStore.preOwnerSetup(),
-			this.usersStore.generateOTPSecret(),
-		]);
-
-		this.credentialsCount = credentials;
-		this.workflowsCount = workflows;
-		this.otpSecretBase32 = base32;
-		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
-			this.otpSecretAuthURL = dataUrl;
-		});
-		console.log('this.otpSecretAuthURL');
-		console.log(this.otpSecretAuthURL);
 	},
 	data() {
 		const FORM_CONFIG: IFormBoxConfig = {
@@ -124,6 +105,16 @@ export default defineComponent({
 	},
 	computed: {
 		...mapStores(useSettingsStore, useUIStore, useUsersStore),
+	},
+	async mounted() {
+		const { base32, otpauth_url } = await this.usersStore.generateOTPSecret();
+
+		this.otpSecretBase32 = base32;
+		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
+			this.otpSecretAuthURL = dataUrl;
+		});
+		console.log('this.otpSecretAuthURL');
+		console.log(this.otpSecretAuthURL);
 	},
 	methods: {
 		async onSubmit(values: { [key: string]: string | boolean }) {
