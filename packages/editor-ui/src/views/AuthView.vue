@@ -118,12 +118,12 @@ body {
 }
 
 .otpLabel {
-	font-size: var(--font-size-2xs);
+	font-size: var(--font-size-xs);
 	font-weight: 600;
 }
 
 .otp32 {
-	font-size: var(--font-size-3xs);
+	font-size: var(--font-size-2xs);
 }
 
 .otpQR {

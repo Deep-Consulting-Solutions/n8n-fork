@@ -4,11 +4,13 @@ import type {
 	INodeType,
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
+	IDataObject,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import type { DateTimeUnit, DurationUnit } from 'luxon';
 import { DateTime } from 'luxon';
+import strftime from 'strftime';
 import { CurrentDateDescription } from './CurrentDateDescription';
 import { AddToDateDescription } from './AddToDateDescription';
 import { SubtractFromDateDescription } from './SubtractFromDateDescription';
@@ -16,6 +18,7 @@ import { FormatDateDescription } from './FormatDateDescription';
 import { RoundDateDescription } from './RoundDateDescription';
 import { GetTimeBetweenDatesDescription } from './GetTimeBetweenDates';
 import { ExtractDateDescription } from './ExtractDateDescription';
+import { CustomFormatDescription } from './CustomFormatDescription';
 import { parseDate } from './GenericFunctions';
 
 export class DateTimeV2 implements INodeType {
@@ -67,6 +70,10 @@ export class DateTimeV2 implements INodeType {
 							name: 'Subtract From a Date',
 							value: 'subtractFromDate',
 						},
+						{
+							name: 'Format Date Using Strftime',
+							value: 'customFormat',
+						},
 					],
 					default: 'getCurrentDate',
 				},
@@ -77,6 +84,7 @@ export class DateTimeV2 implements INodeType {
 				...RoundDateDescription,
 				...GetTimeBetweenDatesDescription,
 				...ExtractDateDescription,
+				...CustomFormatDescription,
 			],
 		};
 	}
@@ -215,6 +223,38 @@ export class DateTimeV2 implements INodeType {
 					const parsedDate = parseDate.call(this, date, { timezone: workflowTimezone });
 					const selectedPart = part === 'week' ? parsedDate.weekNumber : parsedDate.get(part);
 					item.json[outputFieldName] = selectedPart;
+					returnData.push(item);
+				} else if (operation === 'customFormat') {
+					let currentDate = this.getNodeParameter('date', i) as string;
+					const toFormat = this.getNodeParameter('toFormat', i) as string;
+					const toTimezone = this.getNodeParameter('toTimezone', i);
+					const outputFieldName = this.getNodeParameter('outputFieldName', i) as string;
+					let newDate;
+
+					if (currentDate === null || currentDate === undefined) {
+						item.json[outputFieldName] = currentDate;
+					} else {
+						if ((currentDate as unknown as IDataObject) instanceof DateTime) {
+							currentDate = (currentDate as unknown as DateTime).toISO();
+						}
+
+						if (Number.isInteger(currentDate as unknown as number)) {
+							newDate = new Date(currentDate as unknown as number * 1000);
+						} else {
+							newDate = new Date(currentDate as string);
+						}
+	
+						const currentTimezone = process.env.TZ;
+	
+						if (toTimezone) {
+							process.env.TZ = toTimezone as string;
+						}
+	
+						newDate = strftime(toFormat, newDate);
+	
+						process.env.TZ = currentTimezone;
+						item.json[outputFieldName] = newDate;
+					}
 					returnData.push(item);
 				}
 			} catch (error) {
