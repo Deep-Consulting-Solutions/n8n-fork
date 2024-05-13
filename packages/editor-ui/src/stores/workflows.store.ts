@@ -368,19 +368,16 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	}
 
 	function setNodeOutputs(nodeOutputs: NodeOutputDb[]): void {
-		this.nodeOutputsById = nodeOutputs.reduce<NodeOutputDbMap>(
-			(acc, nodeOutput: NodeOutputDb) => {
-				if (nodeOutput.nodeId) {
-					if (nodeOutput.errorMessage) {
-						nodeOutput.data = null;
-					}
-					acc[nodeOutput.nodeId] = nodeOutput;
+		this.nodeOutputsById = nodeOutputs.reduce<NodeOutputDbMap>((acc, nodeOutput: NodeOutputDb) => {
+			if (nodeOutput.nodeId) {
+				if (nodeOutput.errorMessage) {
+					nodeOutput.data = null;
 				}
-				return acc;
-			},
-			{},
-		);
-	},
+				acc[nodeOutput.nodeId] = nodeOutput;
+			}
+			return acc;
+		}, {});
+	}
 
 	function resetWorkflowTestSuites(): void {
 		this.testSuitesById = {};
