@@ -12,20 +12,18 @@
 					{{ data.name }}
 				</n8n-heading>
 				<n8n-text color="text-light" size="small">
-					<span v-show="data"
-						>{{ $locale.baseText('workflows.item.updated') }} <time-ago :date="data.updatedAt" />
+					<span v-show="data">
+						{{ $locale.baseText('workflows.item.updated') }} <time-ago :date="data.updatedAt" />
 						|
 					</span>
-					<span v-show="data" class="mr-2xs"
-						>{{ $locale.baseText('workflows.item.created') }} {{ formattedCreatedAtDate }}
+					<span v-show="data" class="mr-2xs">
+						{{ $locale.baseText('workflows.item.created') }} {{ formattedCreatedAtDate }}
 					</span>
 				</n8n-text>
 			</div>
 			<div :class="$style.cardDescription">
 				<div v-if="isTestCard" :class="$style.flex1">
-					<n8n-text size="large" color="text-base">
-						{{ data.description }}
-					</n8n-text>
+					<n8n-text size="large" color="text-base">{{ data.description }}</n8n-text>
 				</div>
 			</div>
 		</template>
@@ -33,23 +31,16 @@
 </template>
 
 <script lang="ts">
-import mixins from 'vue-typed-mixins';
 import type { IUser } from '@/Interface';
 import { VIEWS } from '@/constants';
-import { showMessage } from '@/mixins/showMessage';
 import dateformat from 'dateformat';
-import type Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useWorkflowsStore } from '@/stores/workflows';
-import WorkflowActivator from './WorkflowActivator.vue';
+import { useUIStore } from '@/stores/ui.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+import type WorkflowActivator from './WorkflowActivator.vue';
 type ActivatorRef = InstanceType<typeof WorkflowActivator>;
-export default mixins(showMessage).extend({
-	name: 'test-suite-card',
-	data() {
-		return {};
-	},
-	components: {},
+export default {
+	name: 'TestSuiteCard',
 	props: {
 		isTestCard: {
 			type: Boolean,
@@ -58,7 +49,7 @@ export default mixins(showMessage).extend({
 		data: {
 			type: Object,
 			required: true,
-			default: {
+			default: () => ({
 				id: '',
 				createdAt: '',
 				updatedAt: '',
@@ -70,7 +61,7 @@ export default mixins(showMessage).extend({
 				ownedBy: {} as IUser,
 				versionId: '',
 				description: '',
-			},
+			}),
 		},
 		readonly: {
 			type: Boolean,
@@ -88,18 +79,18 @@ export default mixins(showMessage).extend({
 		},
 	},
 	methods: {
-		async onClick(event?: PointerEvent) {
+		onClick(event?: PointerEvent) {
 			const view = this.isTestCard
 				? {
 						name: VIEWS.TEST_SUITE_NODES,
 						params: { workflow: this.$route.params.workflow, test: this.data.id },
-				  }
+					}
 				: {
 						name: VIEWS.TEST_SUITE,
 						params: { workflow: this.data.id, test: '' },
-				  };
+					};
 			if (event) {
-				if ((this.$refs.activator as ActivatorRef)?.$el.contains(event.target as HTMLElement)) {
+				if (this.$refs.activator?.$el.contains(event.target as HTMLElement)) {
 					return;
 				}
 				if (event.metaKey || event.ctrlKey) {
@@ -111,26 +102,5 @@ export default mixins(showMessage).extend({
 			this.$router.push(view);
 		},
 	},
-});
+};
 </script>
-
-<style lang="scss" module>
-.cardLink {
-	transition: box-shadow 0.3s ease;
-	cursor: pointer;
-	&:hover {
-		box-shadow: 0 2px 8px rgba(#441c17, 0.1);
-	}
-}
-.cardHeading {
-	font-size: var(--font-size-s);
-	word-break: break-word;
-}
-.cardDescription {
-	display: flex;
-	justify-content: flex-end;
-}
-.flex1 {
-	flex: 1;
-}
-</style>

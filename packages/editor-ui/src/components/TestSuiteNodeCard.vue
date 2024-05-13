@@ -17,33 +17,40 @@
 				</n8n-heading>
 			</div>
 
-			<div :class="$style.flex1">
-				<div v-show="nodeOutput.outputType">
-					<n8n-text bold> {{ displayedOutputType }}: </n8n-text>
-					<n8n-text color="text-base">
-						{{ displayedContent }}
-					</n8n-text>
-				</div>
+			<div v-show="nodeOutput.outputType" :class="$style.flex1">
+				<n8n-text bold>{{ displayedOutputType }}:</n8n-text>
+				<n8n-text color="text-base">{{ displayedContent }}</n8n-text>
 			</div>
+
 			<div :class="$style.flexNorm">
-				<n8n-button size="large" @click="editTestOutput">
-					{{ $locale.baseText('testSuites.edit') }}
-				</n8n-button>
+				<n8n-button size="large" @click="editTestOutput">{{
+					$locale.baseText('testSuites.edit')
+				}}</n8n-button>
 			</div>
 		</div>
 	</n8n-card>
 </template>
 
 <script lang="ts">
-import mixins from 'vue-typed-mixins';
-import { showMessage } from '@/mixins/showMessage';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useWorkflowsStore } from '@/stores/workflows';
+import { useUIStore } from '@/stores/ui.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
 import { EDIT_TEST_SUITE_MODAL_KEY } from '@/constants';
 import type { NodeOutputDb } from '@/Interface';
-export default mixins(showMessage).extend({
-	name: 'test-suite-node-card',
+
+export default {
+	name: 'TestSuiteNodeCard',
+	props: {
+		data: {
+			type: Object,
+			required: true,
+			default: () => ({
+				id: '',
+				name: '',
+				type: '',
+			}),
+		},
+	},
 	data() {
 		return {
 			displayedContent: '',
@@ -56,22 +63,18 @@ export default mixins(showMessage).extend({
 				errorMessage: '',
 				data: null,
 			} as NodeOutputDb,
+			loading: true,
 		};
-	},
-	components: {},
-	props: {
-		data: {
-			type: Object,
-			required: true,
-			default: {
-				id: '',
-				name: '',
-				type: '',
-			},
-		},
 	},
 	computed: {
 		...mapStores(useUIStore, useWorkflowsStore),
+	},
+	watch: {
+		'workflowsStore.nodeOutputsById': {
+			handler: 'handleNodeOutputsChange',
+			deep: true,
+			immediate: true,
+		},
 	},
 	created() {
 		this.getNodeOutput();
@@ -88,11 +91,11 @@ export default mixins(showMessage).extend({
 			let displayedOutputType = '';
 			if (nodeOutput.data) {
 				displayedContent = nodeOutput.data;
-				outputType = 'data' as const;
+				outputType = 'data';
 				displayedOutputType = 'Output';
 			} else if (nodeOutput.errorMessage) {
 				displayedContent = nodeOutput.errorMessage;
-				outputType = 'error' as const;
+				outputType = 'error';
 				displayedOutputType = 'Error';
 			}
 			this.displayedContent = displayedContent;
@@ -102,6 +105,7 @@ export default mixins(showMessage).extend({
 				outputType,
 			};
 			this.nodeOutput = nodeOutput;
+			this.loading = false;
 		},
 		editTestOutput() {
 			this.openEditTestModal();
@@ -116,14 +120,7 @@ export default mixins(showMessage).extend({
 			});
 		},
 	},
-	watch: {
-		'workflowsStore.nodeOutputsById': {
-			handler: 'handleNodeOutputsChange',
-			deep: true,
-			immediate: true,
-		},
-	},
-});
+};
 </script>
 
 <style lang="scss" module>

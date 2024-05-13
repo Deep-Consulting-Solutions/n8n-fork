@@ -1,21 +1,21 @@
 <template>
-	<page-view-layout>
+	<PageViewLayout>
 		<div v-if="loading">
 			<n8n-loading :class="[$style['header-loading'], 'mb-l']" variant="custom" />
 			<n8n-loading :class="[$style['card-loading'], 'mb-2xs']" variant="custom" />
 			<n8n-loading :class="$style['card-loading']" variant="custom" />
 		</div>
-		<page-view-layout-list :overflow="type !== 'list'" v-else>
+		<PageViewLayoutList v-else :overflow="type !== 'list'">
 			<template #header>
 				<div class="mb-xs">
 					<div :class="$style['filters-row']">
 						<n8n-input
+							ref="search"
+							v-model="filters.search"
 							:class="[$style['search'], 'mr-2xs']"
 							:placeholder="$locale.baseText(`${resourceKey}.search.placeholder`)"
-							v-model="filters.search"
 							size="medium"
 							clearable
-							ref="search"
 							data-test-id="resources-list-search"
 						>
 							<template #prefix>
@@ -31,18 +31,18 @@
 									:label="$locale.baseText(`${resourceKey}.sort.${sortOption}`)"
 								/>
 							</n8n-select>
-							<resource-filters-dropdown
+							<ResourceFiltersDropdown
 								v-if="showFiltersDropdown"
 								:keys="filterKeys"
 								:reset="resetFilters"
 								:value="filters"
 								@input="$emit('update:filters', $event)"
-								@update:filtersLength="onUpdateFiltersLength"
+								@update:filters-length="onUpdateFiltersLength"
 							>
 								<template #default="resourceFiltersSlotProps">
 									<slot name="filters" v-bind="resourceFiltersSlotProps" />
 								</template>
-							</resource-filters-dropdown>
+							</ResourceFiltersDropdown>
 						</div>
 					</div>
 				</div>
@@ -52,7 +52,7 @@
 				<div v-show="hasFilters" class="mt-xs">
 					<n8n-info-tip :bold="false">
 						{{ $locale.baseText(`${resourceKey}.filters.active`) }}
-						<n8n-link @click="resetFilters" size="small">
+						<n8n-link size="small" @click="resetFilters">
 							{{ $locale.baseText(`${resourceKey}.filters.active.reset`) }}
 						</n8n-link>
 					</n8n-info-tip>
@@ -65,8 +65,8 @@
 
 			<div
 				v-if="filteredAndSortedSubviewResources.length > 0"
-				:class="$style.listWrapper"
 				ref="listWrapperRef"
+				:class="$style.listWrapper"
 			>
 				<n8n-recycle-scroller
 					v-if="type === 'list'"
@@ -77,7 +77,7 @@
 					item-key="id"
 				>
 					<template #default="{ item, updateItemSize }">
-						<slot :data="item" :updateItemSize="updateItemSize" />
+						<slot :data="item" :update-item-size="updateItemSize" />
 					</template>
 				</n8n-recycle-scroller>
 				<n8n-datatable
@@ -86,10 +86,10 @@
 					:class="$style.datatable"
 					:columns="typeProps.columns"
 					:rows="filteredAndSortedSubviewResources"
-					:currentPage="currentPage"
-					:rowsPerPage="rowsPerPage"
-					@update:currentPage="setCurrentPage"
-					@update:rowsPerPage="setRowsPerPage"
+					:current-page="currentPage"
+					:rows-per-page="rowsPerPage"
+					@update:current-page="setCurrentPage"
+					@update:rows-per-page="setRowsPerPage"
 				>
 					<template #row="{ columns, row }">
 						<slot :data="row" :columns="columns" />
@@ -97,7 +97,7 @@
 				</n8n-datatable>
 			</div>
 
-			<n8n-text color="text-base" size="medium" data-test-id="resources-list-empty" v-else>
+			<n8n-text v-else color="text-base" size="medium" data-test-id="resources-list-empty">
 				{{ $locale.baseText(`${resourceKey}.noResults`) }}
 				<template v-if="shouldSwitchToAllSubview">
 					<span v-if="!filters.search">
@@ -119,28 +119,20 @@
 			</n8n-text>
 
 			<slot name="postamble" />
-		</page-view-layout-list>
-	</page-view-layout>
+		</PageViewLayoutList>
+	</PageViewLayout>
 </template>
 
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
 import type { IUser } from '@/Interface';
-import mixins from 'vue-typed-mixins';
+import { mapStores } from 'pinia';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUsersStore } from '@/stores/users.store';
 import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
 import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
-import { EnterpriseEditionFeature } from '@/constants';
-import TemplateCard from '@/components/TemplateCard.vue';
-import type { PropType } from 'vue';
-import type Vue from 'vue';
-import { debounceHelper } from '@/mixins/debounce';
-import ResourceOwnershipSelect from '@/components/forms/ResourceOwnershipSelect.ee.vue';
 import ResourceFiltersDropdown from '@/components/forms/ResourceFiltersDropdown.vue';
-import { mapStores } from 'pinia';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
-import type { N8nInput } from 'n8n-design-system';
-import type { DatatableColumn } from 'n8n-design-system';
+import type { PropType } from 'vue';
+
 export interface IResource {
 	id: string;
 	name: string;
@@ -149,22 +141,12 @@ export interface IResource {
 	ownedBy?: Partial<IUser>;
 	sharedWith?: Array<Partial<IUser>>;
 }
-interface IFilters {
-	search: string;
-	ownedBy: string;
-	sharedWith: string;
-	[key: string]: boolean | string | string[];
-}
-type IResourceKeyType = 'credentials' | 'workflows';
-type SearchRef = InstanceType<typeof N8nInput>;
-const filterKeys = ['ownedBy', 'sharedWith'];
-export default mixins(showMessage, debounceHelper).extend({
-	name: 'workflows-list-layout',
+
+export default {
+	name: 'WorkflowsListLayout',
 	components: {
-		TemplateCard,
 		PageViewLayout,
 		PageViewLayoutList,
-		ResourceOwnershipSelect,
 		ResourceFiltersDropdown,
 	},
 	props: {
@@ -247,10 +229,7 @@ export default mixins(showMessage, debounceHelper).extend({
 				if (this.filters.sharedWith) {
 					matches =
 						matches &&
-						!!(
-							resource.sharedWith &&
-							resource.sharedWith.find((sharee) => sharee.id === this.filters.sharedWith)
-						);
+						!!resource.sharedWith?.find((sharee) => sharee.id === this.filters.sharedWith);
 				}
 				if (this.filters.search) {
 					const searchString = this.filters.search.toLowerCase();
@@ -264,20 +243,20 @@ export default mixins(showMessage, debounceHelper).extend({
 			return filtered.sort((a, b) => {
 				switch (this.sortBy) {
 					case 'lastUpdated':
-						return this.sortFns['lastUpdated']
-							? this.sortFns['lastUpdated'](a, b)
+						return this.sortFns.lastUpdated
+							? this.sortFns.lastUpdated(a, b)
 							: new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf();
 					case 'lastCreated':
-						return this.sortFns['lastCreated']
-							? this.sortFns['lastCreated'](a, b)
+						return this.sortFns.lastCreated
+							? this.sortFns.lastCreated(a, b)
 							: new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf();
 					case 'nameAsc':
-						return this.sortFns['nameAsc']
-							? this.sortFns['nameAsc'](a, b)
+						return this.sortFns.nameAsc
+							? this.sortFns.nameAsc(a, b)
 							: this.displayName(a).trim().localeCompare(this.displayName(b).trim());
 					case 'nameDesc':
-						return this.sortFns['nameDesc']
-							? this.sortFns['nameDesc'](a, b)
+						return this.sortFns.nameDesc
+							? this.sortFns.nameDesc(a, b)
 							: this.displayName(b).trim().localeCompare(this.displayName(a).trim());
 					default:
 						return this.sortFns[this.sortBy] ? this.sortFns[this.sortBy](a, b) : 0;
@@ -292,6 +271,30 @@ export default mixins(showMessage, debounceHelper).extend({
 		shouldSwitchToAllSubview(): boolean {
 			return !this.hasFilters && this.isOwnerSubview && this.resourcesNotOwned.length > 0;
 		},
+	},
+	watch: {
+		isOwnerSubview() {
+			this.sendSubviewTelemetry();
+		},
+		'filters.ownedBy'(value) {
+			if (value) {
+				this.setOwnerSubview(false);
+			}
+			this.sendFiltersTelemetry('ownedBy');
+		},
+		'filters.sharedWith'() {
+			this.sendFiltersTelemetry('sharedWith');
+		},
+		'filters.search'() {
+			this.callDebounced('sendFiltersTelemetry', { debounceTime: 1000, trailing: true }, 'search');
+		},
+		sortBy(newValue) {
+			this.$emit('sort', newValue);
+			this.sendSortingTelemetry();
+		},
+	},
+	mounted() {
+		this.onMounted();
 	},
 	methods: {
 		async onMounted() {
@@ -366,31 +369,7 @@ export default mixins(showMessage, debounceHelper).extend({
 			this.hasFilters = length > 0;
 		},
 	},
-	mounted() {
-		this.onMounted();
-	},
-	watch: {
-		isOwnerSubview() {
-			this.sendSubviewTelemetry();
-		},
-		'filters.ownedBy'(value) {
-			if (value) {
-				this.setOwnerSubview(false);
-			}
-			this.sendFiltersTelemetry('ownedBy');
-		},
-		'filters.sharedWith'() {
-			this.sendFiltersTelemetry('sharedWith');
-		},
-		'filters.search'() {
-			this.callDebounced('sendFiltersTelemetry', { debounceTime: 1000, trailing: true }, 'search');
-		},
-		sortBy(newValue) {
-			this.$emit('sort', newValue);
-			this.sendSortingTelemetry();
-		},
-	},
-});
+};
 </script>
 
 <style lang="scss" module>
@@ -405,10 +384,6 @@ export default mixins(showMessage, debounceHelper).extend({
 }
 .search {
 	max-width: 240px;
-}
-.list {
-	//display: flex;
-	//flex-direction: column;
 }
 .listWrapper {
 	height: 100%;

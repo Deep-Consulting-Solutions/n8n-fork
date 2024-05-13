@@ -1,14 +1,14 @@
 <template>
-	<page-view-layout>
+	<PageViewLayout>
 		<div v-if="loading">
-			<n8n-loading :class="[$style['header-loading'], 'mb-l']" variant="custom" />
-			<n8n-loading :class="[$style['card-loading'], 'mb-2xs']" variant="custom" />
-			<n8n-loading :class="$style['card-loading']" variant="custom" />
+			<n8n-loading :class="[headerLoadingClass, 'mb-l']" variant="custom" />
+			<n8n-loading :class="[cardLoadingClass, 'mb-2xs']" variant="custom" />
+			<n8n-loading :class="cardLoadingClass" variant="custom" />
 		</div>
 
-		<page-view-layout-list v-else>
+		<PageViewLayoutList v-else>
 			<template #header>
-				<div :class="[$style['flex'], 'mb-2xs']">
+				<div :class="[flexClass, 'mb-2xs']">
 					<div>
 						<n8n-heading tag="h2" size="xlarge">
 							{{
@@ -26,37 +26,30 @@
 				</div>
 			</template>
 
-			<div v-if="workFlowNodes.length > 0" :class="$style.listWrapper" ref="listWrapperRef">
+			<div v-if="workFlowNodes.length > 0" ref="listWrapperRef" :class="listWrapperClass">
 				<n8n-recycle-scroller
-					:class="[$style.list, 'list-style-none']"
+					:class="[listClass, 'list-style-none']"
 					:items="workFlowNodes"
 					item-key="id"
 					:item-size="0"
 				>
 					<template #default="{ item, updateItemSize }">
-						<slot :data="item" :updateItemSize="updateItemSize" />
+						<slot :data="item" :update-item-size="updateItemSize" />
 					</template>
 				</n8n-recycle-scroller>
 			</div>
-		</page-view-layout-list>
-	</page-view-layout>
+		</PageViewLayoutList>
+	</PageViewLayout>
 </template>
 
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
 import type { IUser } from '@/Interface';
-import mixins from 'vue-typed-mixins';
 import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
 import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
-import TemplateCard from '@/components/TemplateCard.vue';
 import type { PropType } from 'vue';
-import type Vue from 'vue';
-import { debounceHelper } from '@/mixins/debounce';
-import ResourceOwnershipSelect from '@/components/forms/ResourceOwnershipSelect.ee.vue';
-import ResourceFiltersDropdown from '@/components/forms/ResourceFiltersDropdown.vue';
 import { mapStores } from 'pinia';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUsersStore } from '@/stores/users.store';
 export interface IResource {
 	id: string;
 	name: string;
@@ -65,14 +58,11 @@ export interface IResource {
 	ownedBy?: Partial<IUser>;
 	sharedWith?: Array<Partial<IUser>>;
 }
-export default mixins(showMessage, debounceHelper).extend({
-	name: 'tests-list-node-layout',
+export default {
+	name: 'TestsListNodeLayout',
 	components: {
-		TemplateCard,
 		PageViewLayout,
 		PageViewLayoutList,
-		ResourceOwnershipSelect,
-		ResourceFiltersDropdown,
 	},
 	props: {
 		workFlowNodes: {
@@ -99,6 +89,24 @@ export default mixins(showMessage, debounceHelper).extend({
 	},
 	computed: {
 		...mapStores(useSettingsStore, useUsersStore),
+		headerLoadingClass(): string {
+			return `${this.$style['header-loading']} mb-l`;
+		},
+		cardLoadingClass(): string {
+			return `${this.$style['card-loading']} mb-2xs`;
+		},
+		flexClass(): string {
+			return `${this.$style.flex} mb-2xs`;
+		},
+		listWrapperClass(): string {
+			return `${this.$style.listWrapper}`;
+		},
+		listClass(): string {
+			return `${this.$style.list} list-style-none`;
+		},
+	},
+	mounted() {
+		this.onMounted();
 	},
 	methods: {
 		async onMounted() {
@@ -106,11 +114,7 @@ export default mixins(showMessage, debounceHelper).extend({
 			this.loading = false;
 		},
 	},
-	mounted() {
-		this.onMounted();
-	},
-	watch: {},
-});
+};
 </script>
 
 <style lang="scss" module>

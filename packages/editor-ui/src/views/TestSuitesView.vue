@@ -1,5 +1,5 @@
 <template>
-	<workflows-list-layout
+	<WorkflowsListLayout
 		ref="layout"
 		resource-key="workflows"
 		:resources="allWorkflows"
@@ -9,7 +9,7 @@
 		@update:filters="filters = $event"
 	>
 		<template #default="{ data, updateItemSize }">
-			<test-suite-card
+			<TestSuiteCard
 				data-test-id="resources-list-item"
 				class="mb-2xs"
 				:data="data"
@@ -32,49 +32,38 @@
 					color="text-base"
 					class="mb-3xs"
 				/>
-				<n8n-select :value="filters.status" @input="setKeyValue('status', $event)" size="medium">
+				<n8n-select :value="filters.status" size="medium" @input="setKeyValue('status', $event)">
 					<n8n-option
 						v-for="option in statusFilterOptions"
 						:key="option.label"
 						:label="option.label"
 						:value="option.value"
-					>
-					</n8n-option>
+					/>
 				</n8n-select>
 			</div>
 		</template>
-	</workflows-list-layout>
+	</WorkflowsListLayout>
 </template>
 
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
-import mixins from 'vue-typed-mixins';
-import SettingsView from './SettingsView.vue';
-import WorkflowsListLayout from '@/components/layouts/WorkflowsListLayout.vue';
-import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
-import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
+// eslint-disable-next-line import/no-unresolved
+import WorkflowsListLayout from '../components/WorkflowsListLayout.vue';
 import TestSuiteCard from '@/components/TestSuiteCard.vue';
-import TemplateCard from '@/components/TemplateCard.vue';
-import { debounceHelper } from '@/mixins/debounce';
-import type Vue from 'vue';
 import type { IWorkflowDb } from '@/Interface';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useWorkflowsStore } from '@/stores/workflows';
-type IResourcesListLayoutInstance = Vue & { sendFiltersTelemetry: (source: string) => void };
+import { useUIStore } from '@/stores/ui.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+
 const StatusFilter = {
 	ACTIVE: true,
 	DEACTIVATED: false,
 	ALL: '',
 };
-const TestSuitesView = mixins(showMessage, debounceHelper).extend({
+
+export default {
 	name: 'TestSuitesView',
 	components: {
 		WorkflowsListLayout,
-		TemplateCard,
-		PageViewLayout,
-		PageViewLayoutList,
-		SettingsView,
 		TestSuiteCard,
 	},
 	data() {
@@ -113,6 +102,12 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 			];
 		},
 	},
+	watch: {
+		'filters.tags'() {
+			this.sendFiltersTelemetry('tags');
+		},
+	},
+	mounted() {},
 	methods: {
 		async initialize() {
 			await Promise.all([
@@ -131,17 +126,10 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 			return matches;
 		},
 		sendFiltersTelemetry(source: string) {
-			(this.$refs.layout as IResourcesListLayoutInstance).sendFiltersTelemetry(source);
+			(this.$refs.layout as unknown).sendFiltersTelemetry(source);
 		},
 	},
-	watch: {
-		'filters.tags'() {
-			this.sendFiltersTelemetry('tags');
-		},
-	},
-	mounted() {},
-});
-export default TestSuitesView;
+};
 </script>
 
 <style lang="scss" module>
