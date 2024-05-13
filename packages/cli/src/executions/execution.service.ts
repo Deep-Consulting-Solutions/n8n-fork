@@ -96,7 +96,7 @@ export class ExecutionService {
 		if (!sharedWorkflowIds.length) return undefined;
 
 		const { id: executionId } = req.params;
-		const execution = await this.executionRepository.findIfShared(executionId, sharedWorkflowIds);
+		const execution = await this.executionRepository.findIfShared(executionId!, sharedWorkflowIds);
 
 		if (!execution) {
 			this.logger.info('Attempt to read execution was blocked due to insufficient permissions', {
@@ -125,7 +125,7 @@ export class ExecutionService {
 			execution = executionEntity;
 		} else {
 			execution = await Container.get(ExecutionRepository).findWithUnflattenedData(
-				executionId,
+				executionId!,
 				sharedWorkflowIds,
 			);
 		}

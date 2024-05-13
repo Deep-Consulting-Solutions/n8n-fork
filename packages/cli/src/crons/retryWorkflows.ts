@@ -17,13 +17,13 @@ import { getSharedWorkflowIds } from '../WorkflowHelpers';
 import type { ExecutionRequest } from '../executions/execution.types';
 
 const getWorkflowOwner = async (workflowId: string) => {
-    const sharing = await Container.get(SharedWorkflowRepository).findOneBy({
-        workflowId: workflowId,
-        role: 'workflow:owner',
-    });
+	const sharing = await Container.get(SharedWorkflowRepository).findOneBy({
+		workflowId,
+		role: 'workflow:owner',
+	});
 
-    return sharing?.user;
-}
+	return sharing?.user;
+};
 
 const getExecutionId = async (
 	workflowId: string,
@@ -33,7 +33,7 @@ const getExecutionId = async (
 ) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	// const workflow = await WorkflowTestRepository.findOneBy({ id: workflowId });
-    const workflow = {} as IWorkflowBase;
+	const workflow = {} as IWorkflowBase;
 	const nodeTypes = Container.get(NodeTypes);
 	if (!workflow) return null;
 	const nodes = workflow.nodes;
@@ -75,25 +75,12 @@ const getExecutionId = async (
 
 	let runData;
 	if (resultData) {
-		runData = await getRunData(
-			workflow as IWorkflowBase,
-			userId,
-			undefined,
-			nextNode,
-			true,
-			resultData,
-		);
+		runData = await getRunData(workflow, userId, undefined, nextNode, true, resultData);
 	} else {
-		runData = await getRunData(
-			workflow as IWorkflowBase,
-			userId,
-			undefined,
-			nextNode,
-			true,
-		);
+		runData = await getRunData(workflow, userId, undefined, nextNode, true);
 	}
 	const fullExecutionData: IExecutionDb = {
-        id: '', // mustafa
+		id: '', // mustafa
 		workflowId,
 		data: runData.executionData!,
 		mode: runData.executionMode,
@@ -113,11 +100,11 @@ const getExecutionId = async (
 };
 
 export async function retryWorkflows() {
-const resumeWorkflowTimerRecords = await Container.get(ResumeWorkflowTimerRepository).findBy({
-    resumptionTime: LessThanOrEqual(new Date(Date.now() + 60 * 1000)),
-});  
+	const resumeWorkflowTimerRecords = await Container.get(ResumeWorkflowTimerRepository).findBy({
+		resumptionTime: LessThanOrEqual(new Date(Date.now() + 60 * 1000)),
+	});
 
-const promises: Array<Promise<boolean>> = [];
+	const promises: Array<Promise<boolean>> = [];
 
 	for (const resumeWorkflowTimerRecord of resumeWorkflowTimerRecords) {
 		// TODO: Get new execution id
@@ -137,11 +124,16 @@ const promises: Array<Promise<boolean>> = [];
 			},
 		} as ExecutionRequest.Retry;
 
-        const executionService = Container.get(ExecutionService);
-        const sharedWorkflowIds = await getSharedWorkflowIds(owner!);
+		const executionService = Container.get(ExecutionService);
+		const sharedWorkflowIds = await getSharedWorkflowIds(owner!);
 
 		promises.push(
-			executionService.retry(executionPayload, sharedWorkflowIds, resumeWorkflowTimerRecord.id, execution!),
+			executionService.retry(
+				executionPayload,
+				sharedWorkflowIds,
+				resumeWorkflowTimerRecord.id,
+				execution!,
+			),
 		);
 	}
 

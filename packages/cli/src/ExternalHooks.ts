@@ -6,6 +6,9 @@ import { UserRepository } from '@db/repositories/user.repository';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
 import { SettingsRepository } from '@db/repositories/settings.repository';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
+import { WorkflowTestRepository } from '@db/repositories/workflowTest.repository';
+import { NodeOutputRepository } from '@db/repositories/nodeOutput.repository';
+import { ResumeWorkflowTimerRepository } from '@db/repositories/resumeWorkflowTimer.repository';
 import { ApplicationError } from 'n8n-workflow';
 
 @Service()
@@ -23,6 +26,9 @@ export class ExternalHooks {
 		settingsRepository: SettingsRepository,
 		credentialsRepository: CredentialsRepository,
 		workflowRepository: WorkflowRepository,
+		workflowTestRepository: WorkflowTestRepository,
+		nodeOutputRepository: NodeOutputRepository,
+		resumeWorkflowTimerRepository: ResumeWorkflowTimerRepository,
 	) {
 		/* eslint-disable @typescript-eslint/naming-convention */
 		this.dbCollections = {
@@ -30,6 +36,9 @@ export class ExternalHooks {
 			Settings: settingsRepository,
 			Credentials: credentialsRepository,
 			Workflow: workflowRepository,
+			WorkflowTest: workflowTestRepository,
+			NodeOutput: nodeOutputRepository,
+			ResumeWorkflowTimer: resumeWorkflowTimerRepository,
 		};
 		/* eslint-enable @typescript-eslint/naming-convention */
 	}

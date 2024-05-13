@@ -7,8 +7,10 @@ import {
 	NodeApiError,
 } from 'n8n-workflow';
 import { Readable } from 'node:stream';
+import { stringify } from 'flatted';
 
 import { inDevelopment } from '@/constants';
+import type { IExecutionDb, IExecutionFlatted } from '@/Interfaces';
 import { ResponseError } from './errors/response-errors/abstract/response.error';
 import Container from 'typedi';
 import { Logger } from './Logger';
@@ -177,3 +179,41 @@ export const flattenObject = (obj: { [x: string]: any }, prefix = '') =>
 		else acc[pre + k] = obj[k];
 		return acc;
 	}, {});
+
+/**
+ * Flattens the Execution data.
+ * As it contains a lot of references which normally would be saved as duplicate data
+ * with regular JSON.stringify it gets flattened which keeps the references in place.
+ *
+ * @param {IExecutionDb} fullExecutionData The data to flatten
+ */
+export function flattenExecutionData(fullExecutionData: IExecutionDb): IExecutionFlatted {
+	// Flatten the data
+	const returnData: IExecutionFlatted = {
+		id: fullExecutionData.id,
+		data: stringify(fullExecutionData.data),
+		mode: fullExecutionData.mode,
+		waitTill: fullExecutionData.waitTill,
+		startedAt: fullExecutionData.startedAt,
+		stoppedAt: fullExecutionData.stoppedAt,
+		finished: fullExecutionData.finished ? fullExecutionData.finished : false,
+		workflowId: fullExecutionData.workflowId,
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		workflowData: fullExecutionData.workflowData,
+		status: fullExecutionData.status,
+	};
+
+	if (fullExecutionData.id !== undefined) {
+		returnData.id = fullExecutionData.id;
+	}
+
+	if (fullExecutionData.retryOf !== undefined) {
+		returnData.retryOf = fullExecutionData.retryOf.toString();
+	}
+
+	if (fullExecutionData.retrySuccessId !== undefined) {
+		returnData.retrySuccessId = fullExecutionData.retrySuccessId.toString();
+	}
+
+	return returnData;
+}

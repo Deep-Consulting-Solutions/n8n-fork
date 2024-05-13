@@ -238,9 +238,9 @@ export interface IExternalHooksFunctions {
 		Settings: SettingsRepository;
 		Credentials: CredentialsRepository;
 		Workflow: WorkflowRepository;
-		workflowTest: WorkflowTestRepository;
-		nodeOutput: NodeOutputRepository;
-		resumeWorkflowTimer: ResumeWorkflowTimerRepository;
+		WorkflowTest: WorkflowTestRepository;
+		NodeOutput: NodeOutputRepository;
+		ResumeWorkflowTimer: ResumeWorkflowTimerRepository;
 		/* eslint-enable @typescript-eslint/naming-convention */
 	};
 }

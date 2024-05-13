@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-shadow */
@@ -45,9 +46,10 @@ import { Logger } from '@/Logger';
 import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.service';
 import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
 import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
+import { createPartialExecution } from './GenericHelpers';
 
 const createResumeTimerEntity = async (data: any) => {
-	let resumeWorkflowEntity = new ResumeWorkflowTimer();
+	const resumeWorkflowEntity = new ResumeWorkflowTimer();
 	Object.assign(resumeWorkflowEntity, data);
 	// resumeWorkflowEntity = await ResumeWorkflowTimerRepository.save(resumeWorkflowEntity);
 	return resumeWorkflowEntity;

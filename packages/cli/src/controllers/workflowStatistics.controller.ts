@@ -33,7 +33,7 @@ export class WorkflowStatisticsController {
 		const { user } = req;
 		const workflowId = req.params.id;
 
-		const hasAccess = await this.sharedWorkflowRepository.hasAccess(workflowId, user);
+		const hasAccess = await this.sharedWorkflowRepository.hasAccess(workflowId!, user);
 
 		if (hasAccess) {
 			next();
@@ -49,12 +49,12 @@ export class WorkflowStatisticsController {
 
 	@Get('/:id/counts/')
 	async getCounts(req: StatisticsRequest.GetOne): Promise<WorkflowStatisticsData<number>> {
-		return await this.getData(req.params.id, 'count', 0);
+		return await this.getData(req.params.id!, 'count', 0);
 	}
 
 	@Get('/:id/times/')
 	async getTimes(req: StatisticsRequest.GetOne): Promise<WorkflowStatisticsData<Date | null>> {
-		return await this.getData(req.params.id, 'latestEvent', null);
+		return await this.getData(req.params.id!, 'latestEvent', null);
 	}
 
 	@Get('/:id/data-loaded/')
