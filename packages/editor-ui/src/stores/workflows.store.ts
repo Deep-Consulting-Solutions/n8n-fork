@@ -32,6 +32,10 @@ import type {
 	NodeMetadataMap,
 	WorkflowMetadata,
 	IExecutionFlattedResponse,
+	NodeOutputDb,
+	NodeOutputDbMap,
+	TestSuiteDb,
+	TestSuiteDbMap,
 } from '@/Interface';
 import { defineStore } from 'pinia';
 import type {
@@ -112,6 +116,8 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	const workflowExecutionData = ref<IExecutionResponse | null>(null);
 	const workflowExecutionPairedItemMappings = ref<Record<string, Set<string>>>({});
 	const activeExecutionId = ref<string | null>(null);
+	const testSuitesById = ref<Record<string, Set<string>>>({});
+	const nodeOutputsById = ref<Record<string, Set<string>>>({});
 	const subWorkflowExecutionError = ref<Error | null>(null);
 	const executionWaitingForWebhook = ref(false);
 	const executingNode = ref<string[]>([]);
@@ -132,6 +138,10 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 
 	const allWorkflows = computed(() =>
 		Object.values(workflowsById.value).sort((a, b) => a.name.localeCompare(b.name)),
+	);
+
+	const allTestSuites = computed(() =>
+		Object.values(testSuitesById).sort((a, b) => a.name.localeCompare(b.name)),
 	);
 
 	const isNewWorkflow = computed(() => workflow.value.id === PLACEHOLDER_EMPTY_WORKFLOW_ID);
@@ -269,6 +279,49 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		}, 0);
 	}
 
+	async function fetchWorkflowTestSuites(workflowId: string): Promise<TestSuiteDb[]> {
+		const rootStore = useRootStore();
+		const testSuites = await workflowsApi.getTestSuite(rootStore.getRestApiContext, workflowId);
+		this.setTestSuites(testSuites);
+		return testSuites as TestSuiteDb[];
+	}
+
+	async function addWorkflowTestSuite(
+		workflowId: string,
+		description: string,
+	): Promise<TestSuiteDb[]> {
+		const rootStore = useRootStore();
+		const payload = { workflowId, description };
+		const testSuites = await workflowsApi.postTestSuite(rootStore.getRestApiContext, payload);
+		this.setTestSuites(testSuites);
+		return testSuites as TestSuiteDb[];
+	}
+
+	async function fetchWorkflowNodeOutput(id: string): Promise<any> {
+		const rootStore = useRootStore();
+		const nodeOutputs = await makeRestApiRequest(
+			rootStore.getRestApiContext,
+			'GET',
+			`/workflow-tests/nodes-output/${id}`,
+		);
+		this.setNodeOutputs(nodeOutputs);
+		return nodeOutputs;
+	}
+
+	async function createWorkflowTestSuite(payload: Omit<NodeOutputDb, 'id'>) {
+		const rootStore = useRootStore();
+		const nodeOutputs = await workflowsApi.createTestSuite(rootStore.getRestApiContext, payload);
+		this.setNodeOutputs(nodeOutputs);
+		return nodeOutputs;
+	}
+
+	function updateWorkflowTestSuite(payload: NodeOutputDb) {
+		const rootStore = useRootStore();
+		const nodeOutputs = await workflowsApi.patchTestSuite(rootStore.getRestApiContext, payload);
+		this.setNodeOutputs(nodeOutputs);
+		return nodeOutputs;
+	}
+
 	function getNodeTypes(): INodeTypes {
 		const nodeTypes: INodeTypes = {
 			nodeTypes: {},
@@ -303,6 +356,34 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	// when the workflow replaces the node-parameters.
 	function getNodes(): INodeUi[] {
 		return workflow.value.nodes.map((node) => ({ ...node }));
+	}
+
+	function setTestSuites(testSuites: TestSuiteDb[]): void {
+		this.testSuitesById = testSuites.reduce<TestSuiteDbMap>((acc, testSuite: TestSuiteDb) => {
+			if (testSuite.id) {
+				acc[testSuite.id] = testSuite;
+			}
+			return acc;
+		}, {});
+	}
+
+	function setNodeOutputs(nodeOutputs: NodeOutputDb[]): void {
+		this.nodeOutputsById = nodeOutputs.reduce<NodeOutputDbMap>(
+			(acc, nodeOutput: NodeOutputDb) => {
+				if (nodeOutput.nodeId) {
+					if (nodeOutput.errorMessage) {
+						nodeOutput.data = null;
+					}
+					acc[nodeOutput.nodeId] = nodeOutput;
+				}
+				return acc;
+			},
+			{},
+		);
+	},
+
+	function resetWorkflowTestSuites(): void {
+		this.testSuitesById = {};
 	}
 
 	function getWorkflow(nodes: INodeUi[], connections: IConnections, copyData?: boolean): Workflow {

@@ -4,6 +4,7 @@ import type {
 	IRestApiContext,
 	IWorkflowDb,
 	NewWorkflowResponse,
+	NodeOutputDb,
 } from '@/Interface';
 import type { ExecutionFilters, ExecutionOptions, IDataObject } from 'n8n-workflow';
 import { makeRestApiRequest } from '@/utils/apiUtils';
@@ -57,5 +58,37 @@ export async function getExecutionData(context: IRestApiContext, executionId: st
 		context,
 		'GET',
 		`/executions/${executionId}`,
+	);
+}
+
+export async function getTestSuite(context: IRestApiContext, workFlowId: string) {
+	return await makeRestApiRequest(context, 'GET', `/workflow-tests/${workFlowId}`);
+}
+
+export async function postTestSuite(
+	context: IRestApiContext,
+	payload: {
+		workflowId: string;
+		description: string;
+	},
+) {
+	return await makeRestApiRequest(context, 'POST', '/workflow-tests', payload);
+}
+
+export async function patchTestSuite(context: IRestApiContext, payload: NodeOutputDb) {
+	return await makeRestApiRequest(
+		context,
+		'PUT',
+		`/workflow-tests/nodes-output/${payload.workflowTestId}`,
+		payload as IDataObject,
+	);
+}
+
+export async function createTestSuite(context: IRestApiContext, payload: Omit<NodeOutputDb, 'id'>) {
+	return await makeRestApiRequest(
+		context,
+		'POST',
+		`/workflow-tests/nodes-output/${payload.workflowTestId}`,
+		payload as IDataObject,
 	);
 }

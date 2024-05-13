@@ -215,7 +215,7 @@ export class Workflow {
 		for (const nodeName of Object.keys(this.nodes)) {
 			node = this.nodes[nodeName];
 
-			if (node.disabled === true) {
+			if (node?.disabled === true) {
 				// Deactivated nodes can not trigger a run so ignore
 				continue;
 			}
@@ -279,7 +279,7 @@ export class Workflow {
 			nodeIssues = null;
 			node = this.nodes[nodeName];
 
-			if (node.disabled === true) {
+			if (node?.disabled === true) {
 				continue;
 			}
 
@@ -382,7 +382,7 @@ export class Workflow {
 		for (const nodeName of Object.keys(this.nodes)) {
 			node = this.nodes[nodeName];
 
-			if (node.disabled === true) {
+			if (node?.disabled === true) {
 				continue;
 			}
 
@@ -987,7 +987,7 @@ export class Workflow {
 		for (const nodeName of nodeNames) {
 			node = this.nodes[nodeName];
 
-			if (nodeNames.length === 1 && !node.disabled) {
+			if (nodeNames.length === 1 && !node?.disabled) {
 				return node;
 			}
 
@@ -999,7 +999,7 @@ export class Workflow {
 			}
 
 			if (nodeType && (nodeType.trigger !== undefined || nodeType.poll !== undefined)) {
-				if (node.disabled === true) {
+				if (node?.disabled === true) {
 					continue;
 				}
 				return node;
@@ -1013,7 +1013,7 @@ export class Workflow {
 		for (const nodeName of sortedNodeNames) {
 			node = this.nodes[nodeName];
 			if (STARTING_NODE_TYPES.includes(node.type)) {
-				if (node.disabled === true) {
+				if (node?.disabled === true) {
 					continue;
 				}
 				return node;
@@ -1277,7 +1277,7 @@ export class Workflow {
 		const { node } = executionData;
 		let inputData = executionData.data;
 
-		if (node.disabled === true) {
+		if (node?.disabled === true) {
 			// If node is disabled simply pass the data through
 			// return NodeRunHelpers.
 			if (inputData.hasOwnProperty('main') && inputData.main.length > 0) {

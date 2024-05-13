@@ -27,14 +27,15 @@ import type {
 	IWaitingForExecution,
 	IWaitingForExecutionSource,
 	NodeApiError,
-	NodeOperationError,
 	Workflow,
 	IRunExecutionData,
 	IWorkflowExecuteAdditionalData,
 	WorkflowExecuteMode,
 	CloseFunction,
 	StartNodeData,
+	IRunNodeResponse,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import {
 	LoggerProxy as Logger,
 	WorkflowOperationError,
@@ -44,6 +45,27 @@ import {
 } from 'n8n-workflow';
 import get from 'lodash/get';
 import * as NodeExecuteFunctions from './NodeExecuteFunctions';
+import { getProjectTables } from './Utils';
+
+function calculateNextTime(unit: string, value: number) {
+	const currentTime = new Date();
+
+	const unitToMilliseconds: { [key: string]: number } = {
+		seconds: 1000,
+		minutes: 60000,
+		hours: 3600000,
+		days: 86400000,
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+	if (unitToMilliseconds.hasOwnProperty(unit)) {
+		const milliseconds = unitToMilliseconds[unit] * value;
+		const nextTime = new Date(currentTime.getTime() + milliseconds);
+		return nextTime;
+	} else {
+		return null;
+	}
+}
 
 export class WorkflowExecute {
 	private status: ExecutionStatus = 'new';
@@ -772,7 +794,7 @@ export class WorkflowExecute {
 	//            PCancelable to a regular Promise and does so not allow canceling
 	//            active executions anymore
 	// eslint-disable-next-line @typescript-eslint/promise-function-async
-	processRunExecutionData(workflow: Workflow): PCancelable<IRun> {
+	processRunExecutionData(workflow: Workflow, extraData?: any): PCancelable<IRun> {
 		Logger.verbose('Workflow execution started', { workflowId: workflow.id });
 
 		const startedAt = new Date();
@@ -808,6 +830,7 @@ export class WorkflowExecute {
 		let runIndex: number;
 		let startTime: number;
 		let taskData: ITaskData;
+		let runNodeData: IRunNodeResponse;
 
 		if (this.runExecutionData.startData === undefined) {
 			this.runExecutionData.startData = {};
@@ -823,6 +846,16 @@ export class WorkflowExecute {
 		let currentExecutionTry = '';
 		let lastExecutionTry = '';
 		let closeFunction: Promise<void> | undefined;
+
+		const nodeStack: IExecuteData[] = [];
+		const nextNodeData: Array<{
+			workflow: Workflow;
+			connectionData: IConnection;
+			outputIndex: string;
+			nodeName: string;
+			nodeSuccessData: INodeExecutionData[][] | null | undefined;
+			runIndex: number;
+		}> = [];
 
 		return new PCancelable(async (resolve, reject, onCancel) => {
 			// Let as many nodes listen to the abort signal, without getting the MaxListenersExceededWarning
@@ -896,6 +929,8 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
+					nodeStack.push(executionData);
+					console.dir(executionNode, { depth: null });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -1047,16 +1082,124 @@ export class WorkflowExecute {
 									workflowId: workflow.id,
 								});
 
-								const runNodeData = await workflow.runNode(
-									executionData,
-									this.runExecutionData,
-									runIndex,
-									this.additionalData,
-									NodeExecuteFunctions,
-									this.mode,
-									this.abortController.signal,
-								);
-								nodeSuccessData = runNodeData.data;
+								if (extraData?.isTest) {
+									const node = executionData.node;
+									const nodeOutputData = extraData?.nodeOutputs?.find(
+										(no: any) => no.nodeId === node.id,
+									);
+									if (nodeOutputData) {
+										if (nodeOutputData.errorMessage) {
+											throw new NodeOperationError(node, nodeOutputData.errorMessage as string);
+										}
+										nodeSuccessData = [[{ json: nodeOutputData.data }]];
+									} else {
+										if (
+											node.type === '@deep-consulting-solutions/n8n-nodes-dcs-noco-db.dcsNocoDb'
+										) {
+											const originalProjectId = process.env.DCS_CUSMTOM_BACKEND_PROJECT_ID || '';
+											const testProjectId = process.env.DCS_CUSMTOM_BACKEND_TEST_PROJECT_ID || '';
+											const originalProjectTables = await getProjectTables(originalProjectId);
+											const originalTable = originalProjectTables?.find(
+												(t) => t.id === node.parameters.table,
+											);
+											if (!originalTable) {
+												throw new NodeOperationError(
+													node,
+													`Original table with id ${node?.parameters?.table as string} not found`,
+												);
+											}
+											const testProjectTables = await getProjectTables(testProjectId);
+											const testTable = testProjectTables?.find(
+												(t) => t.table_name === originalTable.table_name,
+											);
+											if (!testTable) {
+												throw new NodeOperationError(node, 'Test table not found');
+											}
+											executionData.node.parameters.projectId = testProjectId;
+											executionData.node.parameters.table = testTable?.id;
+										} else if (node.type === 'n8n-nodes-base.nocoDbHttpRequest') {
+											let route = node.parameters.route as string;
+											route = route?.replace('CustomBackend', 'CustomBackendTest');
+											executionData.node.parameters.route = route;
+										} else if (node.type === 'n8n-nodes-base.dcsWait') {
+											nodeSuccessData = [
+												[
+													{
+														json: {},
+													},
+												],
+											];
+											break;
+										}
+										runNodeData = await workflow.runNode(
+											executionData,
+											this.runExecutionData,
+											runIndex,
+											this.additionalData,
+											NodeExecuteFunctions,
+											this.mode,
+										);
+										nodeSuccessData = runNodeData.data;
+									}
+								} else {
+									if (
+										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
+									) {
+										const connections =
+											workflow.connectionsBySourceNode[executionData.node.name].main;
+										const flattenedConnections = [];
+										for (const conn of connections) {
+											flattenedConnections.push(...conn);
+										}
+										delete workflow.connectionsBySourceNode[executionData.node.name];
+										delete workflow.nodes[executionData.node.name];
+										if (nextNodeData.length) {
+											const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
+											nodeSuccessData = lastNodeInStack.nodeSuccessData;
+										} else {
+											nodeSuccessData = [
+												[
+													{
+														json: {},
+													},
+												],
+											];
+										}
+										const amount = executionData.node.parameters.amount as number;
+										const unit = executionData.node.parameters.unit as string;
+										const resumptionTime = calculateNextTime(unit, amount);
+										const { createResumeTimerEntity } = extraData;
+										taskData = {
+											startTime,
+											executionTime: new Date().getTime() - startTime,
+											source: !executionData.source ? [] : executionData.source.main,
+											executionStatus: 'success',
+											data: {
+												main: nodeSuccessData,
+											} as ITaskDataConnections,
+										};
+										this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
+										await createResumeTimerEntity({
+											resumptionTime,
+											executionId: workflow.id,
+											waitNodeId: executionData.node.id,
+											resultData: this.runExecutionData.resultData,
+											status: 'running',
+										});
+										delete this.runExecutionData.resultData.runData[executionData.node.name];
+										// break;
+									} else {
+										runNodeData = await workflow.runNode(
+											executionData,
+											this.runExecutionData,
+											runIndex,
+											this.additionalData,
+											NodeExecuteFunctions,
+											this.mode,
+										);
+										nodeSuccessData = runNodeData.data;
+									}
+								}
 
 								if (nodeSuccessData && executionData.node.onError === 'continueErrorOutput') {
 									// If errorOutput is activated check all the output items for error data.
@@ -1172,7 +1315,7 @@ export class WorkflowExecute {
 									nodeSuccessData[mainOutputTypes.length - 1] = errorItems;
 								}
 
-								if (runNodeData.closeFunction) {
+								if (runNodeData?.closeFunction) {
 									// Explanation why we do this can be found in n8n-workflow/Workflow.ts -> runNode
 
 									closeFunction = runNodeData.closeFunction();
@@ -1449,14 +1592,38 @@ export class WorkflowExecute {
 												outputIndex: parseInt(outputIndex, 10),
 											});
 										} else {
-											this.addNodeToBeExecuted(
+											const dataForNextNode = {
 												workflow,
 												connectionData,
-												parseInt(outputIndex, 10),
-												executionNode.name,
-												nodeSuccessData!,
+												outputIndex,
+												nodeName: executionNode.name,
+												nodeSuccessData,
 												runIndex,
-											);
+											};
+											nextNodeData.push(dataForNextNode);
+											if (
+												executionData.node.type ===
+												'@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
+											) {
+												const nodeToAdd = nextNodeData.pop();
+												this.addNodeToBeExecuted(
+													nodeToAdd!.workflow,
+													nodeToAdd!.connectionData,
+													parseInt(nodeToAdd!.outputIndex, 10),
+													nodeToAdd!.nodeName,
+													nodeToAdd!.nodeSuccessData!,
+													nodeToAdd!.runIndex,
+												);
+											} else {
+												this.addNodeToBeExecuted(
+													workflow,
+													connectionData,
+													parseInt(outputIndex, 10),
+													executionNode.name,
+													nodeSuccessData!,
+													runIndex,
+												);
+											}
 										}
 									}
 								}
@@ -1480,14 +1647,38 @@ export class WorkflowExecute {
 								});
 
 								for (const nodeData of nodesToAdd) {
-									this.addNodeToBeExecuted(
+									const dataForNextNode = {
 										workflow,
-										nodeData.connection,
-										nodeData.outputIndex,
-										executionNode.name,
-										nodeSuccessData!,
+										nodeName: executionNode.name,
+										nodeSuccessData,
 										runIndex,
-									);
+										connectionData: nodeData.connection,
+										outputIndex: nodeData.outputIndex as unknown as string,
+									};
+									nextNodeData.push(dataForNextNode);
+									if (
+										executionData.node.type ===
+										'@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
+									) {
+										const nodeToAdd = nextNodeData.pop();
+										this.addNodeToBeExecuted(
+											nodeToAdd!.workflow,
+											nodeToAdd!.connectionData,
+											parseInt(nodeToAdd!.outputIndex, 10),
+											nodeToAdd!.nodeName,
+											nodeToAdd!.nodeSuccessData!,
+											nodeToAdd!.runIndex,
+										);
+									} else {
+										this.addNodeToBeExecuted(
+											workflow,
+											nodeData.connection,
+											nodeData.outputIndex,
+											executionNode.name,
+											nodeSuccessData!,
+											runIndex,
+										);
+									}
 								}
 							}
 						}

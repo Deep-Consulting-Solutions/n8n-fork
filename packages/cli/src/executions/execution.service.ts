@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { validate as jsonSchemaValidate } from 'jsonschema';
 import type {
 	IWorkflowBase,
@@ -36,6 +36,8 @@ import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import config from '@/config';
 import { WaitTracker } from '@/WaitTracker';
 import type { ExecutionEntity } from '@/databases/entities/ExecutionEntity';
+import type { IExecutionFlattedDb } from '../Interfaces';
+import { ResumeWorkflowTimerRepository } from '@/databases/repositories/resumeWorkflowTimer.repository';
 
 export const schemaGetExecutionsQueryFilter = {
 	$id: '/IGetExecutionsQueryFilter',
@@ -111,12 +113,22 @@ export class ExecutionService {
 		return execution;
 	}
 
-	async retry(req: ExecutionRequest.Retry, sharedWorkflowIds: string[]) {
+	async retry(
+		req: ExecutionRequest.Retry, 
+		sharedWorkflowIds: string[], 
+		resumeWorkflowTimerId?: string, 
+		executionEntity?: IExecutionResponse
+	) {
 		const { id: executionId } = req.params;
-		const execution = await this.executionRepository.findWithUnflattenedData(
-			executionId,
-			sharedWorkflowIds,
-		);
+		let execution;
+		if (executionEntity) {
+			execution = executionEntity;
+		} else {
+			execution = await Container.get(ExecutionRepository).findWithUnflattenedData(
+				executionId,
+				sharedWorkflowIds,
+			);
+		}
 
 		if (!execution) {
 			this.logger.info(
@@ -217,6 +229,10 @@ export class ExecutionService {
 
 		if (!executionData) {
 			throw new ApplicationError('The retry did not start for an unknown reason.');
+		}
+
+		if (resumeWorkflowTimerId) {
+			await Container.get(ResumeWorkflowTimerRepository).delete({ id: resumeWorkflowTimerId });
 		}
 
 		return !!executionData.finished;

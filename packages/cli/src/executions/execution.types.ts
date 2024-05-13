@@ -24,7 +24,7 @@ export declare namespace ExecutionRequest {
 
 	namespace RouteParams {
 		type ExecutionId = {
-			id: ExecutionEntity['id'];
+			id?: ExecutionEntity['id'];
 		};
 	}
 

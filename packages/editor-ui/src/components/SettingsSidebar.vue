@@ -151,6 +151,15 @@ export default defineComponent({
 				route: { to: { name: VIEWS.COMMUNITY_NODES } },
 			});
 
+			menuItems.push({
+				id: 'test-suites',
+				icon: 'chart-bar',
+				label: this.$locale.baseText('settings.testSuites'),
+				position: 'top',
+				available: true,
+				activateOnRouteNames: [VIEWS.TEST_SUITES],
+			});
+
 			return menuItems;
 		},
 	},
@@ -201,6 +210,11 @@ export default defineComponent({
 				case 'users': // Fakedoor feature added via hooks when user management is disabled on cloud
 				case 'logging':
 					this.$router.push({ name: VIEWS.FAKE_DOOR, params: { featureId: key } }).catch(() => {});
+					break;
+				case 'test-suites':
+					if (this.$router.currentRoute.name !== VIEWS.TEST_SUITES) {
+						this.$router.push({ name: VIEWS.TEST_SUITES }).catch(() => {});
+					}
 					break;
 				default:
 					break;

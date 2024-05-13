@@ -50,6 +50,9 @@ const CredentialsView = async () => await import('@/views/CredentialsView.vue');
 const ExecutionsView = async () => await import('@/views/ExecutionsView.vue');
 const WorkflowsView = async () => await import('@/views/WorkflowsView.vue');
 const VariablesView = async () => await import('@/views/VariablesView.vue');
+const TestSuiteNodeView = async () => await import('./views/TestSuiteNodeView.vue');
+const TestSuitesView = async () => await import('@/views/TestSuitesView.vue');
+const TestSuiteView = async () => await import('@/views/TestSuiteView.vue');
 const SettingsUsageAndPlan = async () => await import('./views/SettingsUsageAndPlan.vue');
 const SettingsSso = async () => await import('./views/SettingsSso.vue');
 const SignoutView = async () => await import('@/views/SignoutView.vue');
@@ -706,6 +709,62 @@ export const routes = [
 				},
 			},
 		],
+	},
+	{
+		path: 'test-suites',
+		name: VIEWS.TEST_SUITES,
+		components: {
+			settingsView: TestSuitesView,
+		},
+		meta: {
+			telemetry: {
+				pageCategory: 'settings',
+			},
+			meta: {
+				middleware: ['authenticated'],
+			},
+		},
+	},
+	{
+		path: 'test-suites/:workflow',
+		name: VIEWS.TEST_SUITE,
+		components: {
+			settingsView: TestSuiteView,
+		},
+		meta: {
+			telemetry: {
+				pageCategory: 'settings',
+				getProperties(route: RouteLocation) {
+					return {
+						workflow: route.params['workflow'],
+					};
+				},
+			},
+			meta: {
+				middleware: ['authenticated'],
+			},
+		},
+	},
+	{
+		path: 'test-suites/:workflow/:test',
+		name: VIEWS.TEST_SUITE_NODES,
+		components: {
+			settingsView: TestSuiteNodeView,
+		},
+		meta: {
+			telemetry: {
+				pageCategory: 'settings',
+				getProperties(route: RouteLocation) {
+					return {
+						workflow: route.params['workflow'],
+						test: route.params['test'],
+					};
+				},
+			},
+			meta: {
+				middleware: ['authenticated'],
+			},
+		},
 	},
 	{
 		path: '/saml/onboarding',

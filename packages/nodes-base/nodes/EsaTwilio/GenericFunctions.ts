@@ -196,10 +196,10 @@ export function transformDataToSendSMS(
 		fallbackPhone,
 		useFallbackPhone,
 	});
-	body.Body = message;
-	body.MediaUrl = mediaUrls;
-	body.mediaUrl = mediaUrls;
-	body.Media_Url = mediaUrls;
+	body.Body = message || '';
+	if (mediaUrls.length) {
+		body.MediaUrl = mediaUrls;
+	}
 
 	if (toWhatsapp) {
 		body.From = `whatsapp:${body.From}`;
@@ -220,7 +220,7 @@ export async function getMessagingServices(this: ILoadOptionsFunctions) {
 	}));
 
 	return [
-		{ name: 'DEFAULT SMS MESSAGING SERVICE SID', value: DEFAULT_MESSAGING_SERVICE_CUSTOM_SID },
+		{ name: 'DEFAULT SMS MESSAGING SERVICE', value: DEFAULT_MESSAGING_SERVICE_CUSTOM_SID },
 	].concat(sortBy(options, (o) => o.name));
 }
 //

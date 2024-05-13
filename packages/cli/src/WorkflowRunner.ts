@@ -14,6 +14,7 @@ import type {
 	WorkflowExecuteMode,
 	WorkflowHooks,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import {
 	ErrorReporterProxy as ErrorReporter,
 	Workflow,
@@ -25,6 +26,9 @@ import PCancelable from 'p-cancelable';
 import { ActiveExecutions } from '@/ActiveExecutions';
 import config from '@/config';
 import { ExecutionRepository } from '@db/repositories/execution.repository';
+import { WorkflowTestRepository } from '@db/repositories/workflowTest.repository';
+import { NodeOutputRepository } from '@db/repositories/nodeOutput.repository';
+import { ResumeWorkflowTimerRepository } from './databases/repositories/resumeWorkflowTimer.repository';
 import { MessageEventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
 import { ExecutionDataRecoveryService } from '@/eventbus/executionDataRecovery.service';
 import { ExternalHooks } from '@/ExternalHooks';
@@ -40,6 +44,14 @@ import { InternalHooks } from '@/InternalHooks';
 import { Logger } from '@/Logger';
 import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.service';
 import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
+import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
+
+const createResumeTimerEntity = async (data: any) => {
+	let resumeWorkflowEntity = new ResumeWorkflowTimer();
+	Object.assign(resumeWorkflowEntity, data);
+	// resumeWorkflowEntity = await ResumeWorkflowTimerRepository.save(resumeWorkflowEntity);
+	return resumeWorkflowEntity;
+};
 
 @Service()
 export class WorkflowRunner {
@@ -55,6 +67,9 @@ export class WorkflowRunner {
 		private readonly workflowStaticDataService: WorkflowStaticDataService,
 		private readonly nodeTypes: NodeTypes,
 		private readonly permissionChecker: PermissionChecker,
+		private readonly workflowTestRepository: WorkflowTestRepository,
+		private readonly nodeOutputRepository: NodeOutputRepository,
+		private readonly resumeWorkflowTimerRepository: ResumeWorkflowTimerRepository,
 	) {
 		if (this.executionsMode === 'queue') {
 			this.jobQueue = Container.get(Queue);
@@ -241,6 +256,53 @@ export class WorkflowRunner {
 				await this.workflowStaticDataService.getStaticDataById(workflowId);
 		}
 
+		const nodeOutputs = [];
+		let isTest = false;
+		if (data.executionMode === 'webhook') {
+			const webhookExecutionStack = data.executionData?.executionData?.nodeExecutionStack[0];
+			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
+				const webhookExecutionData = webhookExecutionStack.data.main as any;
+				const testId = webhookExecutionData[0][0].json.query.testId;
+				if (testId) {
+					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId });
+					if (workflowTest) {
+						if (workflowTest.workflowId !== workflowId) {
+							const error = new NodeOperationError(
+								webhookExecutionStack?.node,
+								`Test ID does not belong to the workflow with ${workflowId}`,
+							);
+							ErrorReporter.error(error);
+							await this.processError(error, new Date(), data.executionMode, '');
+							return void 0;
+						}
+						isTest = true;
+						const worfklowNodes = data.workflowData.nodes;
+						const dcsZohoNodes = [
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoCrm',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoDesk',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoSign',
+							'@deep-consulting-solutions/n8n-nodes-dcs-crm.dcsZohoBooks',
+						];
+						for await (const node of worfklowNodes) {
+							const nodeOutput = await this.nodeOutputRepository.findOneBy({
+								nodeId: node.id,
+							});
+							if (!nodeOutput && dcsZohoNodes.includes(node.type)) {
+								const error = new NodeOperationError(
+									webhookExecutionStack?.node,
+									'Some zoho nodes do not have output set',
+								);
+								ErrorReporter.error(error);
+								await this.processError(error, new Date(), data.executionMode, '');
+								return void 0;
+							}
+							if (nodeOutput) nodeOutputs.push(nodeOutput);
+						}
+					}
+				}
+			}
+		}
+
 		// Soft timeout to stop workflow execution after current running node
 		// Changes were made by adding the `workflowTimeout` to the `additionalData`
 		// So that the timeout will also work for executions with nested workflows.
@@ -312,7 +374,12 @@ export class WorkflowRunner {
 					data.executionMode,
 					data.executionData,
 				);
-				workflowExecution = workflowExecute.processRunExecutionData(workflow);
+				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
+					isTest,
+					nodeOutputs,
+					createPartialExecution,
+					createResumeTimerEntity,
+				});
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);
 					return data;

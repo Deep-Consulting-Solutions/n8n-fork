@@ -1106,6 +1106,8 @@ export interface WorkflowsState {
 	workflowsById: IWorkflowsMap;
 	chatMessages: string[];
 	isInDebugMode?: boolean;
+	testSuitesById: TestSuiteDbMap;
+	nodeOutputsById: NodeOutputDbMap;
 }
 
 export interface RootState {
@@ -1925,3 +1927,29 @@ export type NewConnectionInfo = {
 export type AIAssistantConnectionInfo = NewConnectionInfo & {
 	stepName: string;
 };
+
+export interface TestSuiteDb {
+	name: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	description: string;
+}
+
+export interface NodeOutputDb {
+	[key: string]: unknown;
+	id: string;
+	workflowTestId: string;
+	nodeId: string;
+	outputType: 'error' | 'data' | null;
+	errorMessage?: string;
+	data?: unknown;
+}
+
+export interface NodeOutputDbMap {
+	[name: string]: NodeOutputDb;
+}
+
+export interface TestSuiteDbMap {
+	[name: string]: TestSuiteDb;
+}

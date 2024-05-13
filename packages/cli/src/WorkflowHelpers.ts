@@ -1,4 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable id-denylist */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Container } from 'typedi';
+import { In } from '@n8n/typeorm';
 import { v4 as uuid } from 'uuid';
 import type {
 	IDataObject,
@@ -16,7 +22,9 @@ import type {
 import type { IWorkflowExecutionDataProcess } from '@/Interfaces';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
+import { SharedWorkflowRepository } from './databases/repositories/sharedWorkflow.repository';
 import { VariablesService } from '@/environments/variables/variables.service.ee';
+import type { User } from '@db/entities/User';
 
 export function generateFailedExecutionFromError(
 	mode: WorkflowExecuteMode,
@@ -233,6 +241,29 @@ export function getExecutionStartNode(data: IWorkflowExecutionDataProcess, workf
 	}
 
 	return startNode;
+}
+
+export async function getSharedWorkflowIds(user: User, roles?: string[]): Promise<string[]> {
+	const where: Record<string, any> = {}
+	if (!user.isOwner) {
+		where.user = { id: user.id };
+		if (roles?.length) {
+			where.role = { name: In(roles) };
+		}
+	}
+	const sharedWorkflows =
+		process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true'
+			? await Container.get(SharedWorkflowRepository).find({
+					relations: ['workflow', 'role'],
+					select: ['workflowId'],
+					where,
+			  })
+			: await Container.get(SharedWorkflowRepository).find({
+					relations: ['workflow', 'role'],
+					select: ['workflowId'],
+			  });
+
+	return sharedWorkflows.map(({ workflowId }) => workflowId);
 }
 
 export async function getVariables(): Promise<IDataObject> {

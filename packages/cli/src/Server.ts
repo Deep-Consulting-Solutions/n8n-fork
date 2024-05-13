@@ -66,6 +66,7 @@ import { handleMfaDisable, isMfaFeatureEnabled } from './Mfa/helpers';
 import type { FrontendService } from './services/frontend.service';
 import { ActiveWorkflowsController } from './controllers/activeWorkflows.controller';
 import { OrchestrationController } from './controllers/orchestration.controller';
+import { WorkflowTestsController } from './workflowTests/workflowTests.controller';
 import { WorkflowHistoryController } from './workflows/workflowHistory/workflowHistory.controller.ee';
 import { InvitationController } from './controllers/invitation.controller';
 // import { CollaborationService } from './collaboration/collaboration.service';
@@ -146,6 +147,7 @@ export class Server extends AbstractServer {
 			ExecutionsController,
 			CredentialsController,
 			AIController,
+			WorkflowTestsController,
 		];
 
 		if (

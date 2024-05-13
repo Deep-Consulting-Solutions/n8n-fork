@@ -40,6 +40,9 @@ import type { CredentialsRepository } from '@db/repositories/credentials.reposit
 import type { SettingsRepository } from '@db/repositories/settings.repository';
 import type { UserRepository } from '@db/repositories/user.repository';
 import type { WorkflowRepository } from '@db/repositories/workflow.repository';
+import type { WorkflowTestRepository } from '@db/repositories/workflowTest.repository';
+import type { NodeOutputRepository } from '@db/repositories/nodeOutput.repository';
+import type { ResumeWorkflowTimerRepository } from '@db/repositories/resumeWorkflowTimer.repository';
 import type { ExternalHooks } from './ExternalHooks';
 import type { LICENSE_FEATURES, LICENSE_QUOTAS } from './constants';
 import type { WorkflowWithSharingsAndCredentials } from './workflows/workflows.types';
@@ -235,6 +238,9 @@ export interface IExternalHooksFunctions {
 		Settings: SettingsRepository;
 		Credentials: CredentialsRepository;
 		Workflow: WorkflowRepository;
+		workflowTest: WorkflowTestRepository;
+		nodeOutput: NodeOutputRepository;
+		resumeWorkflowTimer: ResumeWorkflowTimerRepository;
 		/* eslint-enable @typescript-eslint/naming-convention */
 	};
 }
@@ -651,6 +657,28 @@ export interface SecretsProviderSettings<T = IDataObject> {
 
 export interface ExternalSecretsSettings {
 	[key: string]: SecretsProviderSettings;
+}
+
+export interface TestSuiteDb {
+	name: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	description: string;
+}
+
+export interface NodeOutputDb {
+	[key: string]: any;
+	id: string;
+	workflowTestId: string;
+	nodeId: string;
+	outputType: 'error' | 'data' | null;
+	errorMessage?: string;
+	data?: any;
+}
+
+export interface NodeOutputDbMap {
+	[name: string]: NodeOutputDb;
 }
 
 export type SecretsProviderState = 'initializing' | 'connected' | 'error';

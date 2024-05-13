@@ -657,10 +657,18 @@ export async function getRunData(
 	workflowData: IWorkflowBase,
 	userId: string,
 	inputData?: INodeExecutionData[],
+	startNode?: any,
+	isFullWorkflow?: boolean,
+	resultData?: any,
 ): Promise<IWorkflowExecutionDataProcess> {
 	const mode = 'integrated';
 
-	const startingNode = findSubworkflowStart(workflowData.nodes);
+	let startingNode;
+	if (isFullWorkflow) {
+		startingNode = startNode;
+	} else {
+		startingNode = findSubworkflowStart(workflowData.nodes);
+	}
 
 	// Always start with empty data if no inputData got supplied
 	inputData = inputData || [
@@ -692,6 +700,10 @@ export async function getRunData(
 			waitingExecutionSource: {},
 		},
 	};
+
+	if (!!resultData) {
+		runExecutionData.resultData = resultData;
+	}
 
 	const runData: IWorkflowExecutionDataProcess = {
 		executionMode: mode,
