@@ -50,7 +50,7 @@ const CredentialsView = async () => await import('@/views/CredentialsView.vue');
 const ExecutionsView = async () => await import('@/views/ExecutionsView.vue');
 const WorkflowsView = async () => await import('@/views/WorkflowsView.vue');
 const VariablesView = async () => await import('@/views/VariablesView.vue');
-const TestSuiteNodeView = async () => await import('./views/TestSuiteNodeView.vue');
+const TestSuiteNodeView = async () => await import('@/views/TestSuiteNodeView.vue');
 const TestSuitesView = async () => await import('@/views/TestSuitesView.vue');
 const TestSuiteView = async () => await import('@/views/TestSuiteView.vue');
 const SettingsUsageAndPlan = async () => await import('./views/SettingsUsageAndPlan.vue');
