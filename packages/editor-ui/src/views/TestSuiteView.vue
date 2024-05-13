@@ -1,18 +1,18 @@
 <template>
-	<tests-list-layout
+	<TestsListLayout
 		ref="layout"
-		:testSuites="testSuites"
+		:test-suites="testSuites"
 		:initialize="initialize"
-		:currentWorkFlowName="currentWorkFlow?.name || ''"
+		:current-work-flow-name="currentWorkFlow?.name || ''"
 		@click:add="addTestSuite"
 	>
 		<template #default="{ data, updateItemSize }">
-			<test-suite-card
+			<TestSuiteCard
 				data-test-id="resources-list-item"
 				class="mb-2xs"
 				:data="data"
+				:is-test-card="true"
 				@expand:tags="updateItemSize(data)"
-				:isTestCard="true"
 			/>
 		</template>
 		<template #empty>
@@ -22,37 +22,28 @@
 				</n8n-text>
 			</div>
 		</template>
-	</tests-list-layout>
+	</TestsListLayout>
 </template>
+
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
-import mixins from 'vue-typed-mixins';
-import SettingsView from './SettingsView.vue';
-import TestsListLayout from '@/components/layouts/TestsListLayout.vue';
-import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
-import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
+import TestsListLayout from '@/components/TestsListLayout.vue';
 import TestSuiteCard from '@/components/TestSuiteCard.vue';
-import TemplateCard from '@/components/TemplateCard.vue';
-import { debounceHelper } from '@/mixins/debounce';
-import type Vue from 'vue';
 import type { IWorkflowDb, TestSuiteDb } from '@/Interface';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useWorkflowsStore } from '@/stores/workflows';
+import { useUIStore } from '@/stores/ui.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
 import { ADD_TEST_SUITE_MODAL_KEY } from '@/constants';
+
 const StatusFilter = {
 	ACTIVE: true,
 	DEACTIVATED: false,
 	ALL: '',
 };
-const TestSuitesView = mixins(showMessage, debounceHelper).extend({
+
+export default {
 	name: 'TestSuitesView',
 	components: {
 		TestsListLayout,
-		TemplateCard,
-		PageViewLayout,
-		PageViewLayoutList,
-		SettingsView,
 		TestSuiteCard,
 	},
 	data() {
@@ -86,6 +77,9 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 			];
 		},
 	},
+	mounted() {
+		this.workflowsStore.resetWorkflowTestSuites();
+	},
 	methods: {
 		async initialize() {
 			await this.workflowsStore.fetchWorkflow(this.$route.params.workflow);
@@ -101,13 +95,9 @@ const TestSuitesView = mixins(showMessage, debounceHelper).extend({
 			});
 		},
 	},
-	watch: {},
-	mounted() {
-		this.workflowsStore.resetWorkflowTestSuites();
-	},
-});
-export default TestSuitesView;
+};
 </script>
+
 <style lang="scss" module>
 .actionsContainer {
 	display: flex;

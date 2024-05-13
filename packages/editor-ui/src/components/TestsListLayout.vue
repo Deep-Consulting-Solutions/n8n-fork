@@ -1,5 +1,5 @@
 <template>
-	<page-view-layout>
+	<PageViewLayout>
 		<div v-if="loading">
 			<n8n-loading :class="[$style['header-loading'], 'mb-l']" variant="custom" />
 			<n8n-loading :class="[$style['card-loading'], 'mb-2xs']" variant="custom" />
@@ -14,12 +14,12 @@
 						})
 					"
 					:description="$locale.baseText('testSuites.workflows.tests.empty.description')"
-					:buttonText="$locale.baseText('testSuites.add')"
-					buttonType="secondary"
+					:button-text="$locale.baseText('testSuites.add')"
+					button-type="secondary"
 					@click="$emit('click:add', $event)"
 				/>
 			</div>
-			<page-view-layout-list v-else>
+			<PageViewLayoutList v-else>
 				<template #header>
 					<div :class="[$style['flex'], 'mb-2xs']">
 						<div>
@@ -44,7 +44,7 @@
 					</div>
 				</template>
 
-				<div v-if="testSuites.length > 0" :class="$style.listWrapper" ref="listWrapperRef">
+				<div v-if="testSuites.length > 0" ref="listWrapperRef" :class="$style.listWrapper">
 					<n8n-recycle-scroller
 						:class="[$style.list, 'list-style-none']"
 						:items="testSuites"
@@ -52,30 +52,24 @@
 						:item-size="0"
 					>
 						<template #default="{ item, updateItemSize }">
-							<slot :data="item" :updateItemSize="updateItemSize" />
+							<slot :data="item" :update-item-size="updateItemSize" />
 						</template>
 					</n8n-recycle-scroller>
 				</div>
-			</page-view-layout-list>
+			</PageViewLayoutList>
 		</template>
-	</page-view-layout>
+	</PageViewLayout>
 </template>
 
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
 import type { IUser } from '@/Interface';
-import mixins from 'vue-typed-mixins';
+import { mapStores } from 'pinia';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUsersStore } from '@/stores/users.store';
 import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
 import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
-import TemplateCard from '@/components/TemplateCard.vue';
 import type { PropType } from 'vue';
-import type Vue from 'vue';
-import { debounceHelper } from '@/mixins/debounce';
-import ResourceOwnershipSelect from '@/components/forms/ResourceOwnershipSelect.ee.vue';
-import ResourceFiltersDropdown from '@/components/forms/ResourceFiltersDropdown.vue';
-import { mapStores } from 'pinia';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
+
 export interface IResource {
 	id: string;
 	name: string;
@@ -84,14 +78,12 @@ export interface IResource {
 	ownedBy?: Partial<IUser>;
 	sharedWith?: Array<Partial<IUser>>;
 }
-export default mixins(showMessage, debounceHelper).extend({
-	name: 'tests-list-layout',
+
+export default {
+	name: 'TestsListLayout',
 	components: {
-		TemplateCard,
 		PageViewLayout,
 		PageViewLayoutList,
-		ResourceOwnershipSelect,
-		ResourceFiltersDropdown,
 	},
 	props: {
 		displayName: {
@@ -123,17 +115,16 @@ export default mixins(showMessage, debounceHelper).extend({
 	computed: {
 		...mapStores(useSettingsStore, useUsersStore),
 	},
+	mounted() {
+		this.onMounted();
+	},
 	methods: {
 		async onMounted() {
 			await this.initialize();
 			this.loading = false;
 		},
 	},
-	mounted() {
-		this.onMounted();
-	},
-	watch: {},
-});
+};
 </script>
 
 <style lang="scss" module>

@@ -708,63 +708,63 @@ export const routes = [
 					},
 				},
 			},
+			{
+				path: 'test-suites',
+				name: VIEWS.TEST_SUITES,
+				components: {
+					settingsView: TestSuitesView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+					},
+					meta: {
+						middleware: ['authenticated'],
+					},
+				},
+			},
+			{
+				path: 'test-suites/:workflow',
+				name: VIEWS.TEST_SUITE,
+				components: {
+					settingsView: TestSuiteView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+						getProperties(route: RouteLocation) {
+							return {
+								workflow: route.params['workflow'],
+							};
+						},
+					},
+					meta: {
+						middleware: ['authenticated'],
+					},
+				},
+			},
+			{
+				path: 'test-suites/:workflow/:test',
+				name: VIEWS.TEST_SUITE_NODES,
+				components: {
+					settingsView: TestSuiteNodeView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+						getProperties(route: RouteLocation) {
+							return {
+								workflow: route.params['workflow'],
+								test: route.params['test'],
+							};
+						},
+					},
+					meta: {
+						middleware: ['authenticated'],
+					},
+				},
+			},
 		],
-	},
-	{
-		path: 'test-suites',
-		name: VIEWS.TEST_SUITES,
-		components: {
-			settingsView: TestSuitesView,
-		},
-		meta: {
-			telemetry: {
-				pageCategory: 'settings',
-			},
-			meta: {
-				middleware: ['authenticated'],
-			},
-		},
-	},
-	{
-		path: 'test-suites/:workflow',
-		name: VIEWS.TEST_SUITE,
-		components: {
-			settingsView: TestSuiteView,
-		},
-		meta: {
-			telemetry: {
-				pageCategory: 'settings',
-				getProperties(route: RouteLocation) {
-					return {
-						workflow: route.params['workflow'],
-					};
-				},
-			},
-			meta: {
-				middleware: ['authenticated'],
-			},
-		},
-	},
-	{
-		path: 'test-suites/:workflow/:test',
-		name: VIEWS.TEST_SUITE_NODES,
-		components: {
-			settingsView: TestSuiteNodeView,
-		},
-		meta: {
-			telemetry: {
-				pageCategory: 'settings',
-				getProperties(route: RouteLocation) {
-					return {
-						workflow: route.params['workflow'],
-						test: route.params['test'],
-					};
-				},
-			},
-			meta: {
-				middleware: ['authenticated'],
-			},
-		},
 	},
 	{
 		path: '/saml/onboarding',

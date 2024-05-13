@@ -316,7 +316,7 @@ export default defineComponent({
 }
 
 .setupInfoContainer {
-	max-width: 728px;
+	max-width: 1280px;
 }
 
 .alert {

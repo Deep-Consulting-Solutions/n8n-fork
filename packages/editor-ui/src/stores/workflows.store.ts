@@ -116,8 +116,8 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	const workflowExecutionData = ref<IExecutionResponse | null>(null);
 	const workflowExecutionPairedItemMappings = ref<Record<string, Set<string>>>({});
 	const activeExecutionId = ref<string | null>(null);
-	const testSuitesById = ref<Record<string, Set<string>>>({});
-	const nodeOutputsById = ref<Record<string, Set<string>>>({});
+	const testSuitesById = ref<Record<string, TestSuiteDb>>({});
+	const nodeOutputsById = ref<Record<string, NodeOutputDb>>({});
 	const subWorkflowExecutionError = ref<Error | null>(null);
 	const executionWaitingForWebhook = ref(false);
 	const executingNode = ref<string[]>([]);
@@ -141,7 +141,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	);
 
 	const allTestSuites = computed(() =>
-		Object.values(testSuitesById).sort((a, b) => a.name.localeCompare(b.name)),
+		Object.values(testSuitesById.value).sort((a, b) => a.name.localeCompare(b.name)),
 	);
 
 	const isNewWorkflow = computed(() => workflow.value.id === PLACEHOLDER_EMPTY_WORKFLOW_ID);
@@ -282,8 +282,8 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	async function fetchWorkflowTestSuites(workflowId: string): Promise<TestSuiteDb[]> {
 		const rootStore = useRootStore();
 		const testSuites = await workflowsApi.getTestSuite(rootStore.getRestApiContext, workflowId);
-		this.setTestSuites(testSuites);
-		return testSuites as TestSuiteDb[];
+		setTestSuites(testSuites);
+		return testSuites;
 	}
 
 	async function addWorkflowTestSuite(
@@ -293,32 +293,32 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		const rootStore = useRootStore();
 		const payload = { workflowId, description };
 		const testSuites = await workflowsApi.postTestSuite(rootStore.getRestApiContext, payload);
-		this.setTestSuites(testSuites);
-		return testSuites as TestSuiteDb[];
+		setTestSuites(testSuites);
+		return testSuites;
 	}
 
-	async function fetchWorkflowNodeOutput(id: string): Promise<any> {
+	async function fetchWorkflowNodeOutput(id: string): Promise<NodeOutputDb[]> {
 		const rootStore = useRootStore();
-		const nodeOutputs = await makeRestApiRequest(
+		const nodeOutputs = await makeRestApiRequest<NodeOutputDb[]>(
 			rootStore.getRestApiContext,
 			'GET',
 			`/workflow-tests/nodes-output/${id}`,
 		);
-		this.setNodeOutputs(nodeOutputs);
+		setNodeOutputs(nodeOutputs);
 		return nodeOutputs;
 	}
 
 	async function createWorkflowTestSuite(payload: Omit<NodeOutputDb, 'id'>) {
 		const rootStore = useRootStore();
 		const nodeOutputs = await workflowsApi.createTestSuite(rootStore.getRestApiContext, payload);
-		this.setNodeOutputs(nodeOutputs);
+		setNodeOutputs(nodeOutputs);
 		return nodeOutputs;
 	}
 
 	async function updateWorkflowTestSuite(payload: NodeOutputDb) {
 		const rootStore = useRootStore();
 		const nodeOutputs = await workflowsApi.patchTestSuite(rootStore.getRestApiContext, payload);
-		this.setNodeOutputs(nodeOutputs);
+		setNodeOutputs(nodeOutputs);
 		return nodeOutputs;
 	}
 
@@ -359,7 +359,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	}
 
 	function setTestSuites(testSuites: TestSuiteDb[]): void {
-		this.testSuitesById = testSuites.reduce<TestSuiteDbMap>((acc, testSuite: TestSuiteDb) => {
+		testSuitesById.value = testSuites.reduce<TestSuiteDbMap>((acc, testSuite: TestSuiteDb) => {
 			if (testSuite.id) {
 				acc[testSuite.id] = testSuite;
 			}
@@ -368,7 +368,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	}
 
 	function setNodeOutputs(nodeOutputs: NodeOutputDb[]): void {
-		this.nodeOutputsById = nodeOutputs.reduce<NodeOutputDbMap>((acc, nodeOutput: NodeOutputDb) => {
+		nodeOutputsById.value = nodeOutputs.reduce<NodeOutputDbMap>((acc, nodeOutput: NodeOutputDb) => {
 			if (nodeOutput.nodeId) {
 				if (nodeOutput.errorMessage) {
 					nodeOutput.data = null;
@@ -380,7 +380,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 	}
 
 	function resetWorkflowTestSuites(): void {
-		this.testSuitesById = {};
+		testSuitesById.value = {};
 	}
 
 	function getWorkflow(nodes: INodeUi[], connections: IConnections, copyData?: boolean): Workflow {
@@ -1645,5 +1645,11 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		resetChatMessages,
 		appendChatMessage,
 		checkIfNodeHasChatParent,
+		fetchWorkflowTestSuites,
+		addWorkflowTestSuite,
+		fetchWorkflowNodeOutput,
+		createWorkflowTestSuite,
+		updateWorkflowTestSuite,
+		resetWorkflowTestSuites,
 	};
 });

@@ -152,12 +152,12 @@ export default defineComponent({
 			});
 
 			menuItems.push({
-				id: 'test-suites',
+				id: 'settings-test-suites',
 				icon: 'chart-bar',
 				label: this.$locale.baseText('settings.testSuites'),
 				position: 'top',
 				available: true,
-				activateOnRouteNames: [VIEWS.TEST_SUITES],
+				route: { to: { name: VIEWS.TEST_SUITES } },
 			});
 
 			return menuItems;

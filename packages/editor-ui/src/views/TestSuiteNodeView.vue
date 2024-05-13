@@ -1,39 +1,30 @@
 <template>
-	<tests-list-node-layout
+	<TestsListNodeLayout
 		ref="layout"
-		:workFlowNodes="currentWorkFlow?.nodes"
+		:work-flow-nodes="currentWorkFlow?.nodes"
 		:initialize="initialize"
-		:currentTestSuiteName="currentTestSuite?.name || ''"
-		:currentTestSuiteDescription="currentTestSuite?.description || ''"
+		:current-test-suite-name="currentTestSuite?.name || ''"
+		:current-test-suite-description="currentTestSuite?.description || ''"
 	>
 		<template #default="{ data }">
-			<test-suite-node-card class="mb-2xs" :data="data" />
+			<TestSuiteNodeCard class="mb-2xs" :data="data" />
 		</template>
-	</tests-list-node-layout>
+	</TestsListNodeLayout>
 </template>
+
 <script lang="ts">
-import { showMessage } from '@/mixins/showMessage';
-import mixins from 'vue-typed-mixins';
-import SettingsView from './SettingsView.vue';
-import TestsListNodeLayout from '@/components/layouts/TestsListNodeLayout.vue';
-import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
-import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
+import { defineComponent } from 'vue';
+import TestsListNodeLayout from '../components/TestsListNodeLayout.vue';
 import TestSuiteNodeCard from '@/components/TestSuiteNodeCard.vue';
-import TemplateCard from '@/components/TemplateCard.vue';
-import { debounceHelper } from '@/mixins/debounce';
-import type Vue from 'vue';
 import type { IWorkflowDb, TestSuiteDb } from '@/Interface';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useWorkflowsStore } from '@/stores/workflows';
-const TestSuiteNodeView = mixins(showMessage, debounceHelper).extend({
+import { useUIStore } from '@/stores/ui.store';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+
+export default defineComponent({
 	name: 'TestSuiteNodeView',
 	components: {
 		TestsListNodeLayout,
-		TemplateCard,
-		PageViewLayout,
-		PageViewLayoutList,
-		SettingsView,
 		TestSuiteNodeCard,
 	},
 	data() {
@@ -58,12 +49,9 @@ const TestSuiteNodeView = mixins(showMessage, debounceHelper).extend({
 			await this.workflowsStore.fetchWorkflowNodeOutput(this.$route.params.test);
 		},
 	},
-	watch: {},
-	mounted() {},
-	destroyed() {},
 });
-export default TestSuiteNodeView;
 </script>
+
 <style lang="scss" module>
 .actionsContainer {
 	display: flex;
