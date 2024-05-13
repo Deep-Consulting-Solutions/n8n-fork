@@ -315,7 +315,7 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		return nodeOutputs;
 	}
 
-	function updateWorkflowTestSuite(payload: NodeOutputDb) {
+	async function updateWorkflowTestSuite(payload: NodeOutputDb) {
 		const rootStore = useRootStore();
 		const nodeOutputs = await workflowsApi.patchTestSuite(rootStore.getRestApiContext, payload);
 		this.setNodeOutputs(nodeOutputs);
