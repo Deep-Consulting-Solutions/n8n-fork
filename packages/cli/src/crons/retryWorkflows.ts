@@ -13,6 +13,8 @@ import type { IExecutionDb, IExecutionResponse } from '@/Interfaces';
 import * as ResponseHelper from '@/ResponseHelper';
 import { ResumeWorkflowTimerRepository } from '@/databases/repositories/resumeWorkflowTimer.repository';
 import { SharedWorkflowRepository } from '@/databases/repositories/sharedWorkflow.repository';
+import { WorkflowRepository } from '@/databases/repositories/workflow.repository';
+import { UserRepository } from '@/databases/repositories/user.repository';
 import { getSharedWorkflowIds } from '../WorkflowHelpers';
 import type { ExecutionRequest } from '../executions/execution.types';
 
@@ -22,7 +24,8 @@ const getWorkflowOwner = async (workflowId: string) => {
 		role: 'workflow:owner',
 	});
 
-	return sharing?.user;
+	const user = await Container.get(UserRepository).findOneBy({ id: sharing?.userId });
+	return user;
 };
 
 const getExecutionId = async (
@@ -32,11 +35,13 @@ const getExecutionId = async (
 	resultData?: any,
 ) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	// const workflow = await WorkflowTestRepository.findOneBy({ id: workflowId });
-	const workflow = {} as IWorkflowBase;
+	let workflow = {} as IWorkflowBase;
+    workflow = await Container.get(WorkflowRepository).findOneBy({ id: workflowId }) as IWorkflowBase;	
 	const nodeTypes = Container.get(NodeTypes);
 	if (!workflow) return null;
 	const nodes = workflow.nodes;
+	console.log('nodes');
+	console.dir(nodes, { depth: null });
 	let waitNode = null;
 	for (const node of nodes) {
 		if (node.id === nodeId) {
@@ -59,10 +64,12 @@ const getExecutionId = async (
 		workflowInstance.connectionsByDestinationNode,
 		waitNode.name,
 	);
+	console.dir(destinationNodes);
 	const sourceNodes = workflowInstance.getConnectedNodes(
 		workflowInstance.connectionsBySourceNode,
 		waitNode.name,
 	);
+	console.dir(sourceNodes);
 	const nextNodeName = sourceNodes.reverse()[0];
 	const nextNode = workflowInstance.getNode(nextNodeName);
 	const connectedNodes = [...destinationNodes, ...sourceNodes, waitNode.name];
@@ -94,7 +101,9 @@ const getExecutionId = async (
 		fullExecutionData.retryOf = runData.retryOf.toString();
 	}
 
-	const execution = ResponseHelper.flattenObject(fullExecutionData);
+	console.dir(fullExecutionData, { depth: null });
+
+	const execution = ResponseHelper.flattenExecutionData(fullExecutionData);
 
 	return execution as IExecutionResponse;
 };

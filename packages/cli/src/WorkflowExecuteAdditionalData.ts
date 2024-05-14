@@ -869,6 +869,7 @@ async function executeWorkflow(
 				workflowExecute,
 			};
 		}
+		console.log('we got here for workflowExecuteAdditonalData.js');
 		const execution = workflowExecute.processRunExecutionData(workflow);
 		activeExecutions.attachWorkflowExecution(executionId, execution);
 		data = await execution;

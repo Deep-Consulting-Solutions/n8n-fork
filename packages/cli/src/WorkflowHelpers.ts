@@ -248,18 +248,18 @@ export async function getSharedWorkflowIds(user: User, roles?: string[]): Promis
 	if (!user.isOwner) {
 		where.user = { id: user.id };
 		if (roles?.length) {
-			where.role = { name: In(roles) };
+			where.role = In(roles);
 		}
 	}
 	const sharedWorkflows =
 		process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true'
 			? await Container.get(SharedWorkflowRepository).find({
-					relations: ['workflow', 'role'],
+					relations: ['workflow'],
 					select: ['workflowId'],
 					where,
 			  })
 			: await Container.get(SharedWorkflowRepository).find({
-					relations: ['workflow', 'role'],
+					relations: ['workflow'],
 					select: ['workflowId'],
 			  });
 
