@@ -264,6 +264,7 @@ export class WorkflowRunner {
 			const webhookExecutionStack = data.executionData?.executionData?.nodeExecutionStack[0];
 			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
 				const webhookExecutionData = webhookExecutionStack.data.main as any;
+				console.log(webhookExecutionStack);
 				const testId = webhookExecutionData[0][0].json.query.testId;
 				if (testId) {
 					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId });
@@ -376,12 +377,14 @@ export class WorkflowRunner {
 					data.executionMode,
 					data.executionData,
 				);
+				console.log('we got here');
 				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
 					isTest,
 					nodeOutputs,
 					createPartialExecution,
 					createResumeTimerEntity,
 				});
+				console.log('but not here')
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);
 					return data;
