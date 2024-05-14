@@ -3,7 +3,7 @@ import { Container } from 'typedi';
 import { validate } from 'class-validator';
 import type { INode, IRunExecutionData, Workflow, WorkflowExecuteMode } from 'n8n-workflow';
 
-import type { IExecutionDb, IExecutionFlattedDb, IWorkflowDb } from '@/Interfaces';
+import type { IExecutionDb, IExecutionFlattedDb, IWorkflowDb, IExecutionResponse } from '@/Interfaces';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import type { TagEntity } from '@db/entities/TagEntity';
@@ -121,7 +121,7 @@ export async function createPartialExecution(
 
 	let execution = ResponseHelper.flattenExecutionData(fullExecutionData);
 
-	execution = await Container.get(ExecutionRepository).save(execution as IExecutionFlattedDb);
+	execution = await Container.get(ExecutionRepository).save(execution as IExecutionResponse);
 	return execution;
 }
 

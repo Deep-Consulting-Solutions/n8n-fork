@@ -21,6 +21,10 @@ import { ExecutionData } from './ExecutionData';
 import { WorkflowHistory } from './WorkflowHistory';
 import { ServerIncident } from './ServerIncident';
 import { DataRecoveryActivity } from './DataRecoveryActivity';
+import { WorkflowTest } from './WorkflowTest';
+import { NodeOutput } from './NodeOutput';
+import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
+import { SaveRequestLog } from './SaveRequestLog';
 
 export const entities = {
 	AuthIdentity,
@@ -45,4 +49,8 @@ export const entities = {
 	WorkflowHistory,
 	ServerIncident,
 	DataRecoveryActivity,
+	WorkflowTest,
+	NodeOutput,
+	ResumeWorkflowTimer,
+	SaveRequestLog,
 };

@@ -49,9 +49,9 @@ import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
 import { createPartialExecution } from './GenericHelpers';
 
 const createResumeTimerEntity = async (data: any) => {
-	const resumeWorkflowEntity = new ResumeWorkflowTimer();
+	let resumeWorkflowEntity = new ResumeWorkflowTimer();
 	Object.assign(resumeWorkflowEntity, data);
-	// resumeWorkflowEntity = await ResumeWorkflowTimerRepository.save(resumeWorkflowEntity);
+	resumeWorkflowEntity = await Container.get(ResumeWorkflowTimerRepository).save(resumeWorkflowEntity);
 	return resumeWorkflowEntity;
 };
 
@@ -71,7 +71,6 @@ export class WorkflowRunner {
 		private readonly permissionChecker: PermissionChecker,
 		private readonly workflowTestRepository: WorkflowTestRepository,
 		private readonly nodeOutputRepository: NodeOutputRepository,
-		private readonly resumeWorkflowTimerRepository: ResumeWorkflowTimerRepository,
 	) {
 		if (this.executionsMode === 'queue') {
 			this.jobQueue = Container.get(Queue);
@@ -264,6 +263,7 @@ export class WorkflowRunner {
 			const webhookExecutionStack = data.executionData?.executionData?.nodeExecutionStack[0];
 			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
 				const webhookExecutionData = webhookExecutionStack.data.main as any;
+				console.dir(webhookExecutionStack, { depth: null });
 				const testId = webhookExecutionData[0][0].json.query.testId;
 				if (testId) {
 					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId });
@@ -376,12 +376,14 @@ export class WorkflowRunner {
 					data.executionMode,
 					data.executionData,
 				);
+				console.log('we got here for workflowRunner.js');
 				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
 					isTest,
 					nodeOutputs,
 					createPartialExecution,
 					createResumeTimerEntity,
 				});
+				console.log('but not here for workflowRunner.js')
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);
 					return data;

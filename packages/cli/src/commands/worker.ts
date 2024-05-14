@@ -198,6 +198,7 @@ export class Worker extends BaseCommand {
 				fullExecutionData.mode,
 				fullExecutionData.data,
 			);
+			console.log('we got here for worker.js');
 			workflowRun = workflowExecute.processRunExecutionData(workflow);
 		} else {
 			// Execute all nodes

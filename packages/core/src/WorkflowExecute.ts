@@ -159,6 +159,7 @@ export class WorkflowExecute {
 			},
 		};
 
+		console.log('we got here for workflowExecute.js');
 		return this.processRunExecutionData(workflow);
 	}
 
@@ -316,6 +317,7 @@ export class WorkflowExecute {
 			},
 		};
 
+		console.log('we got here for workflowExecute2.js');
 		return this.processRunExecutionData(workflow);
 	}
 
@@ -1146,47 +1148,64 @@ export class WorkflowExecute {
 										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
 									) {
 										const connections =
-											workflow.connectionsBySourceNode[executionData.node.name].main;
-										const flattenedConnections = [];
-										for (const conn of connections) {
-											flattenedConnections.push(...conn);
-										}
-										delete workflow.connectionsBySourceNode[executionData.node.name];
-										delete workflow.nodes[executionData.node.name];
-										if (nextNodeData.length) {
-											const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
-											nodeSuccessData = lastNodeInStack.nodeSuccessData;
+											workflow.connectionsBySourceNode[executionData.node.name]?.main;
+										if (connections && connections[0]?.length) {
+											console.log('connections');
+											console.dir(connections, { depth: null })
+											const flattenedConnections = [];
+											for (const conn of connections) {
+												flattenedConnections.push(...conn);
+											}
+											delete workflow.connectionsBySourceNode[executionData.node.name];
+											delete workflow.nodes[executionData.node.name];
+											if (nextNodeData.length) {
+												const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
+												nodeSuccessData = lastNodeInStack.nodeSuccessData;
+											} else {
+												nodeSuccessData = [
+													[
+														{
+															json: {},
+														},
+													],
+												];
+											}
+											const amount = executionData.node.parameters.amount as number;
+											const unit = executionData.node.parameters.unit as string;
+											const resumptionTime = calculateNextTime(unit, amount);
+											const { createResumeTimerEntity } = extraData;
+											taskData = {
+												startTime,
+												executionTime: new Date().getTime() - startTime,
+												source: !executionData.source ? [] : executionData.source.main,
+												executionStatus: 'success',
+												data: {
+													main: nodeSuccessData,
+												} as ITaskDataConnections,
+											};
+											this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
+											console.log('Trying to create resume timer entity');
+											await createResumeTimerEntity({
+												resumptionTime,
+												executionId: workflow.id,
+												waitNodeId: executionData.node.id,
+												resultData: this.runExecutionData.resultData,
+												status: 'running',
+											});
+											console.log('created resume timer enitity');
+											delete this.runExecutionData.resultData.runData[executionData.node.name];
 										} else {
-											nodeSuccessData = [
-												[
-													{
-														json: {},
-													},
-												],
-											];
+											runNodeData = await workflow.runNode(
+												executionData,
+												this.runExecutionData,
+												runIndex,
+												this.additionalData,
+												NodeExecuteFunctions,
+												this.mode,
+											);
+											nodeSuccessData = runNodeData.data;
 										}
-										const amount = executionData.node.parameters.amount as number;
-										const unit = executionData.node.parameters.unit as string;
-										const resumptionTime = calculateNextTime(unit, amount);
-										const { createResumeTimerEntity } = extraData;
-										taskData = {
-											startTime,
-											executionTime: new Date().getTime() - startTime,
-											source: !executionData.source ? [] : executionData.source.main,
-											executionStatus: 'success',
-											data: {
-												main: nodeSuccessData,
-											} as ITaskDataConnections,
-										};
-										this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
-										await createResumeTimerEntity({
-											resumptionTime,
-											executionId: workflow.id,
-											waitNodeId: executionData.node.id,
-											resultData: this.runExecutionData.resultData,
-											status: 'running',
-										});
-										delete this.runExecutionData.resultData.runData[executionData.node.name];
+										
 										// break;
 									} else {
 										runNodeData = await workflow.runNode(

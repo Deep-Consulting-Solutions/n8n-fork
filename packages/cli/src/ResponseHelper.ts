@@ -10,7 +10,7 @@ import { Readable } from 'node:stream';
 import { stringify } from 'flatted';
 
 import { inDevelopment } from '@/constants';
-import type { IExecutionDb, IExecutionFlatted } from '@/Interfaces';
+import type { IExecutionDb, IExecutionFlatted, IExecutionResponse } from '@/Interfaces';
 import { ResponseError } from './errors/response-errors/abstract/response.error';
 import Container from 'typedi';
 import { Logger } from './Logger';
@@ -187,11 +187,11 @@ export const flattenObject = (obj: { [x: string]: any }, prefix = '') =>
  *
  * @param {IExecutionDb} fullExecutionData The data to flatten
  */
-export function flattenExecutionData(fullExecutionData: IExecutionDb): IExecutionFlatted {
+export function flattenExecutionData(fullExecutionData: IExecutionDb): IExecutionResponse {
 	// Flatten the data
-	const returnData: IExecutionFlatted = {
+	const returnData: IExecutionResponse = {
 		id: fullExecutionData.id,
-		data: stringify(fullExecutionData.data),
+		data: fullExecutionData.data,
 		mode: fullExecutionData.mode,
 		waitTill: fullExecutionData.waitTill,
 		startedAt: fullExecutionData.startedAt,
