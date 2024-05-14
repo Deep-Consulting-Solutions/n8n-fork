@@ -25,3 +25,4 @@ cypress/downloads/*
 CHANGELOG-*.md
 *.mdx
 build-storybook.log
+*.log
