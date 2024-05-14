@@ -66,6 +66,7 @@ import { UpdateResumeWorfklowTimer1879949869859 } from './1879949869859-UpdateRe
 import { ResultDataResumeWorfklowTimer1899949999859 } from './1899949999859-ResultDataResumeWorfklowTimer';
 import { ExecutionIdResumeWorkflowTimer1899949999969 } from './1899949999969-ExecutionIdResumeWorkflowTimer';
 import { IdResumeWorkflowTimer1899999999969 } from './1899999999969-IdResumeWorkflowTimer';
+import { UpdateIdTypeOnEntites1899999999979 } from './1899999999979-UpdateIdTypeOnEntites';
 
 export const postgresMigrations: Migration[] = [
 	InitialMigration1587669153312,
@@ -135,4 +136,5 @@ export const postgresMigrations: Migration[] = [
 	ResultDataResumeWorfklowTimer1899949999859,
 	ExecutionIdResumeWorkflowTimer1899949999969,
 	IdResumeWorkflowTimer1899999999969,
+	UpdateIdTypeOnEntites1899999999979,
 ];
