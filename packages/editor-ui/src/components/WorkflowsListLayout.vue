@@ -209,7 +209,7 @@ export default {
 			currentPage: 1,
 			rowsPerPage: 10 as number | '*',
 			resettingFilters: false,
-			EnterpriseEditionFeature,
+			// EnterpriseEditionFeature,
 		};
 	},
 	computed: {

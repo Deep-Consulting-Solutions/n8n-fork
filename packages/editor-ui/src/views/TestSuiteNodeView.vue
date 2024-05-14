@@ -14,7 +14,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-// eslint-disable-next-line import/no-unresolved
 import TestsListNodeLayout from '../components/TestsListNodeLayout.vue';
 import TestSuiteNodeCard from '@/components/TestSuiteNodeCard.vue';
 import type { IWorkflowDb, TestSuiteDb } from '@/Interface';

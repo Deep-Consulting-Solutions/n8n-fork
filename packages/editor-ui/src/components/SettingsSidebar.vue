@@ -152,7 +152,7 @@ export default defineComponent({
 			});
 
 			menuItems.push({
-				id: 'test-suites',
+				id: 'settings-test-suites',
 				icon: 'chart-bar',
 				label: this.$locale.baseText('settings.testSuites'),
 				position: 'top',

@@ -104,3 +104,28 @@ export default {
 	},
 };
 </script>
+
+<style lang="scss" module>
+.cardLink {
+	transition: box-shadow 0.3s ease;
+	cursor: pointer;
+
+	&:hover {
+		box-shadow: 0 2px 8px rgba(#441c17, 0.1);
+	}
+}
+
+.cardHeading {
+	font-size: var(--font-size-s);
+	word-break: break-word;
+}
+
+.cardDescription {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.flex1 {
+	flex: 1;
+}
+</style>
