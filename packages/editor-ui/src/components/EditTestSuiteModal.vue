@@ -7,21 +7,20 @@
 				interpolate: { name: data.name },
 			})
 		"
-		:eventBus="modalBus"
+		:event-bus="modalBus"
 		:center="true"
-		:beforeClose="onModalClose"
-		:showClose="!loading"
+		:before-close="onModalClose"
+		:show-close="!loading"
 	>
 		<template #content>
 			<div :class="[$style.formContainer]">
-				<n8n-radio-buttons
-					size="medium"
-					:value="selectedType"
-					@input="onTypeSelected"
+				<N8nRadioButtons
+					:model-value="selectedType"
 					:options="[
 						{ label: $locale.baseText('parameterInput.test.error'), value: 'error' },
 						{ label: $locale.baseText('parameterInput.test.output'), value: 'data' },
 					]"
+					@update:model-value="onTypeSelected"
 				/>
 
 				<div :class="['mt-l']">
@@ -31,8 +30,8 @@
 						:label="$locale.baseText('testSuites.editTest.error.label')"
 					>
 						<n8n-input
-							name="error"
 							v-model="error"
+							name="error"
 							type="text"
 							:placeholder="''"
 							:required="true"
@@ -46,8 +45,8 @@
 						:label="$locale.baseText('testSuites.editTest.output.label')"
 					>
 						<n8n-input
-							name="output"
 							v-model="output"
+							name="output"
 							type="text"
 							:placeholder="''"
 							:required="true"
@@ -82,15 +81,16 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import Modal from './Modal.vue';
 import { EDIT_TEST_SUITE_MODAL_KEY } from '../constants';
-import mixins from 'vue-typed-mixins';
-import { showMessage } from '@/mixins/showMessage';
 import { mapStores } from 'pinia';
-import { createEventBus } from '@/event-bus';
-import { useWorkflowsStore } from '@/stores';
+import { createEventBus } from 'n8n-design-system/utils';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+import { useToast } from '@/composables/useToast';
 import type { NodeOutputDb } from '@/Interface';
-export default mixins(showMessage).extend({
+
+export default defineComponent({
 	name: 'EditTestSuiteModal',
 	components: {
 		Modal,
@@ -98,10 +98,15 @@ export default mixins(showMessage).extend({
 	props: {
 		data: {
 			type: Object,
-			default: {
+			default: () => ({
 				name: '',
-			},
+			}),
 		},
+	},
+	setup() {
+		return {
+			...useToast(),
+		};
 	},
 	data() {
 		return {
@@ -130,8 +135,15 @@ export default mixins(showMessage).extend({
 			return false;
 		},
 	},
+	mounted() {
+		this.nodeOutputId = this.data.nodeOutput.id;
+		this.output = this.data.nodeOutput.data || '';
+		this.error = this.data.nodeOutput.errorMessage || '';
+		this.selectedType = this.data.nodeOutput.outputType ?? 'data';
+	},
 	methods: {
 		onTypeSelected(selected: string) {
+			console.log({ selected });
 			this.selectedType = selected;
 		},
 		async onSave() {
@@ -139,7 +151,7 @@ export default mixins(showMessage).extend({
 				this.infoTextErrorMessage = '';
 				this.loading = true;
 				const basePayload = {
-					workflowTestId: this.$route.params.test,
+					workflowTestId: this.$route.params.test as string,
 					nodeId: this.data.id,
 					outputType: this.selectedType as NodeOutputDb['outputType'],
 					errorMessage: this.error,
@@ -155,7 +167,7 @@ export default mixins(showMessage).extend({
 				}
 				this.loading = false;
 				this.modalBus.emit('close');
-				this.$showMessage({
+				this.showMessage({
 					title: this.$locale.baseText('testSuites.editTest.saveButton.success'),
 					type: 'success',
 				});
@@ -163,7 +175,7 @@ export default mixins(showMessage).extend({
 				if (error.httpStatusCode && error.httpStatusCode === 400) {
 					this.infoTextErrorMessage = error.message;
 				} else {
-					this.$showError(error, this.$locale.baseText('testSuites.editTest.saveButton.error'));
+					this.showError(error, this.$locale.baseText('testSuites.editTest.saveButton.error'));
 				}
 			} finally {
 				this.loading = false;
@@ -172,12 +184,6 @@ export default mixins(showMessage).extend({
 		onModalClose() {
 			return !this.loading;
 		},
-	},
-	mounted() {
-		this.nodeOutputId = this.data.nodeOutput.id;
-		this.output = this.data.nodeOutput.data || '';
-		this.error = this.data.nodeOutput.errorMessage || '';
-		this.selectedType = this.data.nodeOutput.outputType || 'data';
 	},
 });
 </script>

@@ -107,6 +107,7 @@ export default {
 			default: '',
 		},
 	},
+	emits: ['click:add'],
 	data() {
 		return {
 			loading: true,

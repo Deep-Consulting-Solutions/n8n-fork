@@ -1511,7 +1511,7 @@
 	"testSuites.editTest.saveButton.success": "Output Updated",
 	"testSuites.addTest.saveButton.error": "Error adding new test",
 	"testSuites.editTest.saveButton.error": "Error updating test",
-	"testSuites.addTest.description.tooltip": "Briefly describe this text and provide information of what it does.",
+	"testSuites.addTest.description.tooltip": "Briefly describe this test and provide information of what it does.",
 	"settings.communityNodes.installModal.packageName.tooltip": "<img src='/static/community_package_tooltip_img.png'/><p>This is the title of the package on <a href='{npmURL}'>npmjs.com</a></p><p>Install a specific version by adding it after {'@'}, e.g. <code>package-name{'@'}0.15.0</code></p>",
 	"settings.communityNodes.installModal.packageName.placeholder": "e.g. n8n-nodes-chatwork",
 	"settings.communityNodes.installModal.checkbox.label": "I understand the risks of installing unverified code from a public source.",
