@@ -266,7 +266,7 @@ export class WorkflowRunner {
 				console.dir(webhookExecutionStack, { depth: null });
 				const testId = webhookExecutionData[0][0]?.json?.query?.testId;
 				if (testId) {
-					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId });
+					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId, workflowId });
 					if (workflowTest) {
 						if (workflowTest.workflowId !== workflowId) {
 							const error = new NodeOperationError(
