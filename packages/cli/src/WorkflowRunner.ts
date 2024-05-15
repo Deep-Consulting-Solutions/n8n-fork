@@ -264,7 +264,7 @@ export class WorkflowRunner {
 			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
 				const webhookExecutionData = webhookExecutionStack.data.main as any;
 				console.dir(webhookExecutionStack, { depth: null });
-				const testId = webhookExecutionData[0][0].json.query.testId;
+				const testId = webhookExecutionData[0][0]?.json?.query?.testId;
 				if (testId) {
 					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId });
 					if (workflowTest) {
