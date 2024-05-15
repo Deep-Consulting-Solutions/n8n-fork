@@ -3,21 +3,21 @@
 		width="540px"
 		:name="ADD_TEST_SUITE_MODAL_KEY"
 		:title="$locale.baseText('testSuites.addTestSuite.title')"
-		:eventBus="modalBus"
+		:event-bus="modalBus"
 		:center="true"
-		:beforeClose="onModalClose"
-		:showClose="!loading"
+		:before-close="onModalClose"
+		:show-close="!loading"
 	>
 		<template #content>
 			<div :class="[$style.formContainer, 'mt-m']">
 				<n8n-input-label
 					:class="$style.labelTooltip"
 					:label="$locale.baseText('testSuites.addTest.description.label')"
-					:tooltipText="$locale.baseText('testSuites.addTest.description.tooltip')"
+					:tooltip-text="$locale.baseText('testSuites.addTest.description.tooltip')"
 				>
 					<n8n-input
-						name="description"
 						v-model="description"
+						name="description"
 						type="text"
 						:maxlength="300"
 						:placeholder="''"
@@ -52,14 +52,15 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import Modal from './Modal.vue';
 import { ADD_TEST_SUITE_MODAL_KEY } from '../constants';
-import mixins from 'vue-typed-mixins';
-import { showMessage } from '@/mixins/showMessage';
 import { mapStores } from 'pinia';
-import { createEventBus } from '@/event-bus';
-import { useWorkflowsStore } from '@/stores';
-export default mixins(showMessage).extend({
+import { createEventBus } from 'n8n-design-system/utils';
+import { useWorkflowsStore } from '@/stores/workflows.store';
+import { useToast } from '@/composables/useToast';
+
+export default defineComponent({
 	name: 'AddTestSuiteModal',
 	components: {
 		Modal,
@@ -69,6 +70,11 @@ export default mixins(showMessage).extend({
 			type: String,
 			default: '',
 		},
+	},
+	setup() {
+		return {
+			...useToast(),
+		};
 	},
 	data() {
 		return {
@@ -88,12 +94,12 @@ export default mixins(showMessage).extend({
 				this.infoTextErrorMessage = '';
 				this.loading = true;
 				await this.workflowsStore.addWorkflowTestSuite(
-					this.$route.params.workflow,
+					this.$route.params.workflow as string,
 					this.description,
 				);
 				this.loading = false;
 				this.modalBus.emit('close');
-				this.$showMessage({
+				this.showMessage({
 					title: this.$locale.baseText('testSuites.addTest.saveButton.success'),
 					type: 'success',
 				});
@@ -101,7 +107,7 @@ export default mixins(showMessage).extend({
 				if (error.httpStatusCode && error.httpStatusCode === 400) {
 					this.infoTextErrorMessage = error.message;
 				} else {
-					this.$showError(error, this.$locale.baseText('testSuites.addTest.saveButton.error'));
+					this.showError(error, this.$locale.baseText('testSuites.addTest.saveButton.error'));
 				}
 			} finally {
 				this.loading = false;

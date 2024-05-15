@@ -52,7 +52,7 @@ export default {
 	computed: {
 		...mapStores(useUIStore, useWorkflowsStore),
 		currentWorkFlow(): IWorkflowDb | null {
-			return this.workflowsStore.workflowsById[this.$route.params.workflow] || null;
+			return this.workflowsStore.workflowsById[this.$route.params.workflow as string] || null;
 		},
 		testSuites(): TestSuiteDb[] {
 			return this.workflowsStore.allTestSuites;
@@ -82,8 +82,8 @@ export default {
 	},
 	methods: {
 		async initialize() {
-			await this.workflowsStore.fetchWorkflow(this.$route.params.workflow);
-			await this.workflowsStore.fetchWorkflowTestSuites(this.$route.params.workflow);
+			await this.workflowsStore.fetchWorkflow(this.$route.params.workflow as string);
+			await this.workflowsStore.fetchWorkflowTestSuites(this.$route.params.workflow as string);
 		},
 		addTestSuite() {
 			this.openAddTestModal();

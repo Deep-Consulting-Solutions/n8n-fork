@@ -51,6 +51,7 @@ export async function executeWorkflow(testData: WorkflowTestData, nodeTypes: INo
 		},
 	};
 	const workflowExecute = new WorkflowExecute(additionalData, executionMode, runExecutionData);
+	console.log('we got here for executeWorkflow.js');
 	executionData = await workflowExecute.processRunExecutionData(workflowInstance);
 
 	const result = await waitPromise.promise();

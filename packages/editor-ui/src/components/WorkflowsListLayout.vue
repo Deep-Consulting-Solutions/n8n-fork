@@ -131,7 +131,11 @@ import { useUsersStore } from '@/stores/users.store';
 import PageViewLayout from '@/components/layouts/PageViewLayout.vue';
 import PageViewLayoutList from '@/components/layouts/PageViewLayoutList.vue';
 import ResourceFiltersDropdown from '@/components/forms/ResourceFiltersDropdown.vue';
+import type { N8nInput } from 'n8n-design-system';
 import type { PropType } from 'vue';
+
+type IResourceKeyType = 'credentials' | 'workflows';
+type SearchRef = InstanceType<typeof N8nInput>;
 
 export interface IResource {
 	id: string;
