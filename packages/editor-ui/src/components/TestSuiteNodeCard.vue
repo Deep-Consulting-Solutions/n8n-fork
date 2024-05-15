@@ -9,11 +9,15 @@
 					:class="$style.cardHeading"
 					data-test-id="workflow-card-name"
 				>
-					Name: <n8n-text color="text-base"> {{ data.name }}</n8n-text>
-					<br />
-					ID: <n8n-text color="text-base"> {{ data.id }}</n8n-text>
-					<br />
-					Type: <n8n-text color="text-base"> {{ data.type || '' }}</n8n-text>
+					<div>
+						Name: <n8n-text class="ml-4xs" color="text-base"> {{ data.name }}</n8n-text>
+					</div>
+					<div>
+						ID: <n8n-text class="ml-4xs" color="text-base"> {{ data.id }}</n8n-text>
+					</div>
+					<div>
+						Type: <n8n-text class="ml-4xs" color="text-base"> {{ data.type || '' }}</n8n-text>
+					</div>
 				</n8n-heading>
 			</div>
 
@@ -133,6 +137,9 @@ export default {
 .cardHeading {
 	font-size: var(--font-size-s);
 	word-break: break-word;
+	display: flex;
+	flex-direction: column;
+	row-gap: 4px;
 }
 .cardDescription {
 	min-height: 19px;
@@ -149,6 +156,7 @@ export default {
 	flex-direction: row;
 	justify-content: flex-start;
 	flex: 1;
+	column-gap: 4px;
 }
 .flexNorm {
 	display: flex;

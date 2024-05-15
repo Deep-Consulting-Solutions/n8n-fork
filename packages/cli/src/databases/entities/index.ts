@@ -26,8 +26,6 @@ import { NodeOutput } from './NodeOutput';
 import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
 import { SaveRequestLog } from './SaveRequestLog';
 
-
-
 export const entities = {
 	AuthIdentity,
 	AuthProviderSyncHistory,

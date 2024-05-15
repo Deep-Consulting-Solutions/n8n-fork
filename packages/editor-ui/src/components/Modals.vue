@@ -29,6 +29,18 @@
 			</template>
 		</ModalRoot>
 
+		<ModalRoot :name="ADD_TEST_SUITE_MODAL_KEY">
+			<template #default="{ data }">
+				<AddTestSuiteModal :work-flow-id="data?.workflow || ''" />
+			</template>
+		</ModalRoot>
+
+		<ModalRoot :name="EDIT_TEST_SUITE_MODAL_KEY">
+			<template #default="{ data }">
+				<EditTestSuiteModal :data="data" />
+			</template>
+		</ModalRoot>
+
 		<ModalRoot :name="PERSONALIZATION_MODAL_KEY">
 			<PersonalizationModal />
 		</ModalRoot>
@@ -213,6 +225,8 @@ import {
 	SUGGESTED_TEMPLATES_PREVIEW_MODAL_KEY,
 	SETUP_CREDENTIALS_MODAL_KEY,
 	GENERATE_CURL_MODAL_KEY,
+	ADD_TEST_SUITE_MODAL_KEY,
+	EDIT_TEST_SUITE_MODAL_KEY,
 } from '@/constants';
 
 import AboutModal from './AboutModal.vue';
@@ -247,6 +261,8 @@ import DebugPaywallModal from '@/components/DebugPaywallModal.vue';
 import WorkflowHistoryVersionRestoreModal from '@/components/WorkflowHistory/WorkflowHistoryVersionRestoreModal.vue';
 import SuggestedTemplatesPreviewModal from '@/components/SuggestedTemplates/SuggestedTemplatesPreviewModal.vue';
 import SetupWorkflowCredentialsModal from '@/components/SetupWorkflowCredentialsModal/SetupWorkflowCredentialsModal.vue';
+import AddTestSuiteModal from './AddTestSuiteModal.vue';
+import EditTestSuiteModal from './EditTestSuiteModal.vue';
 
 export default defineComponent({
 	name: 'Modals',
@@ -283,6 +299,8 @@ export default defineComponent({
 		WorkflowHistoryVersionRestoreModal,
 		SuggestedTemplatesPreviewModal,
 		SetupWorkflowCredentialsModal,
+		AddTestSuiteModal,
+		EditTestSuiteModal,
 	},
 	data: () => ({
 		CHAT_EMBED_MODAL_KEY,
@@ -316,6 +334,8 @@ export default defineComponent({
 		WORKFLOW_HISTORY_VERSION_RESTORE,
 		SUGGESTED_TEMPLATES_PREVIEW_MODAL_KEY,
 		SETUP_CREDENTIALS_MODAL_KEY,
+		ADD_TEST_SUITE_MODAL_KEY,
+		EDIT_TEST_SUITE_MODAL_KEY,
 	}),
 });
 </script>

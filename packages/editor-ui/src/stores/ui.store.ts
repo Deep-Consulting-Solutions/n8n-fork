@@ -123,6 +123,8 @@ export const useUIStore = defineStore(STORES.UI, {
 					WORKFLOW_HISTORY_VERSION_RESTORE,
 					SUGGESTED_TEMPLATES_PREVIEW_MODAL_KEY,
 					SETUP_CREDENTIALS_MODAL_KEY,
+					ADD_TEST_SUITE_MODAL_KEY,
+					EDIT_TEST_SUITE_MODAL_KEY,
 				].map((modalKey) => [modalKey, { open: false }]),
 			),
 			[DELETE_USER_MODAL_KEY]: {
@@ -133,6 +135,12 @@ export const useUIStore = defineStore(STORES.UI, {
 				open: false,
 				mode: '',
 				activeId: null,
+			},
+			[ADD_TEST_SUITE_MODAL_KEY]: {
+				open: false,
+			},
+			[EDIT_TEST_SUITE_MODAL_KEY]: {
+				open: false,
 			},
 			[IMPORT_CURL_MODAL_KEY]: {
 				open: false,

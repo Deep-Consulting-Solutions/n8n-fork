@@ -85,7 +85,7 @@ export async function patchTestSuite(
 ): Promise<NodeOutputDb[]> {
 	return await makeRestApiRequest(
 		context,
-		'PUT',
+		'PATCH',
 		`/workflow-tests/nodes-output/${payload.workflowTestId}`,
 		payload as IDataObject,
 	);
