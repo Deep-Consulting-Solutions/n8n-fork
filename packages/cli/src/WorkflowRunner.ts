@@ -46,7 +46,6 @@ import { Logger } from '@/Logger';
 import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.service';
 import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
 import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
-import { createPartialExecution } from './GenericHelpers';
 
 const createResumeTimerEntity = async (data: any) => {
 	let resumeWorkflowEntity = new ResumeWorkflowTimer();
@@ -380,7 +379,6 @@ export class WorkflowRunner {
 				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
 					isTest,
 					nodeOutputs,
-					createPartialExecution,
 					createResumeTimerEntity,
 				});
 				console.log('but not here for workflowRunner.js')
