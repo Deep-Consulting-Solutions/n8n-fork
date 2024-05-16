@@ -262,7 +262,6 @@ export class WorkflowRunner {
 			const webhookExecutionStack = data.executionData?.executionData?.nodeExecutionStack[0];
 			if (webhookExecutionStack?.node?.type === 'n8n-nodes-base.webhook') {
 				const webhookExecutionData = webhookExecutionStack.data.main as any;
-				console.dir(webhookExecutionStack, { depth: null });
 				const testId = webhookExecutionData[0][0]?.json?.query?.testId;
 				if (testId) {
 					const workflowTest = await this.workflowTestRepository.findOneBy({ name: testId, workflowId });
@@ -287,6 +286,7 @@ export class WorkflowRunner {
 						for await (const node of worfklowNodes) {
 							const nodeOutput = await this.nodeOutputRepository.findOneBy({
 								nodeId: node.id,
+								workflowTestId: workflowTest.id
 							});
 							if (!nodeOutput && dcsZohoNodes.includes(node.type)) {
 								const error = new NodeOperationError(
@@ -375,13 +375,11 @@ export class WorkflowRunner {
 					data.executionMode,
 					data.executionData,
 				);
-				console.log('we got here for workflowRunner.js');
 				workflowExecution = workflowExecute.processRunExecutionData(workflow, {
 					isTest,
 					nodeOutputs,
 					createResumeTimerEntity,
 				});
-				console.log('but not here for workflowRunner.js')
 				workflowExecution.then(async (data) => {
 					await logIncidentFromWorkflowExecute(data, workflow);
 					return data;

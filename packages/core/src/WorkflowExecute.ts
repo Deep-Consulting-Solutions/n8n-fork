@@ -159,7 +159,6 @@ export class WorkflowExecute {
 			},
 		};
 
-		console.log('we got here for workflowExecute.js');
 		return this.processRunExecutionData(workflow);
 	}
 
@@ -317,7 +316,6 @@ export class WorkflowExecute {
 			},
 		};
 
-		console.log('we got here for workflowExecute2.js');
 		return this.processRunExecutionData(workflow);
 	}
 
@@ -932,7 +930,6 @@ export class WorkflowExecute {
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
 					nodeStack.push(executionData);
-					console.dir(executionNode, { depth: null });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -1093,7 +1090,7 @@ export class WorkflowExecute {
 										if (nodeOutputData.errorMessage) {
 											throw new NodeOperationError(node, nodeOutputData.errorMessage as string);
 										}
-										nodeSuccessData = [[{ json: nodeOutputData.data }]];
+										nodeSuccessData = [[{ json: JSON.parse(nodeOutputData.data) }]];
 									} else {
 										if (
 											node.type === '@deep-consulting-solutions/n8n-nodes-dcs-noco-db.dcsNocoDb'
@@ -1119,29 +1116,55 @@ export class WorkflowExecute {
 											}
 											executionData.node.parameters.projectId = testProjectId;
 											executionData.node.parameters.table = testTable?.id;
+											runNodeData = await workflow.runNode(
+												executionData,
+												this.runExecutionData,
+												runIndex,
+												this.additionalData,
+												NodeExecuteFunctions,
+												this.mode,
+											);
+											nodeSuccessData = runNodeData.data;
 										} else if (node.type === 'n8n-nodes-base.nocoDbHttpRequest') {
 											let route = node.parameters.route as string;
 											route = route?.replace('CustomBackend', 'CustomBackendTest');
 											executionData.node.parameters.route = route;
-										} else if (node.type === 'n8n-nodes-base.dcsWait') {
-											nodeSuccessData = [
-												[
-													{
-														json: {},
-													},
-												],
-											];
-											break;
+											runNodeData = await workflow.runNode(
+												executionData,
+												this.runExecutionData,
+												runIndex,
+												this.additionalData,
+												NodeExecuteFunctions,
+												this.mode,
+											);
+											nodeSuccessData = runNodeData.data;
+										} else if (
+											node.type === 'n8n-nodes-base.dcsWait' || 
+											node.type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
+										) {
+											if (nextNodeData.length) {
+												const lastNodeInStack = nextNodeData[nextNodeData.length - 1];
+												nodeSuccessData = lastNodeInStack.nodeSuccessData;
+											} else {
+												nodeSuccessData = [
+													[
+														{
+															json: {},
+														},
+													],
+												];
+											}
+										} else {
+											runNodeData = await workflow.runNode(
+												executionData,
+												this.runExecutionData,
+												runIndex,
+												this.additionalData,
+												NodeExecuteFunctions,
+												this.mode,
+											);
+											nodeSuccessData = runNodeData.data;
 										}
-										runNodeData = await workflow.runNode(
-											executionData,
-											this.runExecutionData,
-											runIndex,
-											this.additionalData,
-											NodeExecuteFunctions,
-											this.mode,
-										);
-										nodeSuccessData = runNodeData.data;
 									}
 								} else {
 									if (
@@ -1150,8 +1173,6 @@ export class WorkflowExecute {
 										const connections =
 											workflow.connectionsBySourceNode[executionData.node.name]?.main;
 										if (connections && connections[0]?.length) {
-											console.log('connections');
-											console.dir(connections, { depth: null })
 											const flattenedConnections = [];
 											for (const conn of connections) {
 												flattenedConnections.push(...conn);
@@ -1184,7 +1205,6 @@ export class WorkflowExecute {
 												} as ITaskDataConnections,
 											};
 											this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
-											console.log('Trying to create resume timer entity');
 											await createResumeTimerEntity({
 												resumptionTime,
 												executionId: workflow.id,
@@ -1192,7 +1212,6 @@ export class WorkflowExecute {
 												resultData: this.runExecutionData.resultData,
 												status: 'running',
 											});
-											console.log('created resume timer enitity');
 											delete this.runExecutionData.resultData.runData[executionData.node.name];
 										} else {
 											runNodeData = await workflow.runNode(

@@ -57,7 +57,7 @@ export class WorkflowTestsController {
 		return Container.get(WorkflowTestService).getMany();
 	}
 
-	@Get('/:id')
+	@Get('/:workflowId')
 	async getWorkflowTest(req: WorkflowTestRequest.Get) {
 		const workflow = await Container.get(WorkflowRepository).findOne({
 			where: { id: req.params.workflowId },
