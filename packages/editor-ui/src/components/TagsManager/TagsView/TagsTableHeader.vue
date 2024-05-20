@@ -3,11 +3,11 @@
 		<el-col :span="10">
 			<n8n-input
 				:placeholder="$locale.baseText('tagsTableHeader.searchTags')"
-				:value="search"
-				@input="onSearchChange"
+				:model-value="search"
 				:disabled="disabled"
-				clearable
 				:maxlength="maxLength"
+				clearable
+				@update:model-value="onSearchChange"
 			>
 				<template #prefix>
 					<font-awesome-icon icon="search" />
@@ -16,20 +16,20 @@
 		</el-col>
 		<el-col :span="14">
 			<n8n-button
-				@click="onAddNew"
 				:disabled="disabled"
 				icon="plus"
 				:label="$locale.baseText('tagsTableHeader.addNew')"
 				size="large"
 				float="right"
+				@click="onAddNew"
 			/>
 		</el-col>
 	</el-row>
 </template>
 
 <script lang="ts">
-import { MAX_TAG_NAME_LENGTH } from '@/constants';
 import { defineComponent } from 'vue';
+import { MAX_TAG_NAME_LENGTH } from '@/constants';
 
 export default defineComponent({
 	props: {

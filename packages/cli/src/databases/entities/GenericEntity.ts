@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from '@n8n/typeorm';
 
 // eslint-disable-next-line import/no-default-export
 export default abstract class GenericEntity {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Column, Entity } from 'typeorm';
+import { Column, Entity } from '@n8n/typeorm';
 
 import GenericEntity from './GenericEntity';
 
@@ -13,7 +13,7 @@ export class ServerIncident extends GenericEntity {
 	APIMethod: string;
 
 	@Column({ type: 'json', nullable: true })
-	APIBody: any;
+	APIBody: unknown;
 
 	@Column({ nullable: true })
 	queueName: string;
@@ -28,7 +28,7 @@ export class ServerIncident extends GenericEntity {
 	incidentTime: Date;
 
 	@Column({ type: 'json', nullable: true })
-	additionalInformation: any;
+	additionalInformation: unknown;
 
 	@Column({ nullable: true })
 	zohoDeskTicketId: string;

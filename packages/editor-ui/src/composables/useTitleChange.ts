@@ -1,19 +1,30 @@
 import type { WorkflowTitleStatus } from '@/Interface';
+import { useSettingsStore } from '@/stores/settings.store';
 
 export function useTitleChange() {
-	return {
-		titleSet(workflow: string, status: WorkflowTitleStatus) {
-			let icon = '⚠️';
-			if (status === 'EXECUTING') {
-				icon = '🔄';
-			} else if (status === 'IDLE') {
-				icon = '▶️';
-			}
+	const prependBeta = (title: string) => {
+		const settingsStore = useSettingsStore();
+		const { releaseChannel } = settingsStore.settings;
+		return releaseChannel === 'stable' ? title : `[${releaseChannel.toUpperCase()}] ${title}`;
+	};
 
-			window.document.title = `n8n - ${icon} ${workflow}`;
-		},
-		titleReset() {
-			document.title = 'n8n - Workflow Automation';
-		},
+	const titleSet = (workflow: string, status: WorkflowTitleStatus) => {
+		let icon = '⚠️';
+		if (status === 'EXECUTING') {
+			icon = '🔄';
+		} else if (status === 'IDLE') {
+			icon = '▶️';
+		}
+
+		window.document.title = prependBeta(`n8n - ${icon} ${workflow}`);
+	};
+
+	const titleReset = () => {
+		window.document.title = prependBeta('n8n - Workflow Automation');
+	};
+
+	return {
+		titleSet,
+		titleReset,
 	};
 }

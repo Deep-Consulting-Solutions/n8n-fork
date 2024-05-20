@@ -1,12 +1,12 @@
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
+import { configurePostgres } from '../transport';
+import { configureQueryRunner } from '../helpers/utils';
 import type { PostgresType } from './node.type';
 
 import * as database from './database/Database.resource';
-import { Connections } from '../transport';
-import { configureQueryRunner } from '../helpers/utils';
-import type { ConnectionsData } from '../helpers/interfaces';
+import type { PostgresNodeCredentials, PostgresNodeOptions } from '../helpers/interfaces';
 
 export async function router(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 	let returnData: INodeExecutionData[] = [];
@@ -15,18 +15,16 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 	const resource = this.getNodeParameter<PostgresType>('resource', 0);
 	const operation = this.getNodeParameter('operation', 0);
 
-	const credentials = await this.getCredentials('postgres');
-	const options = this.getNodeParameter('options', 0, {});
+	const credentials = (await this.getCredentials('postgres')) as PostgresNodeCredentials;
+	const options = this.getNodeParameter('options', 0, {}) as PostgresNodeOptions;
+	options.nodeVersion = this.getNode().typeVersion;
+	options.operation = operation;
 
-	const { db, pgp, sshClient } = (await Connections.getInstance(
-		credentials,
-		options,
-		true,
-	)) as ConnectionsData;
+	const { db, pgp, sshClient } = await configurePostgres(credentials, options);
 
-	const runQueries = configureQueryRunner(
+	const runQueries = configureQueryRunner.call(
+		this,
 		this.getNode(),
-		this.helpers.constructExecutionMetaData,
 		this.continueOnFail(),
 		pgp,
 		db,
@@ -60,8 +58,9 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 		if (sshClient) {
 			sshClient.end();
 		}
-		pgp.end();
+
+		if (!db.$pool.ending) await db.$pool.end();
 	}
 
-	return this.prepareOutputData(returnData);
+	return [returnData];
 }

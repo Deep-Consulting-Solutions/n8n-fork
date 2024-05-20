@@ -6,7 +6,6 @@ import { EventDestinations } from './EventDestinations';
 import { ExecutionEntity } from './ExecutionEntity';
 import { InstalledNodes } from './InstalledNodes';
 import { InstalledPackages } from './InstalledPackages';
-import { Role } from './Role';
 import { Settings } from './Settings';
 import { SharedCredentials } from './SharedCredentials';
 import { SharedWorkflow } from './SharedWorkflow';
@@ -18,9 +17,16 @@ import { WorkflowEntity } from './WorkflowEntity';
 import { WorkflowTagMapping } from './WorkflowTagMapping';
 import { WorkflowStatistics } from './WorkflowStatistics';
 import { ExecutionMetadata } from './ExecutionMetadata';
-import { SaveRequestLog } from './SaveRequestLog';
-import { DataRecoveryActivity } from './DataRecoveryActivity';
+import { ExecutionData } from './ExecutionData';
+import { WorkflowHistory } from './WorkflowHistory';
 import { ServerIncident } from './ServerIncident';
+import { DataRecoveryActivity } from './DataRecoveryActivity';
+import { WorkflowTest } from './WorkflowTest';
+import { NodeOutput } from './NodeOutput';
+import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
+import { SaveRequestLog } from './SaveRequestLog';
+import { EsaEnums } from './EsaEnums';
+import { EsaEnumData } from './EsaEnumData';
 
 export const entities = {
 	AuthIdentity,
@@ -30,7 +36,6 @@ export const entities = {
 	ExecutionEntity,
 	InstalledNodes,
 	InstalledPackages,
-	Role,
 	Settings,
 	SharedCredentials,
 	SharedWorkflow,
@@ -42,7 +47,14 @@ export const entities = {
 	WorkflowTagMapping,
 	WorkflowStatistics,
 	ExecutionMetadata,
-	SaveRequestLog,
-	DataRecoveryActivity,
+	ExecutionData,
+	WorkflowHistory,
 	ServerIncident,
+	DataRecoveryActivity,
+	WorkflowTest,
+	NodeOutput,
+	ResumeWorkflowTimer,
+	SaveRequestLog,
+	EsaEnums,
+	EsaEnumData,
 };

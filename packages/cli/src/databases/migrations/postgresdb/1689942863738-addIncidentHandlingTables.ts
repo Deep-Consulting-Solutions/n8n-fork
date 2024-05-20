@@ -1,9 +1,9 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationContext, ReversibleMigration } from '@db/types';
 
-export class addIncidentHandlingTables1689942863738 implements MigrationInterface {
+export class addIncidentHandlingTables1689942863738 implements ReversibleMigration {
 	name = 'addIncidentHandlingTables1689942863738';
 
-	public async up(queryRunner: QueryRunner): Promise<void> {
+	public async up({ queryRunner, tablePrefix }: MigrationContext): Promise<void> {
 		await queryRunner.query(
 			`CREATE TABLE "server_incident" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "lastUpdateByAppUserId" character varying, "lastUpdateByZohoUserId" character varying, "lastUpdateSource" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT ('now'::text)::timestamp(6) with time zone, "updatedAt" TIMESTAMP NOT NULL DEFAULT ('now'::text)::timestamp(6) with time zone, "API" character varying, "APIMethod" character varying, "APIBody" json, "queueName" character varying, "errorMessage" character varying NOT NULL, "errorStackTrace" character varying, "incidentTime" TIMESTAMP NOT NULL, "additionalInformation" json, "zohoDeskTicketId" character varying, "correlationId" character varying, "isResolved" boolean NOT NULL DEFAULT false, CONSTRAINT "PK_c24ae1e5263dccb981312915dfc" PRIMARY KEY ("id"))`,
 		);
@@ -15,7 +15,7 @@ export class addIncidentHandlingTables1689942863738 implements MigrationInterfac
 		);
 	}
 
-	public async down(queryRunner: QueryRunner): Promise<void> {
+	public async down({ queryRunner, tablePrefix }: MigrationContext): Promise<void> {
 		await queryRunner.query(`DROP TABLE "data_recovery_activity"`);
 		await queryRunner.query(`DROP TYPE "public"."data_recovery_activity_status_enum"`);
 		await queryRunner.query(`DROP TABLE "server_incident"`);

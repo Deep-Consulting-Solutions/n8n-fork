@@ -37,7 +37,9 @@ const SettingsView = defineComponent({
 	},
 	methods: {
 		onReturn() {
-			this.$router.push(this.previousRoute ? this.previousRoute.path : { name: VIEWS.HOMEPAGE });
+			void this.$router.push(
+				this.previousRoute ? this.previousRoute.path : { name: VIEWS.HOMEPAGE },
+			);
 		},
 	},
 });
@@ -65,7 +67,7 @@ export default SettingsView;
 .content {
 	height: 100%;
 	width: 100%;
-	max-width: 800px;
+	max-width: 1280px;
 	padding: 0 var(--spacing-2xl);
 }
 </style>

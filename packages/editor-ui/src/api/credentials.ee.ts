@@ -1,5 +1,5 @@
 import type { ICredentialsResponse, IRestApiContext, IShareCredentialsPayload } from '@/Interface';
-import { makeRestApiRequest } from '@/utils';
+import { makeRestApiRequest } from '@/utils/apiUtils';
 import type { IDataObject } from 'n8n-workflow';
 
 export async function setCredentialSharedWith(
@@ -7,7 +7,7 @@ export async function setCredentialSharedWith(
 	id: string,
 	data: IShareCredentialsPayload,
 ): Promise<ICredentialsResponse> {
-	return makeRestApiRequest(
+	return await makeRestApiRequest(
 		context,
 		'PUT',
 		`/credentials/${id}/share`,

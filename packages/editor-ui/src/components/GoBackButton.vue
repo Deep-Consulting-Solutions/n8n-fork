@@ -6,8 +6,8 @@
 </template>
 
 <script lang="ts">
-import { VIEWS } from '@/constants';
 import { defineComponent } from 'vue';
+import { VIEWS } from '@/constants';
 
 export default defineComponent({
 	name: 'GoBackButton',
@@ -16,14 +16,14 @@ export default defineComponent({
 			routeHasHistory: false,
 		};
 	},
+	mounted() {
+		window.history.state ? (this.routeHasHistory = true) : (this.routeHasHistory = false);
+	},
 	methods: {
 		navigateTo() {
 			if (this.routeHasHistory) this.$router.go(-1);
-			else this.$router.push({ name: VIEWS.TEMPLATES });
+			else void this.$router.push({ name: VIEWS.TEMPLATES });
 		},
-	},
-	mounted() {
-		window.history.state ? (this.routeHasHistory = true) : (this.routeHasHistory = false);
 	},
 });
 </script>

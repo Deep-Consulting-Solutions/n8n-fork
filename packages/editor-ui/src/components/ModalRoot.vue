@@ -1,10 +1,10 @@
 <template>
 	<div v-if="uiStore.isModalOpen(name) || keepAlive">
 		<slot
-			:modalName="name"
+			:modal-name="name"
 			:active="uiStore.isModalActive(name)"
 			:open="uiStore.isModalOpen(name)"
-			:activeId="uiStore.getModalActiveId(name)"
+			:active-id="uiStore.getModalActiveId(name)"
 			:mode="uiStore.getModalMode(name)"
 			:data="uiStore.getModalData(name)"
 		></slot>
@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useUIStore } from '@/stores/ui';
+import { useUIStore } from '@/stores/ui.store';
 import { mapStores } from 'pinia';
 
 export default defineComponent({

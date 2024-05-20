@@ -1,58 +1,38 @@
 <template>
 	<AuthView
 		:form="FORM_CONFIG"
-		:formLoading="loading"
+		:form-loading="loading"
+		:show-additional="true"
+		:otp-secret-auth-url="otpSecretAuthURL"
+		:otp-secret-base32="otpSecretBase32"
 		data-test-id="setup-form"
 		@submit="onSubmit"
-		@secondaryClick="showSkipConfirmation"
 	>
-		<div :class="$style.otp">
-			<p :class="$style.otpLabel">Secret:</p>
-			<p :class="$style.otp32">{{ otpSecretBase32 }}</p>
-			<div :class="$style.otpQR">
-				<img :src="otpSecretAuthURL" />
-			</div>
-		</div>
 	</AuthView>
 </template>
 
 <script lang="ts">
 import AuthView from './AuthView.vue';
-import { showMessage } from '@/mixins/showMessage';
+import { defineComponent } from 'vue';
 
-import mixins from 'vue-typed-mixins';
+import { useToast } from '@/composables/useToast';
 import QRCode from 'qrcode';
 import type { IFormBoxConfig } from '@/Interface';
 import { VIEWS } from '@/constants';
 import { mapStores } from 'pinia';
-import { useUIStore } from '@/stores/ui';
-import { useSettingsStore } from '@/stores/settings';
-import { useUsersStore } from '@/stores/users';
-import { useCredentialsStore } from '@/stores/credentials';
+import { useUIStore } from '@/stores/ui.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useUsersStore } from '@/stores/users.store';
 
-export default mixins(showMessage).extend({
+export default defineComponent({
 	name: 'SetupView',
 	components: {
 		AuthView,
-	},
-	async mounted() {
-		const [{ credentials, workflows }, { base32, otpauth_url }] = await Promise.all([
-			this.usersStore.preOwnerSetup(),
-			this.usersStore.generateOTPSecret(),
-		]);
-
-		this.credentialsCount = credentials;
-		this.workflowsCount = workflows;
-		this.otpSecretBase32 = base32;
-		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
-			this.otpSecretAuthURL = dataUrl;
-		});
 	},
 	data() {
 		const FORM_CONFIG: IFormBoxConfig = {
 			title: this.$locale.baseText('auth.setup.setupOwner'),
 			buttonText: this.$locale.baseText('auth.setup.next'),
-			secondaryButtonText: this.$locale.baseText('auth.setup.skipSetupTemporarily'),
 			inputs: [
 				{
 					name: 'email',
@@ -119,60 +99,26 @@ export default mixins(showMessage).extend({
 		return {
 			FORM_CONFIG,
 			loading: false,
-			workflowsCount: 0,
-			credentialsCount: 0,
 			otpSecretBase32: '',
 			otpSecretAuthURL: '',
 		};
 	},
 	computed: {
-		...mapStores(useCredentialsStore, useSettingsStore, useUIStore, useUsersStore),
+		...mapStores(useSettingsStore, useUIStore, useUsersStore),
+	},
+	async mounted() {
+		const { base32, otpauth_url } = await this.usersStore.generateOTPSecret();
+
+		this.otpSecretBase32 = base32;
+		QRCode.toDataURL(otpauth_url, (_err, dataUrl) => {
+			this.otpSecretAuthURL = dataUrl;
+		});
+		console.log('this.otpSecretAuthURL');
+		console.log(this.otpSecretAuthURL);
 	},
 	methods: {
-		async confirmSetupOrGoBack(): Promise<boolean> {
-			if (this.workflowsCount === 0 && this.credentialsCount === 0) {
-				return true;
-			}
-
-			const workflows =
-				this.workflowsCount > 0
-					? this.$locale.baseText('auth.setup.setupConfirmation.existingWorkflows', {
-							adjustToNumber: this.workflowsCount,
-					  })
-					: '';
-
-			const credentials =
-				this.credentialsCount > 0
-					? this.$locale.baseText('auth.setup.setupConfirmation.credentials', {
-							adjustToNumber: this.credentialsCount,
-					  })
-					: '';
-
-			const entities =
-				workflows && credentials
-					? this.$locale.baseText('auth.setup.setupConfirmation.concatEntities', {
-							interpolate: { workflows, credentials },
-					  })
-					: workflows || credentials;
-			return await this.confirmMessage(
-				this.$locale.baseText('auth.setup.confirmOwnerSetupMessage', {
-					interpolate: {
-						entities,
-					},
-				}),
-				this.$locale.baseText('auth.setup.confirmOwnerSetup'),
-				null,
-				this.$locale.baseText('auth.setup.createAccount'),
-				this.$locale.baseText('auth.setup.goBack'),
-			);
-		},
 		async onSubmit(values: { [key: string]: string | boolean }) {
 			try {
-				const confirmSetup = await this.confirmSetupOrGoBack();
-				if (!confirmSetup) {
-					return;
-				}
-
 				const forceRedirectedHere = this.settingsStore.showSetupPage;
 				this.loading = true;
 
@@ -202,27 +148,9 @@ export default mixins(showMessage).extend({
 					await this.$router.push({ name: VIEWS.USERS_SETTINGS });
 				}
 			} catch (error) {
-				this.$showError(error, this.$locale.baseText('auth.setup.settingUpOwnerError'));
+				this.showError(error, this.$locale.baseText('auth.setup.settingUpOwnerError'));
 			}
 			this.loading = false;
-		},
-		async showSkipConfirmation() {
-			const skip = await this.confirmMessage(
-				this.$locale.baseText('auth.setup.ownerAccountBenefits'),
-				this.$locale.baseText('auth.setup.skipOwnerSetupQuestion'),
-				null,
-				this.$locale.baseText('auth.setup.skipSetup'),
-				this.$locale.baseText('auth.setup.goBack'),
-			);
-			if (skip) {
-				this.onSkip();
-			}
-		},
-		onSkip() {
-			this.usersStore.skipOwnerSetup();
-			this.$router.push({
-				name: VIEWS.NEW_WORKFLOW,
-			});
 		},
 	},
 });

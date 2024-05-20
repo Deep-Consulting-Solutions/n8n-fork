@@ -1,4 +1,4 @@
-ARG NODE_VERSION=16
+ARG NODE_VERSION=18
 ARG ACCESS_TOKEN
 
 # 1. Create an image to build n8n
@@ -6,27 +6,32 @@ FROM n8nio/base:${NODE_VERSION} as builder
 ARG ACCESS_TOKEN
 ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 
-COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.json ./
+RUN mkdir /compiled && chown node:node /compiled
+
+COPY --chown=node:node turbo.json package.json .npmrc pnpm-lock.yaml pnpm-workspace.yaml jest.config.js tsconfig.backend.json tsconfig.json tsconfig.build.json ./
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node packages ./packages
 COPY --chown=node:node patches ./patches
 
 RUN apk add --update libc6-compat jq
 RUN corepack enable && corepack prepare --activate
-USER node
 
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
-RUN pnpm install --frozen-lockfile
-RUN pnpm build
-RUN rm -rf node_modules
-RUN jq 'del(.pnpm.patchedDependencies)' package.json > package.json.tmp; mv package.json.tmp package.json
-RUN jq '{name: .name, version: .version}' packages/editor-ui/package.json > editor-ui.tmp; mv editor-ui.tmp packages/editor-ui/package.json
-RUN jq '{name: .name, version: .version}' packages/design-system/package.json > design-system.tmp; mv design-system.tmp packages/design-system/package.json
-RUN NODE_ENV=production pnpm install --prod --no-optional
-RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" -o -name "*.tsbuildinfo" | xargs rm -rf
-RUN rm -rf packages/@n8n_io/eslint-config packages/editor-ui/src packages/editor-ui/node_modules packages/design-system
-RUN rm -rf patches .npmrc *.yaml node_modules/.cache packages/**/node_modules/.cache packages/**/.turbo .config .cache .local .node /tmp/*
+RUN /usr/local/bin/pnpm install --frozen-lockfile
+RUN /usr/local/bin/pnpm build
 
+# Delete all dev dependencies
+RUN jq 'del(.pnpm.patchedDependencies)' package.json > package.json.tmp; mv package.json.tmp package.json
+RUN node scripts/trim-fe-packageJson.js
+
+# Delete any source code, source-mapping, or typings
+RUN find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" -o -name "*.tsbuildinfo" | xargs rm -rf
+
+# Deploy the `n8n` package into /compiled
+ENV NODE_ENV=production
+RUN pnpm --filter=n8n --prod --no-optional deploy /compiled
+
+USER node
 # 2 . install packages
 FROM node:${NODE_VERSION}-slim as privatenodepackages
 ARG ACCESS_TOKEN
@@ -34,15 +39,22 @@ ENV TOKEN_FOR_PACKAGES=${ACCESS_TOKEN}
 RUN cd /home/node && mkdir .n8n && cd .n8n && mkdir nodes && cd nodes
 WORKDIR /home/node/.n8n/nodes
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES > .npmrc
-RUN npm install "@deep-consulting-solutions/n8n-nodes-dcs-crm" "@deep-consulting-solutions/n8n-nodes-dcs-noco-db" "@deep-consulting-solutions/n8n-nodes-dcs-s3" "@deep-consulting-solutions/n8n-nodes-esa-sendgrid"
+RUN npm install "@deep-consulting-solutions/n8n-nodes-dcs-crm" "@deep-consulting-solutions/n8n-nodes-dcs-noco-db" "@deep-consulting-solutions/n8n-nodes-dcs-s3" "@deep-consulting-solutions/n8n-nodes-esa-sendgrid" "@deep-consulting-solutions/n8n-nodes-dcs-wait"
 
 # 3. Start with a new clean image with just the code that is needed to run n8n
 FROM n8nio/base:${NODE_VERSION}
-COPY --from=builder /home/node /usr/local/lib/node_modules/n8n
-RUN ln -s /usr/local/lib/node_modules/n8n/packages/cli/bin/n8n /usr/local/bin/n8n
+ENV NODE_ENV=production
+
+ARG N8N_RELEASE_TYPE=dev
+ENV N8N_RELEASE_TYPE=${N8N_RELEASE_TYPE}
+
+WORKDIR /home/node
+COPY --from=builder /compiled /usr/local/lib/node_modules/n8n
 COPY docker/images/n8n-custom/docker-entrypoint.sh /
 
 RUN \
+	pnpm rebuild --dir /usr/local/lib/node_modules/n8n sqlite3 && \
+	ln -s /usr/local/lib/node_modules/n8n/bin/n8n /usr/local/bin/n8n && \
 	mkdir .n8n && \
 	chown node:node .n8n
 

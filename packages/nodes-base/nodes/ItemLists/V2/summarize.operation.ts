@@ -7,7 +7,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import get from 'lodash.get';
+import get from 'lodash/get';
 
 type AggregationType =
 	| 'append'
@@ -29,7 +29,6 @@ type Aggregation = {
 
 type Aggregations = Aggregation[];
 
-// eslint-disable-next-line no-restricted-syntax
 const AggregationDisplayNames = {
 	append: 'appended_',
 	average: 'average_',
@@ -571,7 +570,11 @@ export async function execute(
 
 	const getValue = fieldValueGetter(options.disableDotNotation);
 
-	checkIfFieldExists.call(this, newItems, fieldsToSummarize, getValue);
+	const nodeVersion = this.getNode().typeVersion;
+
+	if (nodeVersion < 2.1) {
+		checkIfFieldExists.call(this, newItems, fieldsToSummarize, getValue);
+	}
 
 	const aggregationResult = splitData(
 		fieldsToSplitBy,
@@ -588,7 +591,7 @@ export async function execute(
 				item: index,
 			})),
 		};
-		return this.prepareOutputData([executionData]);
+		return [[executionData]];
 	} else {
 		if (!fieldsToSplitBy.length) {
 			const { pairedItems, ...json } = aggregationResult;
@@ -598,7 +601,7 @@ export async function execute(
 					item: index,
 				})),
 			};
-			return this.prepareOutputData([executionData]);
+			return [[executionData]];
 		}
 		const returnData = aggregationToArray(aggregationResult, fieldsToSplitBy);
 		const executionData = returnData.map((item) => {
@@ -610,6 +613,6 @@ export async function execute(
 				})),
 			};
 		});
-		return this.prepareOutputData(executionData);
+		return [executionData];
 	}
 }

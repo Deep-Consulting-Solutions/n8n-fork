@@ -1,109 +1,83 @@
 import validator from 'validator';
+
+import { AuthService } from '@/auth/auth.service';
 import speakeasy from 'speakeasy';
-import { Authorized, Get, Post, RestController } from '@/decorators';
-import { AuthError, BadRequestError, InternalServerError } from '@/ResponseHelper';
-import { sanitizeUser, withFeatureFlags } from '@/UserManagement/UserManagementHelper';
-import { issueCookie, resolveJwt } from '@/auth/jwt';
-import { AUTH_COOKIE_NAME } from '@/constants';
+import { Get, Post, RestController } from '@/decorators';
+import { RESPONSE_ERROR_MESSAGES } from '@/constants';
 import { Request, Response } from 'express';
-import type { ILogger } from 'n8n-workflow';
 import type { User } from '@db/entities/User';
-import { LoginRequest, UserRequest } from '@/requests';
-import { In } from 'typeorm';
-import type { Config } from '@/config';
-import type {
-	PublicUser,
-	IDatabaseCollections,
-	IInternalHooksClass,
-	CurrentUser,
-} from '@/Interfaces';
+import { AuthenticatedRequest, LoginRequest, UserRequest } from '@/requests';
+import type { PublicUser } from '@/Interfaces';
 import { handleEmailLogin, handleLdapLogin } from '@/auth';
-import type { PostHogClient } from '@/posthog';
+import { PostHogClient } from '@/posthog';
 import {
+	getCurrentAuthenticationMethod,
 	isLdapCurrentAuthenticationMethod,
 	isSamlCurrentAuthenticationMethod,
 } from '@/sso/ssoHelpers';
-import type { UserRepository } from '@db/repositories';
+import { InternalHooks } from '../InternalHooks';
+import { License } from '@/License';
+import { UserService } from '@/services/user.service';
+import { MfaService } from '@/Mfa/mfa.service';
+import { Logger } from '@/Logger';
+import { AuthError } from '@/errors/response-errors/auth.error';
+import { BadRequestError } from '@/errors/response-errors/bad-request.error';
+import { UnauthorizedError } from '@/errors/response-errors/unauthorized.error';
+import { ApplicationError } from 'n8n-workflow';
+import { UserRepository } from '@/databases/repositories/user.repository';
 
 @RestController()
 export class AuthController {
-	private readonly config: Config;
+	constructor(
+		private readonly logger: Logger,
+		private readonly internalHooks: InternalHooks,
+		private readonly authService: AuthService,
+		private readonly mfaService: MfaService,
+		private readonly userService: UserService,
+		private readonly license: License,
+		private readonly userRepository: UserRepository,
+		private readonly postHog?: PostHogClient,
+	) {}
 
-	private readonly logger: ILogger;
-
-	private readonly internalHooks: IInternalHooksClass;
-
-	private readonly userRepository: UserRepository;
-
-	private readonly postHog?: PostHogClient;
-
-	constructor({
-		config,
-		logger,
-		internalHooks,
-		repositories,
-		postHog,
-	}: {
-		config: Config;
-		logger: ILogger;
-		internalHooks: IInternalHooksClass;
-		repositories: Pick<IDatabaseCollections, 'User'>;
-		postHog?: PostHogClient;
-	}) {
-		this.config = config;
-		this.logger = logger;
-		this.internalHooks = internalHooks;
-		this.userRepository = repositories.User;
-		this.postHog = postHog;
-	}
-
-	/**
-	 * Generate OTP Secret
-	 */
-	@Post('/otp-secret')
-	generateOTPSecret() {
-		const secret = speakeasy.generateSecret();
-
-		return {
-			base32: secret.base32,
-			otpauth_url: secret.otpauth_url,
-		};
-	}
-
-	/**
-	 * Log in a user.
-	 */
-	@Post('/login')
+	/** Log in a user */
+	@Post('/login', { skipAuth: true, rateLimit: true })
 	async login(req: LoginRequest, res: Response): Promise<PublicUser | undefined> {
-		const { email, password, otp } = req.body;
-		if (!email) throw new Error('Email is required to log in');
-		if (!password) throw new Error('Password is required to log in');
+		const { email, password, mfaToken, mfaRecoveryCode, otp } = req.body;
+		if (!email) throw new ApplicationError('Email is required to log in');
+		if (!password) throw new ApplicationError('Password is required to log in');
 		if (!otp) throw new Error('OTP is required to log in');
 
 		let user: User | undefined;
 
+		let usedAuthenticationMethod = getCurrentAuthenticationMethod();
 		if (isSamlCurrentAuthenticationMethod()) {
 			// attempt to fetch user data with the credentials, but don't log in yet
 			const preliminaryUser = await handleEmailLogin(email, password);
 			// if the user is an owner, continue with the login
-			if (preliminaryUser?.globalRole?.name === 'owner') {
+			if (
+				preliminaryUser?.role === 'global:owner' ||
+				preliminaryUser?.settings?.allowSSOManualLogin
+			) {
 				user = preliminaryUser;
+				usedAuthenticationMethod = 'email';
 			} else {
-				throw new AuthError('SAML is enabled, please log in with SAML');
+				throw new AuthError('SSO is enabled, please log in with SSO');
 			}
 		} else if (isLdapCurrentAuthenticationMethod()) {
-			user = await handleLdapLogin(email, password);
+			const preliminaryUser = await handleEmailLogin(email, password);
+			if (preliminaryUser?.role === 'global:owner') {
+				user = preliminaryUser;
+				usedAuthenticationMethod = 'email';
+			} else {
+				user = await handleLdapLogin(email, password);
+			}
 		} else {
 			user = await handleEmailLogin(email, password);
 		}
 
-		if (!user) {
-			throw new AuthError('Wrong username or password. Do you have caps lock on?');
-		}
-
-		if (user.otpsecret) {
+		if (user?.otpsecret) {
 			const verified = speakeasy.totp.verify({
-				secret: user.otpsecret,
+				secret: user?.otpsecret,
 				encoding: 'base32',
 				token: otp,
 			});
@@ -113,59 +87,78 @@ export class AuthController {
 			}
 		}
 
-		await issueCookie(res, user);
-		return withFeatureFlags(this.postHog, sanitizeUser(user));
-	}
+		if (user) {
+			if (user.mfaEnabled) {
+				if (!mfaToken && !mfaRecoveryCode) {
+					throw new AuthError('MFA Error', 998);
+				}
 
-	/**
-	 * Manually check the `n8n-auth` cookie.
-	 */
-	@Get('/login')
-	async currentUser(req: Request, res: Response): Promise<CurrentUser> {
-		// Manually check the existing cookie.
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const cookieContents = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
+				const { decryptedRecoveryCodes, decryptedSecret } =
+					await this.mfaService.getSecretAndRecoveryCodes(user.id);
 
-		let user: User;
-		if (cookieContents) {
-			// If logged in, return user
-			try {
-				user = await resolveJwt(cookieContents);
-				return await withFeatureFlags(this.postHog, sanitizeUser(user));
-			} catch (error) {
-				res.clearCookie(AUTH_COOKIE_NAME);
+				user.mfaSecret = decryptedSecret;
+				user.mfaRecoveryCodes = decryptedRecoveryCodes;
+
+				const isMFATokenValid =
+					(await this.validateMfaToken(user, mfaToken)) ||
+					(await this.validateMfaRecoveryCode(user, mfaRecoveryCode));
+
+				if (!isMFATokenValid) {
+					throw new AuthError('Invalid mfa token or recovery code');
+				}
 			}
-		}
 
-		if (this.config.getEnv('userManagement.isInstanceOwnerSetUp')) {
-			throw new AuthError('Not logged in');
-		}
-
-		try {
-			user = await this.userRepository.findOneOrFail({
-				relations: ['globalRole'],
-				where: {},
+			this.authService.issueCookie(res, user, req.browserId);
+			void this.internalHooks.onUserLoginSuccess({
+				user,
+				authenticationMethod: usedAuthenticationMethod,
 			});
-		} catch (error) {
-			throw new InternalServerError(
-				'No users found in database - did you wipe the users table? Create at least one user.',
-			);
-		}
 
-		if (user.email || user.password) {
-			throw new InternalServerError('Invalid database state - user has password set.');
+			return await this.userService.toPublic(user, { posthog: this.postHog, withScopes: true });
 		}
+		void this.internalHooks.onUserLoginFailed({
+			user: email,
+			authenticationMethod: usedAuthenticationMethod,
+			reason: 'wrong credentials',
+		});
+		throw new AuthError('Wrong username or password. Do you have caps lock on?');
+	}
 
-		await issueCookie(res, user);
-		return withFeatureFlags(this.postHog, sanitizeUser(user));
+	/** Check if the user is already logged in */
+	@Get('/login')
+	async currentUser(req: AuthenticatedRequest): Promise<PublicUser> {
+		return await this.userService.toPublic(req.user, {
+			posthog: this.postHog,
+			withScopes: true,
+		});
 	}
 
 	/**
-	 * Validate invite token to enable invitee to set up their account.
+	 * Generate OTP Secret
 	 */
-	@Get('/resolve-signup-token')
+	@Post('/otp-secret', { skipAuth: true, rateLimit: true })
+	async generateOTPSecret() {
+		const secret = speakeasy.generateSecret();
+
+		return {
+			base32: secret.base32,
+			otpauth_url: secret.otpauth_url,
+		};
+	}
+
+	/** Validate invite token to enable invitee to set up their account */
+	@Get('/resolve-signup-token', { skipAuth: true })
 	async resolveSignupToken(req: UserRequest.ResolveSignUp) {
 		const { inviterId, inviteeId } = req.query;
+		const isWithinUsersLimit = this.license.isWithinUsersLimit();
+
+		if (!isWithinUsersLimit) {
+			this.logger.debug('Request to resolve signup token failed because of users quota reached', {
+				inviterId,
+				inviteeId,
+			});
+			throw new UnauthorizedError(RESPONSE_ERROR_MESSAGES.USERS_QUOTA_REACHED);
+		}
 
 		if (!inviterId || !inviteeId) {
 			this.logger.debug(
@@ -185,7 +178,8 @@ export class AuthController {
 			}
 		}
 
-		const users = await this.userRepository.find({ where: { id: In([inviterId, inviteeId]) } });
+		const users = await this.userRepository.findManyByIds([inviterId, inviteeId]);
+
 		if (users.length !== 2) {
 			this.logger.debug(
 				'Request to resolve signup token failed because the ID of the inviter and/or the ID of the invitee were not found in database',
@@ -220,13 +214,33 @@ export class AuthController {
 		return { inviter: { firstName, lastName } };
 	}
 
-	/**
-	 * Log out a user.
-	 */
-	@Authorized()
+	/** Log out a user */
 	@Post('/logout')
-	logout(req: Request, res: Response) {
-		res.clearCookie(AUTH_COOKIE_NAME);
+	logout(_: Request, res: Response) {
+		this.authService.clearCookie(res);
 		return { loggedOut: true };
+	}
+
+	private async validateMfaToken(user: User, token?: string) {
+		if (!!!token) return false;
+		return this.mfaService.totp.verifySecret({
+			secret: user.mfaSecret ?? '',
+			token,
+		});
+	}
+
+	private async validateMfaRecoveryCode(user: User, mfaRecoveryCode?: string) {
+		if (!!!mfaRecoveryCode) return false;
+		const index = user.mfaRecoveryCodes.indexOf(mfaRecoveryCode);
+		if (index === -1) return false;
+
+		// remove used recovery code
+		user.mfaRecoveryCodes.splice(index, 1);
+
+		await this.userService.update(user.id, {
+			mfaRecoveryCodes: this.mfaService.encryptRecoveryCodes(user.mfaRecoveryCodes),
+		});
+
+		return true;
 	}
 }

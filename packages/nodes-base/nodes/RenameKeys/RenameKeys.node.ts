@@ -7,9 +7,9 @@ import type {
 } from 'n8n-workflow';
 import { deepCopy } from 'n8n-workflow';
 
-import get from 'lodash.get';
-import set from 'lodash.set';
-import unset from 'lodash.unset';
+import get from 'lodash/get';
+import set from 'lodash/set';
+import unset from 'lodash/unset';
 
 interface IRenameKey {
 	currentKey: string;
@@ -23,7 +23,7 @@ export class RenameKeys implements INodeType {
 		icon: 'fa:edit',
 		group: ['transform'],
 		version: 1,
-		description: 'Renames keys',
+		description: 'Update item field names',
 		defaults: {
 			name: 'Rename Keys',
 			color: '#772244',

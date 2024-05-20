@@ -10,11 +10,20 @@
 			<n8n-form-box
 				v-bind="form"
 				data-test-id="auth-form"
-				:buttonLoading="formLoading"
-				@secondaryClick="onSecondaryClick"
+				:button-loading="formLoading"
+				@secondary-click="onSecondaryClick"
 				@submit="onSubmit"
-				@input="onInput"
+				@update="onUpdate"
 			>
+				<template v-if="showAdditional">
+					<div :class="$style.otp">
+						<p :class="$style.otpLabel">Secret:</p>
+						<p :class="$style.otp32">{{ otpSecretBase32 }}</p>
+						<div :class="$style.otpQR">
+							<img :src="otpSecretAuthUrl" />
+						</div>
+					</div>
+				</template>
 				<SSOLogin v-if="withSso" />
 				<template #additional>
 					<slot />
@@ -49,10 +58,20 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		showAdditional: {
+			type: Boolean,
+			default: false,
+		},
+		otpSecretBase32: {
+			type: String,
+		},
+		otpSecretAuthUrl: {
+			type: String,
+		},
 	},
 	methods: {
-		onInput(e: { name: string; value: string }) {
-			this.$emit('input', e);
+		onUpdate(e: { name: string; value: string }) {
+			this.$emit('update', e);
 		},
 		onSubmit(values: { [key: string]: string }) {
 			this.$emit('submit', values);
@@ -92,6 +111,23 @@ body {
 
 .formContainer {
 	padding-bottom: var(--spacing-xl);
+}
+
+.otp {
+	margin-bottom: 10px;
+}
+
+.otpLabel {
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+}
+
+.otp32 {
+	font-size: var(--font-size-2xs);
+}
+
+.otpQR {
+	text-align: center;
 }
 </style>
 

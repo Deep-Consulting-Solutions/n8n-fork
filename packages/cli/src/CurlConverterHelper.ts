@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import curlconverter from 'curlconverter';
-import get from 'lodash.get';
+import get from 'lodash/get';
 import type { IDataObject } from 'n8n-workflow';
 import { jsonParse } from 'n8n-workflow';
 
@@ -263,6 +262,7 @@ const mapCookies = (cookies: CurlJson['cookies']): { cookie: string } | {} => {
 	};
 };
 
+// eslint-disable-next-line complexity
 export const toHttpNodeParameters = (curlCommand: string): HttpNodeParameters => {
 	const curlJson = curlToJson(curlCommand);
 
@@ -417,7 +417,7 @@ export const toHttpNodeParameters = (curlCommand: string): HttpNodeParameters =>
 				// json body
 				Object.assign(httpNodeParameters, {
 					specifyBody: 'json',
-					jsonBody: JSON.stringify(json),
+					jsonBody: JSON.stringify(json, null, 2),
 				});
 			} else {
 				// key-value body

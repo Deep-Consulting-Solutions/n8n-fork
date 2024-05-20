@@ -1,4 +1,4 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity } from '@n8n/typeorm';
 import { SyncStatus } from '@deep-consulting-solutions/incident-handling';
 
 import GenericEntity from './GenericEntity';

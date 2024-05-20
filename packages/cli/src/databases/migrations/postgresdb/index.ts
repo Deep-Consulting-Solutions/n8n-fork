@@ -1,3 +1,4 @@
+import type { Migration } from '@db/types';
 import { InitialMigration1587669153312 } from './1587669153312-InitialMigration';
 import { WebhookModel1589476000887 } from './1589476000887-WebhookModel';
 import { CreateIndexStoppedAt1594828256133 } from './1594828256133-CreateIndexStoppedAt';
@@ -27,8 +28,8 @@ import { AddTriggerCountColumn1669823906995 } from './1669823906995-AddTriggerCo
 import { RemoveWorkflowDataLoadedFlag1671726148421 } from './1671726148421-RemoveWorkflowDataLoadedFlag';
 import { MessageEventBusDestinations1671535397530 } from './1671535397530-MessageEventBusDestinations';
 import { DeleteExecutionsWithWorkflows1673268682475 } from './1673268682475-DeleteExecutionsWithWorkflows';
-import { CreateLdapEntities1674509946020 } from './1674509946020-CreateLdapEntities';
-import { PurgeInvalidWorkflowConnections1675940580449 } from './1675940580449-PurgeInvalidWorkflowConnections';
+import { CreateLdapEntities1674509946020 } from '../common/1674509946020-CreateLdapEntities';
+import { PurgeInvalidWorkflowConnections1675940580449 } from '../common/1675940580449-PurgeInvalidWorkflowConnections';
 import { AddStatusToExecutions1674138566000 } from './1674138566000-AddStatusToExecutions';
 import { MigrateExecutionStatus1676996103000 } from './1676996103000-MigrateExecutionStatus';
 import { UpdateRunningExecutionStatus1677236854063 } from './1677236854063-UpdateRunningExecutionStatus';
@@ -38,8 +39,37 @@ import { AddUserActivatedProperty1681134145996 } from './1681134145996-AddUserAc
 import { AddUserOTPSecret1681134145997 } from './1681134145997-AddUserOTPSecret';
 import { AddSaveRequestLog1681134145998 } from './1681134145998-AddSaveRequestLog';
 import { addIncidentHandlingTables1689942863738 } from './1689942863738-addIncidentHandlingTables';
+import { dropConstraintOnSaveRequestLog1689942863739 } from './1689942863739-dropConstraintOnSaveRequestLog';
+import { MigrateIntegerKeysToString1690000000000 } from './1690000000000-MigrateIntegerKeysToString';
+import { SeparateExecutionData1690000000020 } from './1690000000020-SeparateExecutionData';
+import { RemoveSkipOwnerSetup1681134145997 } from './1681134145997-RemoveSkipOwnerSetup';
+import { addConstarinToSvaeRequestLog1694091729096 } from './1694091729096-addConstarinToSvaeRequestLog';
+import { RemoveResetPasswordColumns1690000000030 } from '../common/1690000000030-RemoveResetPasswordColumns';
+import { AddMissingPrimaryKeyOnExecutionData1690787606731 } from './1690787606731-AddMissingPrimaryKeyOnExecutionData';
+import { CreateWorkflowNameIndex1691088862123 } from '../common/1691088862123-CreateWorkflowNameIndex';
+import { AddMfaColumns1690000000030 } from './../common/1690000000040-AddMfaColumns';
+import { CreateWorkflowHistoryTable1692967111175 } from '../common/1692967111175-CreateWorkflowHistoryTable';
+import { DisallowOrphanExecutions1693554410387 } from '../common/1693554410387-DisallowOrphanExecutions';
+import { ExecutionSoftDelete1693491613982 } from '../common/1693491613982-ExecutionSoftDelete';
+import { AddWorkflowMetadata1695128658538 } from '../common/1695128658538-AddWorkflowMetadata';
+import { MigrateToTimestampTz1694091729095 } from './1694091729095-MigrateToTimestampTz';
+import { ModifyWorkflowHistoryNodesAndConnections1695829275184 } from '../common/1695829275184-ModifyWorkflowHistoryNodesAndConnections';
+import { AddGlobalAdminRole1700571993961 } from '../common/1700571993961-AddGlobalAdminRole';
+import { DropRoleMapping1705429061930 } from '../common/1705429061930-DropRoleMapping';
+import { RemoveFailedExecutionStatus1711018413374 } from '../common/1711018413374-RemoveFailedExecutionStatus';
+import { MoveSshKeysToDatabase1711390882123 } from '../common/1711390882123-MoveSshKeysToDatabase';
+import { RemoveNodesAccess1712044305787 } from '../common/1712044305787-RemoveNodesAccess';
+import { N8NTestingFramework1689942863738 } from './1689942865738-N8NTestingFramework';
+import { ResumeWorkflowTimerTable1689949863759 } from './1689949863759-ResumeWorfklowTimer';
+import { UpdateResumeWorfklowTimer1779949863759 } from './1779949863759-UpdateResumeWorfklowTimer';
+import { UpdateResumeWorfklowTimer1879949869859 } from './1879949869859-UpdateResumeWorfklowTimer';
+import { ResultDataResumeWorfklowTimer1899949999859 } from './1899949999859-ResultDataResumeWorfklowTimer';
+import { ExecutionIdResumeWorkflowTimer1899949999969 } from './1899949999969-ExecutionIdResumeWorkflowTimer';
+import { IdResumeWorkflowTimer1899999999969 } from './1899999999969-IdResumeWorkflowTimer';
+import { UpdateIdTypeOnEntites1899999999979 } from './1899999999979-UpdateIdTypeOnEntites';
+import { AddEnumsEntity1899999999989 } from './1899999999989-AddEnumsEntity'
 
-export const postgresMigrations = [
+export const postgresMigrations: Migration[] = [
 	InitialMigration1587669153312,
 	WebhookModel1589476000887,
 	CreateIndexStoppedAt1594828256133,
@@ -80,4 +110,33 @@ export const postgresMigrations = [
 	AddUserOTPSecret1681134145997,
 	AddSaveRequestLog1681134145998,
 	addIncidentHandlingTables1689942863738,
+	dropConstraintOnSaveRequestLog1689942863739,
+	MigrateIntegerKeysToString1690000000000,
+	SeparateExecutionData1690000000020,
+	RemoveSkipOwnerSetup1681134145997,
+	addConstarinToSvaeRequestLog1694091729096,
+	RemoveResetPasswordColumns1690000000030,
+	AddMissingPrimaryKeyOnExecutionData1690787606731,
+	CreateWorkflowNameIndex1691088862123,
+	AddMfaColumns1690000000030,
+	CreateWorkflowHistoryTable1692967111175,
+	DisallowOrphanExecutions1693554410387,
+	ExecutionSoftDelete1693491613982,
+	AddWorkflowMetadata1695128658538,
+	MigrateToTimestampTz1694091729095,
+	ModifyWorkflowHistoryNodesAndConnections1695829275184,
+	AddGlobalAdminRole1700571993961,
+	DropRoleMapping1705429061930,
+	RemoveFailedExecutionStatus1711018413374,
+	MoveSshKeysToDatabase1711390882123,
+	RemoveNodesAccess1712044305787,
+	N8NTestingFramework1689942863738,
+	ResumeWorkflowTimerTable1689949863759,
+	UpdateResumeWorfklowTimer1779949863759,
+	UpdateResumeWorfklowTimer1879949869859,
+	ResultDataResumeWorfklowTimer1899949999859,
+	ExecutionIdResumeWorkflowTimer1899949999969,
+	IdResumeWorkflowTimer1899999999969,
+	UpdateIdTypeOnEntites1899999999979,
+	AddEnumsEntity1899999999989,
 ];
