@@ -120,7 +120,7 @@ export default defineComponent({
 				recoveryCode: form.recoveryCode,
 			});
 		},
-		async onEmailPasswordSubmitted(form: { email: string; password: string }) {
+		async onEmailPasswordSubmitted(form: { email: string; password: string; otp?: string }) {
 			await this.login(form);
 		},
 		isRedirectSafe() {
@@ -134,7 +134,13 @@ export default defineComponent({
 			}
 			return redirect;
 		},
-		async login(form: { email: string; password: string; token?: string; recoveryCode?: string }) {
+		async login(form: {
+			email: string;
+			password: string;
+			token?: string;
+			recoveryCode?: string;
+			otp?: string;
+		}) {
 			try {
 				this.loading = true;
 				await this.usersStore.loginWithCreds({
@@ -142,6 +148,7 @@ export default defineComponent({
 					password: form.password,
 					mfaToken: form.token,
 					mfaRecoveryCode: form.recoveryCode,
+					otp: form.otp,
 				});
 				this.loading = false;
 				if (this.settingsStore.isCloudDeployment) {

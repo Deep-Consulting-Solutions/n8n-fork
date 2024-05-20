@@ -17,7 +17,13 @@ export async function loginCurrentUser(
 
 export async function login(
 	context: IRestApiContext,
-	params: { email: string; password: string; mfaToken?: string; mfaRecoveryToken?: string },
+	params: {
+		email: string;
+		password: string;
+		mfaToken?: string;
+		mfaRecoveryToken?: string;
+		otp?: string;
+	},
 ): Promise<CurrentUserResponse> {
 	return await makeRestApiRequest(context, 'POST', '/login', params);
 }

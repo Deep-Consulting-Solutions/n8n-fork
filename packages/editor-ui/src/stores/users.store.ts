@@ -179,6 +179,7 @@ export const useUsersStore = defineStore(STORES.USERS, {
 			password: string;
 			mfaToken?: string;
 			mfaRecoveryCode?: string;
+			otp?: string;
 		}): Promise<void> {
 			const rootStore = useRootStore();
 			const user = await login(rootStore.getRestApiContext, params);
