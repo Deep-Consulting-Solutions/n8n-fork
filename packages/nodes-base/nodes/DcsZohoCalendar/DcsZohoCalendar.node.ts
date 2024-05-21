@@ -323,7 +323,7 @@ export class DcsZohoCalendar implements INodeType {
 								if (Array.isArray(responseData[resource])) {
 									returnData = returnData.concat(responseData[resource]);
 								}
-								hasMore = responseData.page_context.has_more_page;
+								hasMore = responseData.page_context?.has_more_page;
 								qs.page += 1;
 							}
 							responseData = returnData;
