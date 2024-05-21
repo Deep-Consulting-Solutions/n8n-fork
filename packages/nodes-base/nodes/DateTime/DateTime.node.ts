@@ -658,7 +658,9 @@ export class DateTime implements INodeType {
 					const date = this.getNodeParameter('value', i) as string;
 					const dataPropertyName = this.getNodeParameter('dataPropertyName', i);
 
-					const timezone = moment.tz(date).tz();
+					const dateTimeMoment = moment(date);
+					const utcOffset = dateTimeMoment.utcOffset();
+					const timezoneName = moment.tz.names()[utcOffset];
 
 					let newItem: INodeExecutionData;
 					if (dataPropertyName.includes('.')) {
@@ -683,7 +685,7 @@ export class DateTime implements INodeType {
 						newItem.binary = item.binary;
 					}
 
-					set(newItem, `json.${dataPropertyName}`, timezone);
+					set(newItem, `json.${dataPropertyName}`, timezoneName || '');
 
 					returnData.push(newItem);
 				}
