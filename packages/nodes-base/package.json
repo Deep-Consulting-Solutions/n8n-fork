@@ -429,6 +429,8 @@
       "dist/nodes/Drift/Drift.node.js",
       "dist/nodes/Dropbox/Dropbox.node.js",
       "dist/nodes/Dropcontact/Dropcontact.node.js",
+      "dist/nodes/DcsZohoCalendar/DcsZohoCalendar.node.js",
+      "dist/nodes/Microsoft/Dynamics/MicrosoftDynamicsCrm.node.js",
       "dist/nodes/EditImage/EditImage.node.js",
       "dist/nodes/Egoi/Egoi.node.js",
       "dist/nodes/Elastic/Elasticsearch/Elasticsearch.node.js",
