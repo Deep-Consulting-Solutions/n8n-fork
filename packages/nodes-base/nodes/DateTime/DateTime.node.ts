@@ -95,6 +95,12 @@ export class DateTime implements INodeType {
 						value: 'customFormat',
 						action: 'Convert a date to a different format using strftime library',
 					},
+					{
+						name: 'Get Date Timezone',
+						description: 'Get the timezone of a date string',
+						value: 'getTimezone',
+						action: 'Get the timezone of a date string',
+					},
 				],
 				default: 'format',
 			},
@@ -103,7 +109,7 @@ export class DateTime implements INodeType {
 				name: 'value',
 				displayOptions: {
 					show: {
-						action: ['format', 'customFormat'],
+						action: ['format', 'customFormat', 'getTimezone'],
 					},
 				},
 				type: 'string',
@@ -119,7 +125,7 @@ export class DateTime implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						action: ['format', 'customFormat'],
+						action: ['format', 'customFormat', 'getTimezone'],
 					},
 				},
 				description: 'Name of the property to which to write the converted date',
@@ -644,6 +650,40 @@ export class DateTime implements INodeType {
 					}
 
 					set(newItem, `json.${dataPropertyName}`, newDate.toISOString());
+
+					returnData.push(newItem);
+				}
+
+				if (action === 'getTimezone') {
+					const date = this.getNodeParameter('value', i) as string;
+					const dataPropertyName = this.getNodeParameter('dataPropertyName', i);
+
+					const timezone = moment.tz(date).tz();
+
+					let newItem: INodeExecutionData;
+					if (dataPropertyName.includes('.')) {
+						// Uses dot notation so copy all data
+						newItem = {
+							json: deepCopy(item.json),
+							pairedItem: {
+								item: i,
+							},
+						};
+					} else {
+						// Does not use dot notation so shallow copy is enough
+						newItem = {
+							json: { ...item.json },
+							pairedItem: {
+								item: i,
+							},
+						};
+					}
+
+					if (item.binary !== undefined) {
+						newItem.binary = item.binary;
+					}
+
+					set(newItem, `json.${dataPropertyName}`, timezone);
 
 					returnData.push(newItem);
 				}
