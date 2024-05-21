@@ -140,14 +140,6 @@ export class DcsZohoCalendar implements INodeType {
 						const qs: { [key: string]: any; } = {};
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
 
 						if (returnAll) {
 							let returnData: IDataObject[] = [];
@@ -271,15 +263,6 @@ export class DcsZohoCalendar implements INodeType {
 							i,
 						) as string;
 
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
-
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'GET',
 							url: `calendars/${calendarId}/events/${recordId}`,
@@ -294,14 +277,6 @@ export class DcsZohoCalendar implements INodeType {
 						const qs: { [key: string]: any; } = {};
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
 
 						const calendarId = this.getNodeParameter(
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
