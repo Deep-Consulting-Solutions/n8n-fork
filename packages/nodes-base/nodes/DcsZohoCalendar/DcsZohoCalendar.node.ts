@@ -157,25 +157,24 @@ export class DcsZohoCalendar implements INodeType {
 							while (hasMore) {
 								responseData = await zohoClient().calendar().passRequestAsProxy({
 									method: 'GET',
-									url: 'calendars/',
+									url: 'calendars',
 									data: {},
-									params: qs,
+									params: {},
 								})
 								if (Array.isArray(responseData[resource])) {
 									returnData = returnData.concat(responseData[resource]);
 								}
-								hasMore = responseData.page_context.has_more_page;
+								hasMore = responseData?.page_context?.has_more_page;
 								qs.page += 1;
 							}
 							responseData = returnData;
 						} else {
-							qs.per_page = this.getNodeParameter('limit', 0) || 200;
 							responseData = await zohoClient().calendar().passRequestAsProxy({
 								method: 'GET',
 								url: 'calendars/',
 								data: {},
-								params: qs,
-							})
+								params: {},
+							});
 							responseData = responseData[resource];
 						}
 					} else if (operation === 'update') {
@@ -319,7 +318,7 @@ export class DcsZohoCalendar implements INodeType {
 									method: 'GET',
 									url: `calendars/${calendarId}/events`,
 									data: {},
-									params: qs,
+									params: {},
 								})
 								if (Array.isArray(responseData[resource])) {
 									returnData = returnData.concat(responseData[resource]);
@@ -334,7 +333,7 @@ export class DcsZohoCalendar implements INodeType {
 								method: 'GET',
 								url: `calendars/${calendarId}/events`,
 								data: {},
-								params: qs,
+								params: {},
 							})
 							responseData = responseData[resource];
 						}
