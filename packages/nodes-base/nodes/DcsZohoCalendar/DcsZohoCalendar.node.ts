@@ -94,7 +94,7 @@ export class DcsZohoCalendar implements INodeType {
 								body[parameter.key] = parameter.value;
 							});
 						}
-						const uriEncodedBody = encodeURIComponent(JSON.stringify(body));
+						const uriEncodedBody = JSON.stringify(body);
 						const qs = {calendarData: uriEncodedBody};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'POST',
@@ -197,7 +197,7 @@ export class DcsZohoCalendar implements INodeType {
 						if (!Object.keys(body).length) {
 							throwOnEmptyUpdate.call(this, moduleSingularForm[resource] as any);
 						}
-						const uriEncodedBody = encodeURIComponent(JSON.stringify(body));
+						const uriEncodedBody = JSON.stringify(body);
 						const qs = {calendarData: uriEncodedBody};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'PUT',
@@ -228,7 +228,7 @@ export class DcsZohoCalendar implements INodeType {
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
 							i,
 						) as string;
-						const uriEncodedBody = encodeURIComponent(JSON.stringify(body));
+						const uriEncodedBody = JSON.stringify(body);
 						const qs = {eventdata: uriEncodedBody};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'POST',
@@ -362,7 +362,7 @@ export class DcsZohoCalendar implements INodeType {
 							i,
 						) as string;
 
-						const uriEncodedBody = encodeURIComponent(JSON.stringify(body));
+						const uriEncodedBody = JSON.stringify(body);
 						const qs = {eventdata: uriEncodedBody};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'PUT',
