@@ -2,8 +2,8 @@
 import IoRedis from 'ioredis';
 import Redlock, { ResourceLockedError } from 'redlock';
 
-const redisPort = Number(process.env.REDIS_PORT) || 80;
-const redisHost = process.env.REDIS_HOST || 'https://62b3-102-91-49-143.ngrok-free.app';
+const redisPort = Number(process.env.REDIS_PORT) || 6379;
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 
 const redis = new IoRedis(redisPort, redisHost);
 
