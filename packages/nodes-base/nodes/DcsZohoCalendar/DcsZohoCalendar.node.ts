@@ -171,7 +171,7 @@ export class DcsZohoCalendar implements INodeType {
 						} else {
 							responseData = await zohoClient().calendar().passRequestAsProxy({
 								method: 'GET',
-								url: 'calendars/',
+								url: 'calendars',
 								data: {},
 								params: {},
 							});
