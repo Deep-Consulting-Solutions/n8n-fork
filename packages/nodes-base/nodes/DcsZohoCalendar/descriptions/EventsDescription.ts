@@ -31,7 +31,20 @@ export const eventFields: INodeProperties[] = [
         displayOptions: {
             show: {
                 resource: ['events'],
-                operation: ['delete'],
+                operation: ['delete', 'update'],
+            },
+        },
+    },
+	{
+        displayName: `Date and Time`,
+		name: `dateandtime`,
+        type: 'string',
+        required: true,
+        default: '',
+        displayOptions: {
+            show: {
+                resource: ['events'],
+                operation: ['update'],
             },
         },
     },

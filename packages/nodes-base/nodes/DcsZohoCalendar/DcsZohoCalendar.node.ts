@@ -349,9 +349,13 @@ export class DcsZohoCalendar implements INodeType {
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
 							i,
 						) as string;
+						const etag = this.getNodeParameter('eTag', i) as string;
+						const dateandtime = this.getNodeParameter('dateandtime', i) as string;
+						body.etag = etag;
+						body.dateandtime = dateandtime;
 
 						const uriEncodedBody = JSON.stringify(body);
-						const qs = {eventdata: uriEncodedBody};
+						const qs = { eventdata: uriEncodedBody };
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'PUT',
 							url: `calendars/${calendarId}/events/${recordId}`,
