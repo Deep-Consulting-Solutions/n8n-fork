@@ -178,7 +178,7 @@ export const getResourceIdNameFields = (resource: ZohoCalendarModule) => {
 export const getCrudFields = (resource: ZohoCalendarModule): INodeProperties[] => {
 	return [
 		// ----------------------------------------
-		//             delete, get
+		//             delete, get, getByInstance
 		// ----------------------------------------
 		{
 			...getResourceIdNameFields(resource),
@@ -188,7 +188,7 @@ export const getCrudFields = (resource: ZohoCalendarModule): INodeProperties[] =
 			displayOptions: {
 				show: {
 					resource: [resource],
-					operation: ['delete', 'get'],
+					operation: ['delete', 'get', 'getByInstance'],
 				},
 			},
 		},

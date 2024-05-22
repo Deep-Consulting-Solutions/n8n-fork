@@ -140,14 +140,6 @@ export class DcsZohoCalendar implements INodeType {
 						const qs: { [key: string]: any; } = {};
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
 
 						if (returnAll) {
 							let returnData: IDataObject[] = [];
@@ -249,11 +241,24 @@ export class DcsZohoCalendar implements INodeType {
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
 							i,
 						) as string;
+						const params: IDataObject = {};
+						const eventData = this.getNodeParameter('eventData', i) as {
+							fields?: { key: string; value: string }[];
+						};
+						if (eventData.fields) {
+							eventData.fields.forEach((parameter) => {
+								params[parameter.key] = parameter.value;
+							});
+						}
+						const etag = this.getNodeParameter('eTag', i) as string;
+						params.etag = etag;
+						params.uid = eventId;
+						const qs = {eventdata: JSON.stringify(params)};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'DELETE',
 							url: `calendars/${calendarId}/events/${eventId}`,
 							data: {},
-							params: {},
+							params: qs,
 						})
 						responseData = responseData[resource];
 					} else if (operation === 'get') {
@@ -271,15 +276,6 @@ export class DcsZohoCalendar implements INodeType {
 							i,
 						) as string;
 
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
-
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'GET',
 							url: `calendars/${calendarId}/events/${recordId}`,
@@ -294,14 +290,6 @@ export class DcsZohoCalendar implements INodeType {
 						const qs: { [key: string]: any; } = {};
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
-						const queryParameters = this.getNodeParameter('queryParameters', i) as {
-							queryParameterValues?: { key: string; value: string }[];
-						};
-						if (queryParameters.queryParameterValues) {
-							queryParameters.queryParameterValues.forEach((parameter) => {
-								qs[parameter.key] = parameter.value;
-							});
-						}
 
 						const calendarId = this.getNodeParameter(
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
@@ -361,12 +349,41 @@ export class DcsZohoCalendar implements INodeType {
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
 							i,
 						) as string;
+						const etag = this.getNodeParameter('eTag', i) as string;
+						const dateandtime = this.getNodeParameter('dateandtime', i) as string;
+						body.etag = etag;
+						body.dateandtime = dateandtime;
 
 						const uriEncodedBody = JSON.stringify(body);
-						const qs = {eventdata: uriEncodedBody};
+						const qs = { eventdata: uriEncodedBody };
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'PUT',
 							url: `calendars/${calendarId}/events/${recordId}`,
+							data: {},
+							params: qs,
+						})
+						responseData = responseData[resource];
+					} else if (operation === 'getByInstance') {
+						// ----------------------------------------
+						//             get
+						// ----------------------------------------
+						const qs: { [key: string]: any; } = {};
+
+						const recordId = this.getNodeParameter(
+							getResourceIdNameFields(resource).name,
+							i,
+						) as string;
+						const calendarId = this.getNodeParameter(
+							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
+							i,
+						) as string;
+
+						const range = this.getNodeParameter('range', i) as string;
+						qs.range = JSON.stringify(range);
+
+						responseData = await zohoClient().calendar().passRequestAsProxy({
+							method: 'GET',
+							url: `calendars/${calendarId}/events/${recordId}/byinstance`,
 							data: {},
 							params: qs,
 						})
