@@ -24,7 +24,7 @@ export const eventFields: INodeProperties[] = [
         displayOptions: {
             show: {
                 resource: ['events'],
-                operation: ['create', 'update', 'delete', 'get', 'getAll'],
+                operation: ['create', 'update', 'delete', 'get', 'getAll', 'getByInstance'],
             },
         },
     },
