@@ -363,6 +363,31 @@ export class DcsZohoCalendar implements INodeType {
 							params: qs,
 						})
 						responseData = responseData[resource];
+					} else if (operation === 'getByInstance') {
+						// ----------------------------------------
+						//             get
+						// ----------------------------------------
+						const qs: { [key: string]: any; } = {};
+
+						const recordId = this.getNodeParameter(
+							getResourceIdNameFields(resource).name,
+							i,
+						) as string;
+						const calendarId = this.getNodeParameter(
+							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
+							i,
+						) as string;
+
+						const range = this.getNodeParameter('range', i) as string;
+						qs.range = JSON.stringify(range);
+
+						responseData = await zohoClient().calendar().passRequestAsProxy({
+							method: 'GET',
+							url: `calendars/${calendarId}/events/${recordId}/byinstance`,
+							data: {},
+							params: qs,
+						})
+						responseData = responseData[resource];
 					}
 				}
 

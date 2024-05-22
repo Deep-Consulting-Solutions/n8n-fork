@@ -4,7 +4,14 @@ import { ZohoCalendarModule } from '../types';
 import { getCrudFields, getCrudOperations } from './SharedFields';
 
 export const eventOperations: INodeProperties[] = [
-	getCrudOperations(ZohoCalendarModule.EVENTS, 'an', []),
+	getCrudOperations(ZohoCalendarModule.EVENTS, 'an', [
+		{
+			name: 'Get By Instance',
+			value: 'getByInstance',
+			description: 'Get events by instance',
+			action: 'Get events by instance',
+		},
+	]),
 ];
 
 export const eventFields: INodeProperties[] = [
@@ -45,6 +52,19 @@ export const eventFields: INodeProperties[] = [
             show: {
                 resource: ['events'],
                 operation: ['update'],
+            },
+        },
+    },
+	{
+        displayName: `Range`,
+		name: `range`,
+        type: 'string',
+        required: true,
+        default: '',
+        displayOptions: {
+            show: {
+                resource: ['events'],
+                operation: ['getByInstance'],
             },
         },
     },
