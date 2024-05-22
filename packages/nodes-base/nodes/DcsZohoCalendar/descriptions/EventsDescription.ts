@@ -22,4 +22,53 @@ export const eventFields: INodeProperties[] = [
         },
     },
 	...getCrudFields(ZohoCalendarModule.EVENTS),
+    {
+        displayName: `ETag`,
+		name: `eTag`,
+        type: 'string',
+        required: true,
+        default: '',
+        displayOptions: {
+            show: {
+                resource: ['events'],
+                operation: ['delete'],
+            },
+        },
+    },
+    {
+		displayName: 'Event Data',
+		name: 'eventData',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+		},
+		placeholder: 'Add Event Data',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['events'],
+				operation: ['delete'],
+			},
+		},
+		options: [
+			{
+				name: 'fields',
+				displayName: 'Fields',
+				values: [
+					{
+						displayName: 'Field',
+						name: 'key',
+						type: 'string',
+						default: '',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						default: '',
+					},
+				],
+			},
+		],
+	},
 ];
