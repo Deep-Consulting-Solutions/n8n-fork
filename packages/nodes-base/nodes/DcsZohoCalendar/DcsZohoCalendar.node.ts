@@ -241,7 +241,7 @@ export class DcsZohoCalendar implements INodeType {
 							getResourceIdNameFields('calendars' as ZohoCalendarModule).name,
 							i,
 						) as string;
-						const params = {};
+						const params: IDataObject = {};
 						const eventData = this.getNodeParameter('eventData', i) as {
 							fields?: { key: string; value: string }[];
 						};
@@ -251,8 +251,8 @@ export class DcsZohoCalendar implements INodeType {
 							});
 						}
 						const etag = this.getNodeParameter('eTag', i) as string;
-						params['etag'] = etag;
-						params['uid'] = eventId;
+						params.etag = etag;
+						params.uid = eventId;
 						const qs = {eventdata: JSON.stringify(params)};
 						responseData = await zohoClient().calendar().passRequestAsProxy({
 							method: 'DELETE',
