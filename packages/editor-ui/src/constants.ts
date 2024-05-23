@@ -61,6 +61,8 @@ export const MFA_SETUP_MODAL_KEY = 'mfaSetup';
 export const WORKFLOW_HISTORY_VERSION_RESTORE = 'workflowHistoryVersionRestore';
 export const SUGGESTED_TEMPLATES_PREVIEW_MODAL_KEY = 'suggestedTemplatePreview';
 export const SETUP_CREDENTIALS_MODAL_KEY = 'setupCredentials';
+export const ADD_ENUMS_SET_MODAL_KEY = 'addEnumsSet';
+export const ENUMS_ISSUES_MODAL_KEY = 'enumsIssues';
 
 export const EXTERNAL_SECRETS_PROVIDER_MODAL_KEY = 'externalSecretsProvider';
 
@@ -477,6 +479,7 @@ export const enum VIEWS {
 	MFA_VIEW = 'MfaView',
 	WORKFLOW_HISTORY = 'WorkflowHistory',
 	WORKER_VIEW = 'WorkerView',
+	ENUMS = 'Enums',
 }
 
 export const EDITABLE_CANVAS_VIEWS = [VIEWS.WORKFLOW, VIEWS.NEW_WORKFLOW, VIEWS.EXECUTION_DEBUG];

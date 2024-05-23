@@ -2,10 +2,10 @@ import { Container, Service } from 'typedi';
 import type { Variables } from '@db/entities/Variables';
 import { InternalHooks } from '@/InternalHooks';
 import { generateNanoId } from '@db/utils/generators';
-import { canCreateNewVariable } from './environmentHelpers';
+// import { canCreateNewVariable } from './environmentHelpers';
 import { CacheService } from '@/services/cache/cache.service';
 import { VariablesRepository } from '@db/repositories/variables.repository';
-import { VariableCountLimitReachedError } from '@/errors/variable-count-limit-reached.error';
+// import { VariableCountLimitReachedError } from '@/errors/variable-count-limit-reached.error';
 import { VariableValidationError } from '@/errors/variable-validation.error';
 
 @Service()
@@ -65,9 +65,9 @@ export class VariablesService {
 	}
 
 	async create(variable: Omit<Variables, 'id'>): Promise<Variables> {
-		if (!canCreateNewVariable(await this.getCount())) {
-			throw new VariableCountLimitReachedError('Variables limit reached');
-		}
+		// if (!canCreateNewVariable(await this.getCount())) {
+		// 	throw new VariableCountLimitReachedError('Variables limit reached');
+		// }
 		this.validateVariable(variable);
 
 		void Container.get(InternalHooks).onVariableCreated({ variable_type: variable.type });

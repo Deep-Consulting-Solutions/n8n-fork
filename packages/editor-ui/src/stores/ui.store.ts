@@ -42,6 +42,8 @@ import {
 	GENERATE_CURL_MODAL_KEY,
 	ADD_TEST_SUITE_MODAL_KEY,
 	EDIT_TEST_SUITE_MODAL_KEY,
+	ADD_ENUMS_SET_MODAL_KEY,
+	ENUMS_ISSUES_MODAL_KEY,
 } from '@/constants';
 import type {
 	CloudUpdateLinkSourceType,
@@ -125,6 +127,8 @@ export const useUIStore = defineStore(STORES.UI, {
 					SETUP_CREDENTIALS_MODAL_KEY,
 					ADD_TEST_SUITE_MODAL_KEY,
 					EDIT_TEST_SUITE_MODAL_KEY,
+					ADD_ENUMS_SET_MODAL_KEY,
+					ENUMS_ISSUES_MODAL_KEY,
 				].map((modalKey) => [modalKey, { open: false }]),
 			),
 			[DELETE_USER_MODAL_KEY]: {
@@ -140,6 +144,9 @@ export const useUIStore = defineStore(STORES.UI, {
 				open: false,
 			},
 			[EDIT_TEST_SUITE_MODAL_KEY]: {
+				open: false,
+			},
+			[ADD_ENUMS_SET_MODAL_KEY]: {
 				open: false,
 			},
 			[IMPORT_CURL_MODAL_KEY]: {

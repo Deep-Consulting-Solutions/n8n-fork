@@ -160,6 +160,15 @@ export default defineComponent({
 				route: { to: { name: VIEWS.TEST_SUITES } },
 			});
 
+			menuItems.push({
+				id: 'settings-enums',
+				icon: 'variable',
+				label: this.$locale.baseText('settings.enums'),
+				position: 'top',
+				available: true,
+				route: { to: { name: VIEWS.ENUMS } },
+			});
+
 			return menuItems;
 		},
 	},
@@ -214,6 +223,11 @@ export default defineComponent({
 				case 'test-suites':
 					if (this.$router.currentRoute.name !== VIEWS.TEST_SUITES) {
 						this.$router.push({ name: VIEWS.TEST_SUITES }).catch(() => {});
+					}
+					break;
+				case 'enums-management':
+					if (this.$router.currentRoute.name !== VIEWS.ENUMS) {
+						this.$router.push({ name: VIEWS.ENUMS }).catch(() => {});
 					}
 					break;
 				default:

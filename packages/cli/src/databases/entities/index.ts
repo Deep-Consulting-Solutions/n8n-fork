@@ -25,6 +25,8 @@ import { WorkflowTest } from './WorkflowTest';
 import { NodeOutput } from './NodeOutput';
 import { ResumeWorkflowTimer } from './ResumeWorkflowTimer';
 import { SaveRequestLog } from './SaveRequestLog';
+import { EsaEnums } from './EsaEnums';
+import { EsaEnumData } from './EsaEnumData';
 
 export const entities = {
 	AuthIdentity,
@@ -53,4 +55,6 @@ export const entities = {
 	NodeOutput,
 	ResumeWorkflowTimer,
 	SaveRequestLog,
+	EsaEnums,
+	EsaEnumData,
 };

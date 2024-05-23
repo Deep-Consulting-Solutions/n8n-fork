@@ -47,12 +47,17 @@ import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.servic
 import { logIncidentFromWorkflowExecute } from './lib/incidentLogger';
 import { ResumeWorkflowTimer } from './databases/entities/ResumeWorkflowTimer';
 import { createPartialExecution } from './GenericHelpers';
+import { EnumDataService } from './enums/enums.service';
 
 const createResumeTimerEntity = async (data: any) => {
 	let resumeWorkflowEntity = new ResumeWorkflowTimer();
 	Object.assign(resumeWorkflowEntity, data);
 	resumeWorkflowEntity = await Container.get(ResumeWorkflowTimerRepository).save(resumeWorkflowEntity);
 	return resumeWorkflowEntity;
+};
+
+const getEnumsAliasValueMap = async () => {
+	return await Container.get(EnumDataService).getEnumsAliasValueMap();
 };
 
 @Service()
@@ -382,6 +387,7 @@ export class WorkflowRunner {
 					nodeOutputs,
 					createPartialExecution,
 					createResumeTimerEntity,
+					getEnumsAliasValueMap,
 				});
 				console.log('but not here for workflowRunner.js')
 				workflowExecution.then(async (data) => {
@@ -407,6 +413,7 @@ export class WorkflowRunner {
 					startNode,
 					data.destinationNode,
 					data.pinData,
+					{ getEnumsAliasValueMap },
 				);
 			} else {
 				this.logger.debug(`Execution ID ${executionId} is a partial execution.`, { executionId });
@@ -418,6 +425,7 @@ export class WorkflowRunner {
 					data.startNodes,
 					data.destinationNode,
 					data.pinData,
+					{ getEnumsAliasValueMap },
 				);
 			}
 

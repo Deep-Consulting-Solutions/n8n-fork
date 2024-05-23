@@ -1642,6 +1642,18 @@ export interface EnvironmentVariable {
 	key: string;
 	value: string;
 }
+export interface EsaEnumData {
+	id: string;
+	key: string;
+	value: string;
+	alias?: string;
+	esaEnumId?: string;
+	esaEnumName?: string;
+}
+export interface EsaEnum {
+	id: string;
+	name: string;
+}
 
 export interface TemporaryEnvironmentVariable extends Omit<EnvironmentVariable, 'id'> {
 	id: string;

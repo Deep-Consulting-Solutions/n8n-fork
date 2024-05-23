@@ -447,6 +447,12 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		return workflow;
 	}
 
+	async function fetchAllWorkflowsWithNodes(): Promise<IWorkflowDb[]> {
+		const rootStore = useRootStore();
+		const workflows = await workflowsApi.getWorkflowsAlt(rootStore.getRestApiContext);
+		return workflows;
+	}
+
 	async function getNewWorkflowData(name?: string): Promise<INewWorkflowData> {
 		let workflowData = {
 			name: '',
@@ -1654,5 +1660,6 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, () => {
 		createWorkflowTestSuite,
 		updateWorkflowTestSuite,
 		resetWorkflowTestSuites,
+		fetchAllWorkflowsWithNodes,
 	};
 });

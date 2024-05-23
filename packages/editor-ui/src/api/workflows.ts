@@ -36,6 +36,14 @@ export async function getWorkflows(context: IRestApiContext, filter?: object) {
 	return await makeRestApiRequest<IWorkflowDb[]>(context, 'GET', '/workflows', sendData);
 }
 
+export async function getWorkflowsAlt(context: IRestApiContext) {
+	const workflows = await getWorkflows(context);
+	const workflowIds = workflows.map((w) => w.id);
+	const promises = workflowIds.map(async (id) => await getWorkflow(context, id));
+	const results = await Promise.all(promises);
+	return results;
+}
+
 export async function getActiveWorkflows(context: IRestApiContext) {
 	return await makeRestApiRequest<string[]>(context, 'GET', '/active-workflows');
 }

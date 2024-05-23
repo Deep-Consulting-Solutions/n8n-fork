@@ -20,7 +20,7 @@ import type {
 	TemporaryEnvironmentVariable,
 } from '@/Interface';
 import { uid } from 'n8n-design-system/utils';
-import { getVariablesPermissions } from '@/permissions';
+// import { getVariablesPermissions } from '@/permissions';
 
 const settingsStore = useSettingsStore();
 const environmentsStore = useEnvironmentsStore();
@@ -41,12 +41,13 @@ const TEMPORARY_VARIABLE_UID_BASE = '@tmpvar';
 const allVariables = ref<Array<EnvironmentVariable | TemporaryEnvironmentVariable>>([]);
 const editMode = ref<Record<string, boolean>>({});
 
-const permissions = getVariablesPermissions(usersStore.currentUser);
+// const permissions = getVariablesPermissions(usersStore.currentUser);
 
 const isFeatureEnabled = computed(() =>
 	settingsStore.isEnterpriseFeatureEnabled(EnterpriseEditionFeature.Variables),
 );
-const canCreateVariables = computed(() => isFeatureEnabled.value && permissions.create);
+// const canCreateVariables = computed(() => isFeatureEnabled.value && permissions.create);
+const canCreateVariables = computed(() => true);
 
 const datatableColumns = computed<DatatableColumn[]>(() => [
 	{

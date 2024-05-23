@@ -72,6 +72,7 @@ import { InvitationController } from './controllers/invitation.controller';
 // import { CollaborationService } from './collaboration/collaboration.service';
 import { BadRequestError } from './errors/response-errors/bad-request.error';
 import { OrchestrationService } from '@/services/orchestration.service';
+import { EnumsController } from './enums/enums.controller';
 
 const exec = promisify(callbackExec);
 
@@ -148,6 +149,7 @@ export class Server extends AbstractServer {
 			CredentialsController,
 			AIController,
 			WorkflowTestsController,
+			EnumsController,
 		];
 
 		if (

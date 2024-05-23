@@ -34,9 +34,10 @@ import type {
 	CloseFunction,
 	StartNodeData,
 	IRunNodeResponse,
+	INodeParameters,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
 import {
+	NodeOperationError,
 	LoggerProxy as Logger,
 	WorkflowOperationError,
 	NodeHelpers,
@@ -107,6 +108,7 @@ export class WorkflowExecute {
 		startNode?: INode,
 		destinationNode?: string,
 		pinData?: IPinData,
+		extraData?: any,
 	): PCancelable<IRun> {
 		this.status = 'running';
 
@@ -159,8 +161,7 @@ export class WorkflowExecute {
 			},
 		};
 
-		console.log('we got here for workflowExecute.js');
-		return this.processRunExecutionData(workflow);
+		return this.processRunExecutionData(workflow, extraData);
 	}
 
 	forceInputNodeExecution(workflow: Workflow): boolean {
@@ -184,6 +185,7 @@ export class WorkflowExecute {
 		startNodes: StartNodeData[],
 		destinationNode?: string,
 		pinData?: IPinData,
+		extraData?: any,
 	): PCancelable<IRun> {
 		let incomingNodeConnections: INodeConnections | undefined;
 		let connection: IConnection;
@@ -317,8 +319,7 @@ export class WorkflowExecute {
 			},
 		};
 
-		console.log('we got here for workflowExecute2.js');
-		return this.processRunExecutionData(workflow);
+		return this.processRunExecutionData(workflow, extraData);
 	}
 
 	/**
@@ -931,8 +932,30 @@ export class WorkflowExecute {
 					executionData =
 						this.runExecutionData.executionData!.nodeExecutionStack.shift() as IExecuteData;
 					executionNode = executionData.node;
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+					const enumsAliasValueMap = (await extraData?.getEnumsAliasValueMap()) as Record<
+						string,
+						string
+					>;
+
+					const executionNodeParameters = executionData.node.parameters;
+					const modifiedNodeParameters = Object.entries(
+						executionNodeParameters,
+					).reduce<INodeParameters>((acc, [key, value]) => {
+						let pValue = value;
+
+						if (typeof pValue === 'string') {
+							pValue = (value as string).replace(/<<([^>>]+)>>/g, (match, p1: string) => {
+								return enumsAliasValueMap[p1] ?? match;
+							});
+						}
+						acc[key] = pValue;
+						return acc;
+					}, {});
+
+					executionData.node.parameters = modifiedNodeParameters;
+
 					nodeStack.push(executionData);
-					console.dir(executionNode, { depth: null });
 
 					// Update the pairedItem information on items
 					const newTaskDataConnections: ITaskDataConnections = {};
@@ -1145,13 +1168,12 @@ export class WorkflowExecute {
 									}
 								} else {
 									if (
-										executionData.node.type === '@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
+										executionData.node.type ===
+										'@deep-consulting-solutions/n8n-nodes-dcs-wait.dcsWait'
 									) {
 										const connections =
 											workflow.connectionsBySourceNode[executionData.node.name]?.main;
 										if (connections && connections[0]?.length) {
-											console.log('connections');
-											console.dir(connections, { depth: null })
 											const flattenedConnections = [];
 											for (const conn of connections) {
 												flattenedConnections.push(...conn);
@@ -1183,8 +1205,9 @@ export class WorkflowExecute {
 													main: nodeSuccessData,
 												} as ITaskDataConnections,
 											};
-											this.runExecutionData.resultData.runData[executionData.node.name] = [taskData];
-											console.log('Trying to create resume timer entity');
+											this.runExecutionData.resultData.runData[executionData.node.name] = [
+												taskData,
+											];
 											await createResumeTimerEntity({
 												resumptionTime,
 												executionId: workflow.id,
@@ -1192,7 +1215,6 @@ export class WorkflowExecute {
 												resultData: this.runExecutionData.resultData,
 												status: 'running',
 											});
-											console.log('created resume timer enitity');
 											delete this.runExecutionData.resultData.runData[executionData.node.name];
 										} else {
 											runNodeData = await workflow.runNode(
@@ -1205,7 +1227,7 @@ export class WorkflowExecute {
 											);
 											nodeSuccessData = runNodeData.data;
 										}
-										
+
 										// break;
 									} else {
 										runNodeData = await workflow.runNode(

@@ -41,6 +41,18 @@
 			</template>
 		</ModalRoot>
 
+		<ModalRoot :name="ADD_ENUMS_SET_MODAL_KEY">
+			<template #default="{ data }">
+				<AddEnumsSetModal :data="data" />
+			</template>
+		</ModalRoot>
+
+		<ModalRoot :name="ENUMS_ISSUES_MODAL_KEY">
+			<template #default="{ data }">
+				<EnumsIssuesModal :data="data" />
+			</template>
+		</ModalRoot>
+
 		<ModalRoot :name="PERSONALIZATION_MODAL_KEY">
 			<PersonalizationModal />
 		</ModalRoot>
@@ -227,6 +239,8 @@ import {
 	GENERATE_CURL_MODAL_KEY,
 	ADD_TEST_SUITE_MODAL_KEY,
 	EDIT_TEST_SUITE_MODAL_KEY,
+	ADD_ENUMS_SET_MODAL_KEY,
+	ENUMS_ISSUES_MODAL_KEY,
 } from '@/constants';
 
 import AboutModal from './AboutModal.vue';
@@ -263,6 +277,8 @@ import SuggestedTemplatesPreviewModal from '@/components/SuggestedTemplates/Sugg
 import SetupWorkflowCredentialsModal from '@/components/SetupWorkflowCredentialsModal/SetupWorkflowCredentialsModal.vue';
 import AddTestSuiteModal from './AddTestSuiteModal.vue';
 import EditTestSuiteModal from './EditTestSuiteModal.vue';
+import AddEnumsSetModal from './AddEnumsSetModal.vue';
+import EnumsIssuesModal from './EnumsIssuesModal.vue';
 
 export default defineComponent({
 	name: 'Modals',
@@ -301,6 +317,8 @@ export default defineComponent({
 		SetupWorkflowCredentialsModal,
 		AddTestSuiteModal,
 		EditTestSuiteModal,
+		AddEnumsSetModal,
+		EnumsIssuesModal,
 	},
 	data: () => ({
 		CHAT_EMBED_MODAL_KEY,
@@ -336,6 +354,8 @@ export default defineComponent({
 		SETUP_CREDENTIALS_MODAL_KEY,
 		ADD_TEST_SUITE_MODAL_KEY,
 		EDIT_TEST_SUITE_MODAL_KEY,
+		ADD_ENUMS_SET_MODAL_KEY,
+		ENUMS_ISSUES_MODAL_KEY,
 	}),
 });
 </script>

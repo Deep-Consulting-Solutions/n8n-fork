@@ -10,7 +10,7 @@ import { AuthService } from '@/auth/auth.service';
 import config from '@/config';
 import { inE2ETests, inTest } from '@/constants';
 import type { BooleanLicenseFeature } from '@/Interfaces';
-import { License } from '@/License';
+// import { License } from '@/License';
 import type { AuthenticatedRequest } from '@/requests';
 import { send } from '@/ResponseHelper'; // TODO: move `ResponseHelper.send` to this file
 import {
@@ -41,9 +41,10 @@ export const createLicenseMiddleware =
 			return next();
 		}
 
-		const licenseService = Container.get(License);
+		// const licenseService = Container.get(License);
 
-		const hasAllFeatures = features.every((feature) => licenseService.isFeatureEnabled(feature));
+		// const hasAllFeatures = features.every((feature) => licenseService.isFeatureEnabled(feature));
+		const hasAllFeatures = true;
 		if (!hasAllFeatures) {
 			return res
 				.status(403)

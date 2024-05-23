@@ -50,6 +50,7 @@ const CredentialsView = async () => await import('@/views/CredentialsView.vue');
 const ExecutionsView = async () => await import('@/views/ExecutionsView.vue');
 const WorkflowsView = async () => await import('@/views/WorkflowsView.vue');
 const VariablesView = async () => await import('@/views/VariablesView.vue');
+const SettingsEnumsView = async () => await import('@/views/EnumsView.vue');
 const TestSuiteNodeView = async () => await import('@/views/TestSuiteNodeView.vue');
 const TestSuitesView = async () => await import('@/views/TestSuitesView.vue');
 const TestSuiteView = async () => await import('@/views/TestSuiteView.vue');
@@ -705,6 +706,21 @@ export const routes = [
 						rbac: {
 							scope: 'ldap:manage',
 						},
+					},
+				},
+			},
+			{
+				path: 'enums-management',
+				name: VIEWS.ENUMS,
+				components: {
+					settingsView: SettingsEnumsView,
+				},
+				meta: {
+					telemetry: {
+						pageCategory: 'settings',
+					},
+					meta: {
+						middleware: ['authenticated'],
 					},
 				},
 			},
