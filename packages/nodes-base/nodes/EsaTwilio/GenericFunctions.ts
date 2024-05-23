@@ -1,10 +1,12 @@
-import type {
-	IExecuteFunctions,
-	IHookFunctions,
-	IDataObject,
-	ILoadOptionsFunctions,
-	IRequestOptions,
-	IHttpRequestMethods
+import crypto from 'crypto';
+import {
+	type IExecuteFunctions,
+	type IHookFunctions,
+	type IDataObject,
+	type ILoadOptionsFunctions,
+	type IHttpRequestMethods,
+	NodeApiError,
+	ApplicationError,
 } from 'n8n-workflow';
 import sortBy from 'lodash.sortby';
 import axios from 'axios';
@@ -12,7 +14,59 @@ import type { AxiosError } from 'axios';
 
 import type { OptionsWithUri } from 'request';
 import { DEFAULT_MESSAGING_SERVICE_CUSTOM_SID, messagingServiceValue } from './descriptions';
-import type { MessagingService, MessagingServicesResponse } from './types';
+import type { EsaApp, MessagingService, MessagingServicesResponse } from './types';
+
+const generateESAAuthCRMToken = async (
+	options: Required<Pick<EsaApp, 'zohoCrmSecretKey' | 'zohoUserDetails' | 'appName'>>,
+): Promise<{ token: string; tokenForAuthHeader: string }> => {
+	const { zohoCrmSecretKey, zohoUserDetails, appName } = options;
+
+	if (appName.toLowerCase().includes('bmh')) {
+		const timestamp = Date.now();
+		const signatureString = `${timestamp}:${zohoUserDetails.id}`;
+		const createdSignature = crypto
+			.createHmac('sha1', zohoCrmSecretKey)
+			.update(signatureString)
+			.digest('base64');
+
+		const token = Buffer.from(`${createdSignature}:${signatureString}`).toString('base64');
+		return {
+			token,
+			tokenForAuthHeader: `Bearer ${token}`,
+		};
+	}
+
+	const nowTimestamp = Date.now();
+	const data = `${nowTimestamp}|${JSON.stringify(options.zohoUserDetails)}`;
+
+	const signature = crypto.createHmac('sha1', zohoCrmSecretKey).update(data).digest('base64');
+	const signatureWithData = `${signature}|${data}`;
+	const token = Buffer.from(signatureWithData).toString('base64');
+
+	return {
+		token,
+		tokenForAuthHeader: `Bearer ${token}`,
+	};
+};
+
+export const getESAApps = (): EsaApp[] => {
+	let esaApps!: EsaApp[];
+
+	try {
+		const esaAppsString = process.env.ESA_APPS;
+		if (esaAppsString) {
+			esaApps = JSON.parse(esaAppsString) as EsaApp[];
+		}
+	} catch {
+		return [];
+	}
+
+	if (Array.isArray(esaApps)) {
+		return esaApps;
+	}
+
+	return [];
+};
 
 /**
  * Make an API request to Twilio
@@ -23,6 +77,7 @@ export async function twilioApiRequest(
 	method: IHttpRequestMethods,
 	endpoint: string,
 	body: IDataObject,
+	esaAppKey: string,
 	query?: IDataObject,
 ): Promise<any> {
 	const credentials = (await this.getCredentials('twilioApi')) as {
@@ -37,7 +92,7 @@ export async function twilioApiRequest(
 		query = {};
 	}
 
-	const options: IRequestOptions = {
+	const options: OptionsWithUri = {
 		method,
 		form: body,
 		qs: query,
@@ -45,7 +100,36 @@ export async function twilioApiRequest(
 		json: true,
 	};
 
-	return await this.helpers.requestWithAuthentication.call(this, 'twilioApi', options);
+	const esaApps = getESAApps();
+
+	const esaApp = Array.isArray(esaApps)
+		? esaApps.find((esaApp) => esaApp.appKey === esaAppKey)
+		: null;
+
+	let error = { message: 'esaApp config not found in ESA Twilio node' };
+	if (!esaApp) throw new NodeApiError(this.getNode(), error, error);
+
+	const { zohoCrmSecretKey, zohoUserDetails, appName } = esaApp;
+
+	if (!zohoCrmSecretKey) {
+		error = { message: 'zohoCrmSecretKey not found in esaApp config' };
+		throw new NodeApiError(this.getNode(), error, error);
+	}
+	if (!zohoUserDetails?.id) {
+		error = { message: 'zohoUserDetails.id in esaApp config should be defined' };
+		throw new NodeApiError(this.getNode(), error, error);
+	}
+	const { tokenForAuthHeader } = await generateESAAuthCRMToken({
+		zohoCrmSecretKey,
+		zohoUserDetails,
+		appName,
+	});
+
+	return await axios.post(`${process.env.BASE_URL}/package/sms/message/send-message`, options, {
+		headers: {
+			Authorization: tokenForAuthHeader,
+		},
+	});
 }
 
 const XML_CHAR_MAP: { [key: string]: string } = {
@@ -123,7 +207,7 @@ export async function findAllMessagingServices(
 		return response.data.services;
 	} catch (e) {
 		const error = e as AxiosError;
-		throw new Error(
+		throw new ApplicationError(
 			`Failed to fetch messaging services. ${error.response?.data || error.message}.`,
 		);
 	}

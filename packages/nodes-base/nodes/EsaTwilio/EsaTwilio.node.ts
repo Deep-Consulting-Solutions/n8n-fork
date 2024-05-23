@@ -12,6 +12,7 @@ import { NodeOperationError } from 'n8n-workflow';
 import {
 	escapeXml,
 	findOptedOutChat,
+	getESAApps,
 	getMessagingServices,
 	transformDataToSendSMS,
 	twilioApiRequest,
@@ -132,7 +133,7 @@ export class EsaTwilio implements INodeType {
 					<br />
 				- supported mime types: <a
 						href="https://www.twilio.com/docs/sms/accepted-mime-types">https://www.twilio.com/docs/sms/accepted-mime-types</a>
-				
+
 						<br />
 				- images only restrictions: total size is up to 5MB. Twilio will resize images as necessary for successful
 					delivery based on carrier specifications. Messages with over 5MB of media will not be accepted.
@@ -208,6 +209,19 @@ export class EsaTwilio implements INodeType {
 							'Status Callbacks allow you to receive events related to the REST resources managed by Twilio: Rooms, Recordings and Compositions',
 					},
 				],
+			},
+			{
+				displayName: 'ESA App',
+				name: 'esaApp',
+				type: 'options',
+				required: true,
+				default: process.env.ESA_DEFAULT_APP_KEY ?? '',
+				noDataExpression: true,
+				description: 'The ESA app server through which the email should be sent',
+				options: getESAApps().map((esaApp) => ({
+					name: esaApp.appName,
+					value: esaApp.appKey,
+				})),
 			},
 		],
 	};
@@ -404,7 +418,20 @@ export class EsaTwilio implements INodeType {
 					});
 				}
 
-				const responseData = await twilioApiRequest.call(this, requestMethod, endpoint, body, qs);
+				const esaAppKey: string | undefined = this.getNodeParameter('esaApp', i) as string;
+				if (!esaAppKey) {
+					const error = { message: 'esaApp key not found in ESA Twilio node' };
+					throw new NodeOperationError(this.getNode(), error.message, error);
+				}
+
+				const responseData = await twilioApiRequest.call(
+					this,
+					requestMethod,
+					endpoint,
+					body,
+					esaAppKey,
+					qs,
+				);
 
 				returnData.push(responseData as IDataObject);
 			} catch (error) {

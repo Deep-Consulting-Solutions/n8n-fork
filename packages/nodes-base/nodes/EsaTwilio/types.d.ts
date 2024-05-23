@@ -44,3 +44,18 @@ export interface MessagingServicesResponse {
 		key: string;
 	};
 }
+
+export interface EsaApp {
+	appName: string;
+	appKey: string;
+	appBaseUrl: string;
+	sendgridEmail?: string;
+	sendgridApiKey?: string;
+	zohoCrmSecretKey?: string;
+	zohoUserDetails?: {
+		id: string;
+
+		// TODO: other fields might be used by the ESA projects, the likes of 'firstName', 'lastName', 'email', 'phone', 'profile
+		// either pass them in this object or better still dynamically get by the zohoUserId
+	};
+}
