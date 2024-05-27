@@ -78,7 +78,7 @@ export class WorkflowTestsController {
 			throw new BadRequestError('Workflow Test not found');
 		}
 
-		const result = Container.get(WorkflowTestService).getNodesOutput(req.params.workflowTestId);
+		const result = await Container.get(WorkflowTestService).getNodesOutput(req.params.workflowTestId);
 		const nodesOuput = result?.map((output) => {
 			try {output.data = JSON.parse(output.data)} catch(e){};
 			return output
