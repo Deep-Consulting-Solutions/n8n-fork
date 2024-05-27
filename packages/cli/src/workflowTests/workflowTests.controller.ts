@@ -78,7 +78,12 @@ export class WorkflowTestsController {
 			throw new BadRequestError('Workflow Test not found');
 		}
 
-		return Container.get(WorkflowTestService).getNodesOutput(req.params.workflowTestId);
+		const result = Container.get(WorkflowTestService).getNodesOutput(req.params.workflowTestId);
+		const nodesOuput = result?.map((output) => {
+			try {output.data = JSON.parse(output.data)} catch(e){};
+			return output
+		})
+		return nodesOuput;
 	}
 
 	@Post('/nodes-output/:workflowTestId')
@@ -138,7 +143,7 @@ export class WorkflowTestsController {
 			id: nodeOutputId,
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
-			data: req.body.outputType === 'data' ? req.body.data : {},
+			data: req.body.outputType === 'data' ? JSON.stringify(req.body.data) : '[]',
 			errorMessage: req.body.outputType === 'error' ? req.body.errorMessage : '',
 		};
 		const nodeKey = {
