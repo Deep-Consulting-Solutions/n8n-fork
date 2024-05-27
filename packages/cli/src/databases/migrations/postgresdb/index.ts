@@ -68,6 +68,7 @@ import { ExecutionIdResumeWorkflowTimer1899949999969 } from './1899949999969-Exe
 import { IdResumeWorkflowTimer1899999999969 } from './1899999999969-IdResumeWorkflowTimer';
 import { UpdateIdTypeOnEntites1899999999979 } from './1899999999979-UpdateIdTypeOnEntites';
 import { AddEnumsEntity1899999999989 } from './1899999999989-AddEnumsEntity'
+import { AlterNodeOutput1999999999989 } from './1999999999989-AlterNodeOutput'
 
 export const postgresMigrations: Migration[] = [
 	InitialMigration1587669153312,
@@ -139,4 +140,5 @@ export const postgresMigrations: Migration[] = [
 	IdResumeWorkflowTimer1899999999969,
 	UpdateIdTypeOnEntites1899999999979,
 	AddEnumsEntity1899999999989,
+	AlterNodeOutput1999999999989,
 ];

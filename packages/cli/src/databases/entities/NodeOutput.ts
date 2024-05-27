@@ -14,7 +14,7 @@ export class NodeOutput extends WithTimestampsAndStringId {
 
 	@Column({
 		type: 'jsonb',
-		default: {},
+		default: [{}],
 	})
 	data: any;
 

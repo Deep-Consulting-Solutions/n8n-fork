@@ -1090,7 +1090,13 @@ export class WorkflowExecute {
 										if (nodeOutputData.errorMessage) {
 											throw new NodeOperationError(node, nodeOutputData.errorMessage as string);
 										}
-										nodeSuccessData = [[{ json: JSON.parse(nodeOutputData.data) }]];
+										const nodeOutput = [];
+										for (const output of JSON.parse(nodeOutputData.data)) {
+											nodeOutput.push({
+												json: output
+											})
+										}
+										nodeSuccessData = [nodeOutput];
 									} else {
 										if (
 											node.type === '@deep-consulting-solutions/n8n-nodes-dcs-noco-db.dcsNocoDb'

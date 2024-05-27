@@ -11,7 +11,7 @@ export declare namespace WorkflowTestRequest {
 		outputType: string;
 		errorMessage?: string;
 		nodeId: string;
-		data?: object;
+		data?: object[];
 	}>;
 
 	type UpdateNodePayload = {

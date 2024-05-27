@@ -94,7 +94,7 @@ export class WorkflowTestsController {
 		const nodeData = {
 			workflowTestId: req.body.workflowTestId,
 			nodeId: req.body.nodeId,
-			data: req.body.outputType === 'data' ? req.body.data : {},
+			data: req.body.outputType === 'data' ? JSON.stringify(req.body.data) : '[]',
 			errorMessage: req.body.outputType === 'error' ? req.body.errorMessage : '',
 		};
 
