@@ -13,8 +13,8 @@ export class NodeOutput extends WithTimestampsAndStringId {
 	nodeId: string;
 
 	@Column({
-		type: 'jsonb',
-		default: [{}],
+		type: 'text',
+		default: '[]',
 	})
 	data: any;
 
