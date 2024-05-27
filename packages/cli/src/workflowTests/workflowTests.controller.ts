@@ -152,7 +152,9 @@ export class WorkflowTestsController {
 			nodeId: req.body.nodeId,
 		};
 
-		const updatedNodeOutput = await Container.get(NodeOutputRepository).update(nodeKey, nodeData);
+		const nodeOuput = new NodeOutput();
+		Object.assign(nodeOuput, nodeData);
+		const updatedNodeOutput = await Container.get(NodeOutputRepository).update(nodeKey, nodeOuput);
 
 		if (!updatedNodeOutput) {
 			this.logger.error('Failed to update node output', { userId: req.user.id });
