@@ -388,6 +388,14 @@ export class ActiveWorkflowRunner {
 				process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true'
 					? await Db.collections.SharedWorkflow.find({
 							relations: ['workflow'],
+							select: {
+								workflowId: true,
+								roleId: true,
+								workflow: {
+									id: true,
+									active: true
+								}
+							},
 							where: whereClause({
 								user,
 								entityType: 'workflow',
@@ -395,6 +403,14 @@ export class ActiveWorkflowRunner {
 					  })
 					: await Db.collections.SharedWorkflow.find({
 							relations: ['workflow'],
+							select: {
+								workflowId: true,
+								roleId: true,
+								workflow: {
+									id: true,
+									active: true
+								}
+							},
 					  });
 
 			activeWorkflows = shared.reduce<WorkflowEntity[]>((acc, cur) => {
