@@ -374,16 +374,35 @@ export async function replaceInvalidCredentials(workflow: WorkflowEntity): Promi
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getSharedWorkflowIds(user: User, roles?: string[]): Promise<string[]> {
+	// unsure why workflow and role joins are done here when they aren't even used
 	const sharedWorkflows =
 		process.env.ONLY_OWNER_OR_ADMIN_CAN_ACCESS_WORKFLOW === 'true'
 			? await Db.collections.SharedWorkflow.find({
 					relations: ['workflow', 'role'],
-					select: ['workflowId'],
+					select: {
+						workflowId: true,
+						workflow: {
+							id: true,
+							active: true
+						},
+						role: {
+							id: true
+						}
+					},
 					where: whereClause({ user, entityType: 'workflow', roles }),
 			  })
 			: await Db.collections.SharedWorkflow.find({
 					relations: ['workflow', 'role'],
-					select: ['workflowId'],
+					select: {
+						workflowId: true,
+						workflow: {
+							id: true,
+							active: true
+						},
+						role: {
+							id: true
+						}
+					}
 			  });
 
 	return sharedWorkflows.map(({ workflowId }) => workflowId);
