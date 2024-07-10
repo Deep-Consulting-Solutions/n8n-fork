@@ -1,4 +1,4 @@
-ARG NODE_VERSION=18
+ARG NODE_VERSION=16
 ARG ACCESS_TOKEN
 
 # 1. Create an image to build n8n
@@ -12,11 +12,11 @@ COPY --chown=node:node packages ./packages
 COPY --chown=node:node patches ./patches
 
 RUN apk add --update libc6-compat jq
-RUN corepack enable && corepack prepare pnpm@9.3.0 --activate
+RUN corepack enable && corepack prepare --activate
 USER node
 
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
-RUN corepack use pnpm@9.3.0 && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 RUN pnpm build
 RUN rm -rf node_modules
 RUN jq 'del(.pnpm.patchedDependencies)' package.json > package.json.tmp; mv package.json.tmp package.json
