@@ -12,7 +12,7 @@ COPY --chown=node:node packages ./packages
 COPY --chown=node:node patches ./patches
 
 RUN apk add --update libc6-compat jq
-RUN corepack enable && corepack prepare pnpm@9.3.0 --activate
+RUN corepack enable && corepack prepare pnpm@9.3.0 --activate && corepack use pnpm@9.3.0
 USER node
 
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
