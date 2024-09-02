@@ -130,6 +130,15 @@ export default mixins(userHelpers).extend({
 				activateOnRouteNames: [VIEWS.COMMUNITY_NODES],
 			});
 
+			menuItems.push({
+				id: 'test-suites',
+				icon: 'fas:chart-column',
+				label: this.$locale.baseText('settings.testSuites'),
+				position: 'top',
+				available: true,
+				activateOnRouteNames: [VIEWS.TEST_SUITES],
+			});
+
 			return menuItems;
 		},
 	},
@@ -197,11 +206,16 @@ export default mixins(userHelpers).extend({
 				case 'users': // Fakedoor feature added via hooks when user management is disabled on cloud
 				case 'environments':
 				case 'logging':
-					this.$router.push({ name: VIEWS.FAKE_DOOR, params: { featureId: key } }).catch(() => {});
+					this.$router.push({ name: VIEWS.FAKE_DOOR, params: { featureId: key } }).catch(() => { });
 					break;
 				case 'settings-community-nodes':
 					if (this.$router.currentRoute.name !== VIEWS.COMMUNITY_NODES) {
 						this.$router.push({ name: VIEWS.COMMUNITY_NODES });
+					}
+					break;
+				case 'test-suites':
+					if (this.$router.currentRoute.name !== VIEWS.TEST_SUITES) {
+						this.$router.push({ name: VIEWS.TEST_SUITES });
 					}
 					break;
 				case 'settings-usage-and-plan':
@@ -240,12 +254,14 @@ export default mixins(userHelpers).extend({
 .returnButton {
 	padding: var(--spacing-s) var(--spacing-l);
 	cursor: pointer;
+
 	&:hover {
 		color: var(--color-primary);
 	}
 }
 
 @media screen and (max-height: 420px) {
+
 	.updatesSubmenu,
 	.versionContainer {
 		display: none;

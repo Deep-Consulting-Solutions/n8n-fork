@@ -44,6 +44,8 @@ export const EXECUTIONS_MODAL_KEY = 'executions';
 export const WORKFLOW_ACTIVE_MODAL_KEY = 'activation';
 export const ONBOARDING_CALL_SIGNUP_MODAL_KEY = 'onboardingCallSignup';
 export const COMMUNITY_PACKAGE_INSTALL_MODAL_KEY = 'communityPackageInstall';
+export const ADD_TEST_SUITE_MODAL_KEY = 'addTestSuite';
+export const EDIT_TEST_SUITE_MODAL_KEY = 'editTestSuite';
 export const COMMUNITY_PACKAGE_CONFIRM_MODAL_KEY = 'communityPackageManageConfirm';
 export const IMPORT_CURL_MODAL_KEY = 'importCurl';
 export const LOG_STREAM_MODAL_KEY = 'settingsLogStream';
@@ -396,6 +398,9 @@ export const enum VIEWS {
 	SSO_SETTINGS = 'SSoSettings',
 	SAML_ONBOARDING = 'SamlOnboarding',
 	VERSION_CONTROL = 'VersionControl',
+	TEST_SUITES = 'TestSuitesView',
+	TEST_SUITE = 'TestSuiteView',
+	TEST_SUITE_NODES = 'TestSuiteNodesView',
 }
 
 export const enum FAKE_DOOR_FEATURES {
