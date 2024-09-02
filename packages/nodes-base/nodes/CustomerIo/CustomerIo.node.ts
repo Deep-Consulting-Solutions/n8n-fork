@@ -171,13 +171,13 @@ export class CustomerIo implements INodeType {
 							const additionalFields = this.getNodeParameter('additionalFields', i);
 
 							if (additionalFields.customProperties) {
-								const data: any = {};
+								// const data: any = {};
 								//@ts-ignore
 								additionalFields.customProperties.customProperty.map((property) => {
-									data[property.key] = property.value;
+									// data[property.key] = property.value;
+									body[property.key] = property.value;
 								});
-
-								body.data = data;
+								// body.data = data;
 							}
 
 							if (additionalFields.email) {
